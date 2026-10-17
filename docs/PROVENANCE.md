@@ -1,0 +1,22 @@
+# Field provenance, revision 0
+
+Every value the core generates has the tier "prescribed analytic". It comes from a formula in CONFORMANCE_FIXTURE_SPEC.md section 3, not from measurement, a solved physical model or fitting. The literature behind a field's shape or scale has its own tier, and that tier never transfers to the voxel values (spec finding R0-10). Literature tiers use the evidence classes of ~/Developer/notes/handoff-2026-10-16/HANDOFF.json: reported_observation, published_model_parameter, published_hypothesis, conjecture and computed_estimate. The exporter's own registry labels several of these entries MEASURED, and the spec records that this describes the literature, not this volume.
+
+The table follows the CF-6 record format. CF-6 fails for revision 0, as the spec states, and M0 does not change that. Fixing a unit or a definition is a revision 1 change.
+
+| Field | Quantity | Units as labelled in revision 0 | Literature anchor and tier | Limitations |
+| --- | --- | --- | --- | --- |
+| temperature | A temperature-shaped index: a hot core and conduit during the pulse over a geothermal gradient | degrees C, but the coefficients 320, 180 and 40 have no derivation | Cycle timing: Meshik et al. 2004, about 30 min active and 2.5 h dormant, inferred from xenon (reported_observation and its interpretation); Ibekwe, Cooling, Trainer and Eaton 2020 reproduce the roughly 3 h cycle computationally (computed_estimate). Hunter's own lane did not reproduce the cycle from ENDF data, an internal non-reproduction, not a refutation. | Not a thermal-hydraulic solution. Must not be used to state temperatures at Oklo. |
+| hydration | Water saturation of pore space | dimensionless, 0.02 to 1.0, prescribed | None beyond the cycle timing above | Prescribed drying shape, not a transport solution. |
+| h2_concentration | A spatial index of where radiolytic H2 would be produced | labelled mmol/L with no dose basis (R0-5), so a dimensionless index | G(H2) = 0.40 molecules per 100 eV for gamma radiolysis of water (Lin et al. 2005; published_model_parameter). The exporter's registry adds an uncertainty of 0.04 that has not been checked against the source. H2 in Oklo fluid inclusions (Dubessy et al. 1988; reported_observation), with radiolysis one possible source among others. | A G-value alone cannot give a concentration. Never convert this field into a dose or a concentration. |
+| u235_ratio | The atom ratio 235U/238U | ratio, natural baseline 0.00725 | Depletion at Oklo (Bodu et al. 1972; Neuilly et al. 1972; reported_observation). The registry's depleted values use percent signs and their denominator needs a source check (R0-6). | 0.00725 is a ratio. It must not be swapped for 0.7204, which is an atom percentage of all uranium. |
+| polymer_yield | A hypothetical oligomer surrogate | labelled umol/L, with no kinetic basis | Wet-dry condensation at a natural reactor (Ebisuzaki and Maruyama 2017; Adam et al. 2018; published_hypothesis) | Not evidence of polymerization at Oklo or anywhere. Its mass balance closes by construction (R0-8). |
+| compartments | Zone labels: 0 sandstone, 1 reactor core, 2 clay and phosphate halo, 3 fracture conduit, 4 steam chimney | categorical, prescribed thresholds | None | A prescribed geometry, not mapped geology. |
+
+## Text for the in-app assumptions and provenance drawer
+
+This app is an educational scenario explorer. Every number it draws comes from a fixed formula chosen to give a plausible shape, not from measurements of Oklo and not from a physical simulation. The formulas are frozen so that the app, the original web viewer and the exported data files can be checked against each other.
+
+The natural fission reactors at Oklo in Gabon operated roughly two billion years ago, long after the earliest evidence of life on Earth. The pool shown here is therefore an analog scenario for ideas about early chemistry, not a reconstruction of a place where life began. The idea that wet and dry cycles at a natural reactor could drive the joining of small molecules is a published hypothesis, not an established finding.
+
+The roughly three-hour on and off cycle comes from the xenon record studied by Meshik and colleagues in 2004, and it has been reproduced in a computer model by Ibekwe and colleagues in 2020. The hydrogen map shows where radiolysis would happen, not how much hydrogen formed. Temperatures, water content and molecule amounts are illustrative indices. Units are shown as the original viewer labelled them, and several of those units have no derivation yet.

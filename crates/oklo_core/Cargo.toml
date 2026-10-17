@@ -1,0 +1,9 @@
+[package]
+name = "oklo_core"
+version = "0.0.1"
+edition = "2021"
+publish = false
+description = "Revision 0 of the Oklo GUI conformance fixture, ported from CONFORMANCE_FIXTURE_SPEC.md section 3. Prescribed analytic fields, not a physical simulation."
+
+[lib]
+crate-type = ["staticlib", "rlib"]

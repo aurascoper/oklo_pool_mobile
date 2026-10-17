@@ -1,0 +1,4 @@
+target/
+*.xcframework/
+ios/OkloCoreKit/.build/
+viewer/data/

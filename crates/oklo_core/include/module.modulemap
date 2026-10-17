@@ -1,0 +1,4 @@
+module OkloCoreFFI {
+    header "oklo_core.h"
+    export *
+}

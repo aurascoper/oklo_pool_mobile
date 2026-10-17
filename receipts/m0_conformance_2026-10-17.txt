@@ -1,0 +1,173 @@
+oklo_pool_mobile M0 conformance receipt
+generated_utc: 2026-10-17T18:38:52Z
+scope: one case (phase 0.15, active, 32^3, b=0.17) from export_oklo_mrc.py; Rust is a third implementation, not the CF-2 reference generator.
+policy: no parameter, threshold or equation was changed after inspecting results; this is the first run of the code as written.
+
+== tools
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+ProductName:		macOS ProductVersion:		27.0.1 BuildVersion:		26A434 
+arm64
+
+== fixture hashes (must equal CONFORMANCE_FIXTURE_SPEC.md section 2 / 2.1)
+a300455caa05116c099150ef552350041b23b27b1d36e81e2b8661793b0e6321  oklo_model.js
+8dac3ae9b8268a476b791f8c2293130e899d5c86c7fab09ce27345de2333544d  index.html
+402981117d96a3074ce11a5abc8729187473479e1e4c432e7d2c17f0cba02d31  export_oklo_mrc.py
+a3e65b335364f7b45a7fda2d0c9096cd9c6007b841ac7e8098c13fc026354088  verify_chimerax_interop.py
+587745ede6c6997a298f8f0a4e01127823de1b7c606383cfa49b87db0cc60d0c  CONFORMANCE_FIXTURE_SPEC.md
+d3ba9a2509ed1b28968900b1faf4339fb2c6360ce0844f15d0c1ce7e961910fc  oklo_compartments.mrc
+20db0315200c261be84ca5619d13d1bfeb757ace05285a15b12667a7cfa33f7f  oklo_h2_concentration.mrc
+3e951f3ee385f3a0c971ac9f3aa92bf927f072964e1f8ecb4e5a8e1ac54b19ec  oklo_hydration.mrc
+1d85bf12f86d71b5800983abf9dc85682055dffadda48a61b91194dc451c3ca5  oklo_polymer_yield.mrc
+70dcf80f0bb4972cf374d13bcd8714001c3b3fcc0d0a32e1fd0c5e619c0b9766  oklo_temperature.mrc
+8805534c6ef1f9a9cda783661daccbd3f5348ac1a72f194b6e77decaf83c1ae5  oklo_u235_ratio.mrc
+
+== source hashes (this receipt covers these files)
+071752c56e4acdb82f26ddd569bc487509b1f2a1c77846f03b5be6d417d69f6a  crates/oklo_core/src/lib.rs
+1acd157ddb0d7b2b988f1fc6335c3fad9c2a959e9827daada43b869617f9f484  crates/oklo_core/src/ffi.rs
+b30434a08e9441ee521ef1c34b0acb6112f34d95782598b9134961da3a46312a  crates/oklo_core/tests/conformance.rs
+8641bdc3e4cf408ec5a2027dd342fcc800ba63911ae81d14ffb321382b85455a  crates/oklo_core/include/oklo_core.h
+
+== cargo test (debug) -- --nocapture --test-threads=1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/lib.rs (target/debug/deps/oklo_core-12726a4cad8c27fb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conformance.rs (target/debug/deps/conformance-a513704999e19750)
+
+running 5 tests
+test a_matches_python_export_at_recorded_boundary ... (a) temperature: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) hydration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) h2_concentration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) u235_ratio: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) polymer_yield: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) compartments: byte_identical=true mismatched=0 near_threshold_listed=[]
+ok
+test b_sensitivity_to_gui_boundary_is_detectable ... (b) sensitivity diagnostic, temperature at b=0.1667 vs file: max_abs_diff=25.4847 C at voxel (15, 15, 12), violations=32768
+ok
+test c_matches_recorded_snapshot ... (c) temperature: min/max/mean/sd = [26.849241256713867, 216.86190795898438, 84.6617570084054, 27.992193195523154] recorded [26.849241, 216.861908, 84.661757, 27.992193]
+(c) hydration: min/max/mean/sd = [0.019999999552965164, 0.8817071914672852, 0.7578545317146563, 0.12566158257772567] recorded [0.02, 0.881707, 0.757855, 0.125662]
+(c) h2_concentration: min/max/mean/sd = [0.0011106339516118169, 3.652888536453247, 1.0643795449404507, 0.7055697165619638] recorded [0.001111, 3.652889, 1.06438, 0.70557]
+(c) u235_ratio: min/max/mean/sd = [0.004214244894683361, 0.0072493236511945724, 0.006733849087311228, 0.000593239970287759] recorded [0.004214, 0.007249, 0.006734, 0.000593]
+(c) polymer_yield: min/max/mean/sd = [0.004336145240813494, 14.159290313720703, 5.301710125719239, 2.8717618066461448] recorded [0.004336, 14.15929, 5.30171, 2.871762]
+(c) compartments: min/max/mean/sd = [0.0, 4.0, 1.5091552734375, 0.9645393215640743] recorded [0.0, 4.0, 1.509155, 0.964539]
+(c) zone counts [7560, 3356, 20656, 0, 1196] recorded [7560, 3356, 20656, 0, 1196]
+ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ignored, needs advance_phase (lib.rs TODO for Hunter)
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+   Doc-tests oklo_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+== cargo test --release -- --nocapture --test-threads=1
+   Compiling oklo_core v0.0.1 (/Users/aurascoper/Developer/oklo_pool_mobile/crates/oklo_core)
+    Finished `release` profile [optimized] target(s) in 1.23s
+     Running unittests src/lib.rs (target/release/deps/oklo_core-e79deb3f508bcecc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conformance.rs (target/release/deps/conformance-686cee5355afb817)
+
+running 5 tests
+test a_matches_python_export_at_recorded_boundary ... (a) temperature: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) hydration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) h2_concentration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) u235_ratio: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) polymer_yield: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) compartments: byte_identical=true mismatched=0 near_threshold_listed=[]
+ok
+test b_sensitivity_to_gui_boundary_is_detectable ... (b) sensitivity diagnostic, temperature at b=0.1667 vs file: max_abs_diff=25.4847 C at voxel (15, 15, 12), violations=32768
+ok
+test c_matches_recorded_snapshot ... (c) temperature: min/max/mean/sd = [26.849241256713867, 216.86190795898438, 84.6617570084054, 27.992193195523154] recorded [26.849241, 216.861908, 84.661757, 27.992193]
+(c) hydration: min/max/mean/sd = [0.019999999552965164, 0.8817071914672852, 0.7578545317146563, 0.12566158257772567] recorded [0.02, 0.881707, 0.757855, 0.125662]
+(c) h2_concentration: min/max/mean/sd = [0.0011106339516118169, 3.652888536453247, 1.0643795449404507, 0.7055697165619638] recorded [0.001111, 3.652889, 1.06438, 0.70557]
+(c) u235_ratio: min/max/mean/sd = [0.004214244894683361, 0.0072493236511945724, 0.006733849087311228, 0.000593239970287759] recorded [0.004214, 0.007249, 0.006734, 0.000593]
+(c) polymer_yield: min/max/mean/sd = [0.004336145240813494, 14.159290313720703, 5.301710125719239, 2.8717618066461448] recorded [0.004336, 14.15929, 5.30171, 2.871762]
+(c) compartments: min/max/mean/sd = [0.0, 4.0, 1.5091552734375, 0.9645393215640743] recorded [0.0, 4.0, 1.509155, 0.964539]
+(c) zone counts [7560, 3356, 20656, 0, 1196] recorded [7560, 3356, 20656, 0, 1196]
+ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ignored, needs advance_phase (lib.rs TODO for Hunter)
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests oklo_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+== swift test (ios/OkloCoreKit, macOS slice), 2026-10-17T18:42:32Z
+swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+Xcode 27.0
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test abiVersionIsOne() passed after 0.001 seconds.
+✔ Test rejectsInvalidPulseBoundary() passed after 0.001 seconds.
+✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.007 seconds.
+✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.123 seconds.
+✔ Test run with 4 tests in 0 suites passed after 0.123 seconds.
+
+== not run: ios-arm64 and ios-arm64-simulator slices (no simulator runtime installed; installing one needs approval)
+== not run: e_step_keeps_phase_in_range (advance_phase unwritten, Hunter's decision)
+
+== addendum 2026-10-17T19:13:53Z: test harness change, no change to the core or to any check
+reason: pre-commit review removed absolute home paths; the default fixture dir is now $HOME-relative in tests/conformance.rs and OkloSimTests.swift. lib.rs, ffi.rs and oklo_core.h are unchanged.
+071752c56e4acdb82f26ddd569bc487509b1f2a1c77846f03b5be6d417d69f6a  crates/oklo_core/src/lib.rs
+1acd157ddb0d7b2b988f1fc6335c3fad9c2a959e9827daada43b869617f9f484  crates/oklo_core/src/ffi.rs
+8641bdc3e4cf408ec5a2027dd342fcc800ba63911ae81d14ffb321382b85455a  crates/oklo_core/include/oklo_core.h
+6f2d46c8c0da2fbe7d1129b622d5176dbd54fcc7efbd1ed17f8fb05b104e0561  crates/oklo_core/tests/conformance.rs
+d1f791d14e93d793b438bcdf47ef21519696d03f5c45fcf6a93753d15a421c40  ios/OkloCoreKit/Tests/OkloCoreTests/OkloSimTests.swift
+
+== cargo test (debug) after the change
+
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+running 5 tests
+test a_matches_python_export_at_recorded_boundary ... (a) temperature: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) hydration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) h2_concentration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) u235_ratio: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) polymer_yield: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) compartments: byte_identical=true mismatched=0 near_threshold_listed=[]
+ok
+test b_sensitivity_to_gui_boundary_is_detectable ... (b) sensitivity diagnostic, temperature at b=0.1667 vs file: max_abs_diff=25.4847 C at voxel (15, 15, 12), violations=32768
+ok
+test c_matches_recorded_snapshot ... (c) temperature: min/max/mean/sd = [26.849241256713867, 216.86190795898438, 84.6617570084054, 27.992193195523154] recorded [26.849241, 216.861908, 84.661757, 27.992193]
+(c) hydration: min/max/mean/sd = [0.019999999552965164, 0.8817071914672852, 0.7578545317146563, 0.12566158257772567] recorded [0.02, 0.881707, 0.757855, 0.125662]
+(c) h2_concentration: min/max/mean/sd = [0.0011106339516118169, 3.652888536453247, 1.0643795449404507, 0.7055697165619638] recorded [0.001111, 3.652889, 1.06438, 0.70557]
+(c) u235_ratio: min/max/mean/sd = [0.004214244894683361, 0.0072493236511945724, 0.006733849087311228, 0.000593239970287759] recorded [0.004214, 0.007249, 0.006734, 0.000593]
+(c) polymer_yield: min/max/mean/sd = [0.004336145240813494, 14.159290313720703, 5.301710125719239, 2.8717618066461448] recorded [0.004336, 14.15929, 5.30171, 2.871762]
+(c) compartments: min/max/mean/sd = [0.0, 4.0, 1.5091552734375, 0.9645393215640743] recorded [0.0, 4.0, 1.509155, 0.964539]
+(c) zone counts [7560, 3356, 20656, 0, 1196] recorded [7560, 3356, 20656, 0, 1196]
+ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ignored, needs advance_phase (lib.rs TODO for Hunter)
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.14s
+   Doc-tests oklo_core
+
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+== swift test after the change
+◇ Test run started.
+✔ Test abiVersionIsOne() passed after 0.001 seconds.
+✔ Test rejectsInvalidPulseBoundary() passed after 0.001 seconds.
+✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.008 seconds.
+✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.148 seconds.
+✔ Test run with 4 tests in 0 suites passed after 0.148 seconds.
