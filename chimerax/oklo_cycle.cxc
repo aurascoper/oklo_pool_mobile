@@ -15,21 +15,31 @@ open ../out/series/b0.17/u235_ratio_f*.mrc vseries true
 open ../out/series/b0.17/polymer_yield_f*.mrc vseries true
 open ../out/series/b0.17/compartments_f*.mrc vseries true
 
-rename #1 "temperature (deg C as labelled, coefficients underived)"
+rename #1 "temperature index (labelled deg C, coefficients underived)"
 rename #2 "hydration (saturation, dimensionless)"
 rename #3 "H2 index (labelled mmol/L, no dose basis)"
 rename #4 "235U/238U (atom ratio)"
 rename #5 "polymer index (labelled umol/L, no kinetics)"
 rename #6 "compartments (zones 0 to 4)"
 
-# Display choices, one per field. These are Hunter's to tune: each level picks
-# which feature of the field the surface outlines.
+# Display choices, one per field. Each level is an illustrative isovalue that
+# makes one feature legible. None is a physical threshold, a measured boundary,
+# a concentration limit, a depletion boundary or a polymerization threshold.
+#   #1 temperature index 160: the hot-region envelope. It appears only in frames
+#      where some voxel reaches 160, which in revision 0 means the pulse is high:
+#      frames 1 to 9 and 11 to 20 at b = 0.17. Frame 10 shows nothing, because
+#      the pulse term falls to 0 just before b and jumps back to 1 after it
+#      (receipt, test g). That gap is in the source equations, not the display.
+#   #2 hydration 0.5, #3 H2 index 2.0, #4 235U/238U 0.006, #5 polymer index 8.0:
+#      display cutoffs only.
+#   #6 compartments: discrete zone colours with interpolation off, so colours
+#      never blend into labels that do not exist.
 volume #1 style surface level 160 color firebrick transparency 0.2
 volume #2 style surface level 0.5 color royalblue transparency 0.4
 volume #3 style surface level 2.0 color seagreen transparency 0.3
 volume #4 style surface level 0.006 color goldenrod transparency 0.5
 volume #5 style surface level 8.0 color mediumorchid transparency 0.3
-volume #6 style image
+volume #6 style image linearInterpolation false
 
 # Lay the six out in two rows of three so nothing overlaps.
 tile #1-6 columns 3 spacingFactor 1.4

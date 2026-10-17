@@ -47,6 +47,18 @@ func fieldMatchesPythonExportBitForBit(field: OkloSim.Field, name: String) throw
     #expect(ours.map(\.bitPattern) == reference.map(\.bitPattern))
 }
 
+@Test func stepWrapsAndRejectsNegativeSteps() throws {
+    let sim = try #require(OkloSim(pythonExportConfig()))
+    #expect(sim.step(seconds: 60))
+    let p = sim.phase
+    #expect(p == 0.15 + 60.0 / 10800.0)
+    #expect(!sim.step(seconds: -1))
+    #expect(!sim.step(seconds: .nan))
+    #expect(sim.phase == p)
+    #expect(sim.step(seconds: 3 * 10800))
+    #expect(sim.phase >= 0 && sim.phase < 1)
+}
+
 @Test func zoneCountsMatchRecordedSnapshot() throws {
     let sim = try #require(OkloSim(pythonExportConfig()))
     var counts = [Int](repeating: 0, count: 5)

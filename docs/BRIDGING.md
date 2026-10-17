@@ -8,7 +8,7 @@ The C header crates/oklo_core/include/oklo_core.h is the only interface between 
 | --- | --- |
 | oklo_core_abi_version() | Returns 1. |
 | oklo_sim_create(config) | Returns an owned OkloSim pointer, or NULL if config is NULL or invalid. All six fields are computed before it returns. |
-| oklo_sim_step(sim, dt_s) | Returns OKLO_OK (0), OKLO_ERR_NULL (-1) or OKLO_ERR_INVALID (-2) for a non-finite dt_s or a resulting phase outside [0, 1]. On success every field is recomputed in place. Currently aborts the process, because advance_phase is unwritten. |
+| oklo_sim_step(sim, dt_s) | Returns OKLO_OK (0), OKLO_ERR_NULL (-1), or OKLO_ERR_INVALID (-2) for a negative or non-finite dt_s. On success the phase becomes rem_euclid(phase + dt_s / cycle_period_s, 1), in [0, 1), and every field is recomputed in place. On error nothing changes. |
 | oklo_sim_field(sim, field_id, out_len) | Borrows nx*ny*nz floats, or returns NULL for a NULL sim or unknown id. out_len may be NULL. |
 | oklo_sim_phase(sim) | The current phase, or NaN for NULL. |
 | oklo_sim_destroy(sim) | Frees sim. NULL is ignored. Destroying twice is undefined. |
@@ -21,7 +21,9 @@ Every field is a float32 array with X fastest, index = k*nx*ny + j*nx + i, which
 
 The core computes in float64 with the platform's libm and stores float32. On this Mac the result is byte-identical to the Python exporter, which also calls Apple's libm. Android's bionic libm is not guaranteed to round exp and sin identically, so Android results are expected to agree within the CF-2 tolerance, 1e-6 times max(1, |reference|), and may differ in the last bit. If bit identity across platforms is ever required, it needs a pure-Rust math library, which is a dependency decision for later.
 
-A Rust panic cannot cross the C boundary. Since Rust 1.81 a panic in an extern "C" function aborts the process rather than unwinding into Swift or Kotlin, which is why calling step before advance_phase exists aborts rather than corrupting state.
+A Rust panic cannot cross the C boundary: since Rust 1.81 a panic in an extern "C" function aborts the process rather than unwinding into Swift or Kotlin. No function in this ABI panics on any input; invalid input returns an error code or NULL, and tests/step.rs checks the step path for negative, non-finite and NULL arguments.
+
+Stepping is navigation along the revision 0 cycle, not dynamics. The fields depend only on phase, and the period that maps seconds to phase is whatever the caller configures; the 3 h value used here is inherited from the exporter and is not validated by stepping.
 
 ## iOS and macOS
 

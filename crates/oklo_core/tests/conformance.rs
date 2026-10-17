@@ -289,9 +289,35 @@ fn f_series_frame_9_matches_fixture_and_cf3_header() {
     eprintln!("(f) frame 9: six data blocks byte-identical to the stored files; CF-3 header rows all pass");
 }
 
-/// Step behaviour depends on `advance_phase`, which is Hunter's decision.
+/// (g) Display semantics for chimerax/oklo_cycle.cxc. The temperature surface
+/// at the illustrative isovalue 160 is drawn only in frames where some voxel
+/// reaches 160, which in revision 0 happens only while the pulse is high, so
+/// no separate visibility rule is needed. This records which frames show it,
+/// including the frames just before and after the pulse boundary b = 0.17:
+/// frame 10 (p = 0.1667) sits just before b, where sin(pi*p/b) has fallen to
+/// about 0.06, and frame 11 (p = 0.1833) sits just after it, where the
+/// exponential branch restarts near 1. The surface vanishes for frame 10 and
+/// returns at frame 11: the revision 0 pulse discontinuity, shown, not fixed.
 #[test]
-#[ignore = "needs advance_phase (lib.rs TODO for Hunter)"]
+fn g_temperature_isovalue_160_frames() {
+    let mut shown = Vec::new();
+    for i in 0..60u32 {
+        let mut c = python_export_config(0.17);
+        c.phase = i as f64 / 60.0;
+        let max = compute_field(&c, Field::Temperature).iter().copied().fold(f32::NEG_INFINITY, f32::max);
+        if max >= 160.0 {
+            shown.push(i);
+        }
+    }
+    eprintln!("(g) b=0.17: frames with a 160 isosurface: {shown:?}");
+    assert!(shown.contains(&9), "frame 9 (p = 0.15) should show the surface");
+    assert!(!shown.contains(&10), "frame 10 (just before b) should not show it");
+    assert!(shown.contains(&11), "frame 11 (just after b) should show it again");
+    assert!(!shown.contains(&0), "frame 0 (P = 0) should not show it");
+}
+
+/// (e) Stepping keeps the phase in [0, 1) under the advance_phase contract.
+#[test]
 fn e_step_keeps_phase_in_range() {
     let mut sim = oklo_core::Sim::new(python_export_config(0.17)).unwrap();
     for _ in 0..1000 {

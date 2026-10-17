@@ -58,8 +58,8 @@ public final class OkloSim {
 
     public var phase: Double { oklo_sim_phase(handle) }
 
-    /// Advance by `seconds`. Until `advance_phase` in crates/oklo_core/src/lib.rs
-    /// is written, this aborts the process (a Rust panic cannot cross the C ABI).
+    /// Advance by `seconds` along the cycle, wrapping at its end. Returns false,
+    /// and changes nothing, for a negative or non-finite step.
     @discardableResult
     public func step(seconds: Double) -> Bool {
         oklo_sim_step(handle, seconds) == OKLO_OK

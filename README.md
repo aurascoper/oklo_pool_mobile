@@ -10,7 +10,7 @@ The source of truth is the frozen fixture in ~/.gemini/antigravity/scratch/oklo_
 
 The record is receipts/m0_conformance_2026-10-17.txt. At the one case stored on disk (phase 0.15, active scenario, 32 x 32 x 32, pulse boundary 0.17), all six Rust fields are byte-identical to the MRC files that export_oklo_mrc.py wrote, in debug and release builds, on the first run of the code as written. Swift reads the same values through the C ABI on the macOS slice and matches them bit for bit. The iOS device and simulator slices build, but they have not been run, because no simulator runtime is installed. This is agreement with one implementation at one case. It is not the CF-2 check, which needs an independent reference generator and twenty cases.
 
-oklo_sim_step does not work yet. It depends on advance_phase in crates/oklo_core/src/lib.rs, which is left for Hunter, because revision 0 has no time axis and the mapping from seconds to phase is a modelling decision. Until it is written, calling step aborts the process.
+oklo_sim_step follows the contract adopted on 2026-10-17 (advance_phase in crates/oklo_core/src/lib.rs): forward steps wrap at the end of the cycle into [0, 1), negative and non-finite steps are errors that change nothing, and the configured cycle_period_s is the only time scale. crates/oklo_core/tests/step.rs covers it, through the Rust API and the C ABI, and the Swift package tests it through the bridge. Stepping is navigation along prescribed functions of phase, not dynamics, and the 3 h period it usually runs with is inherited, not validated.
 
 ## Build and test
 

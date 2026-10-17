@@ -217,3 +217,45 @@ wasm vs native: 720 of 720 frames byte-identical
 == viewer v2, served locally, Playwright Chromium: engine check 6 of 6 match spec 2.1; current frame matches native; ChimeraX row pass; play advances frames; no horizontal scroll at 736 px; WebGL2 3D renders (one screenshot).
 
 == observation for Hunter (not added to the spec): in revision 0 the pulse term P(p) is discontinuous at p = b. sin(pi*p/b) falls to 0 as p approaches b from below, and exp(-8*(p-b)) is 1 at p = b, so P jumps from 0 to 1 there. The viewer's cycle strip shows it as a second spike near 30 min.
+
+== addendum 2026-10-17T21:24:14Z: advance_phase contract and display semantics
+advance_phase implemented to the contract adopted 2026-10-17: forward steps wrap with rem_euclid(p + dt/T, 1) into [0, 1); negative steps -> NegativeStep; non-finite dt or overflow -> StepNotFinite; bad period -> PeriodNotPositive; phase outside [0, 1] -> PhaseOutOfRange. No fixture equation, operation order, pulse boundary or parameter changed.
+
+== cargo test (debug)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test a_matches_python_export_at_recorded_boundary ... ok
+test b_sensitivity_to_gui_boundary_is_detectable ... ok
+test c_matches_recorded_snapshot ... ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ok
+test f_series_frame_9_matches_fixture_and_cf3_header ... ok
+test g_temperature_isovalue_160_frames ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.31s
+test c_abi_step_returns_codes_and_never_panics ... ok
+test full_and_multiple_periods_return_to_start ... ok
+test full_period_from_zero_returns_zero ... ok
+test invalid_inputs_are_errors_not_panics ... ok
+test phase_one_is_accepted_and_canonicalised ... ok
+test sim_step_recomputes_at_the_new_phase_and_errors_change_nothing ... ok
+test small_forward_step ... ok
+test step_across_the_cycle_end_wraps ... ok
+test ten_thousand_valid_steps_stay_in_range ... ok
+test zero_step_keeps_phase ... ok
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+== swift test
+◇ Test run started.
+✔ Test abiVersionIsOne() passed after 0.001 seconds.
+✔ Test rejectsInvalidPulseBoundary() passed after 0.001 seconds.
+✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.007 seconds.
+✔ Test stepWrapsAndRejectsNegativeSteps() passed after 0.015 seconds.
+✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.133 seconds.
+✔ Test run with 5 tests in 0 suites passed after 0.133 seconds.
+
+== wasm rebuilt (bytes changed with the new error variants); parity:
+wasm vs native: 720 of 720 frames byte-identical
+the published viewer (version 2) still runs the wasm built at 4137efa; its field outputs are identical, since fill_field is unchanged.
+
+== display: chimerax/oklo_cycle.cxc documents each level as an illustrative isovalue, renames #1 temperature index, and draws compartments with linearInterpolation false. Headless ChimeraX parses every command up to the GUI-only tile step.

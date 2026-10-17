@@ -82,6 +82,8 @@ pub enum ConfigError {
     PhaseOutOfRange,
     PulseBoundaryOutOfRange,
     PeriodNotPositive,
+    StepNotFinite,
+    NegativeStep,
 }
 
 impl SimConfig {
@@ -132,18 +134,38 @@ pub fn desiccation(p: f64) -> f64 {
 
 /// Map a time step onto the revision 0 cycle phase.
 ///
-/// TODO(Hunter): revision 0 has no time axis; its fields depend only on phase.
-/// This decides what `oklo_sim_step` means. Choices to make:
-/// - wrap (`rem_euclid(1.0)`) so the cycle repeats, or clamp at 1.0;
-/// - whether a negative `dt_s` may run the cycle backwards;
-/// - where `period_s` comes from. The exporter's manifest says 3.0 h, from the
-///   Meshik 2004 inference (about 30 min active, 2.5 h dormant); Hunter's own
-///   lane did not reproduce that cycle from ENDF data.
+/// Contract adopted 2026-10-17:
+/// - forward steps wrap: `p_next = rem_euclid(p + dt_s / period_s, 1)`, in [0, 1);
+/// - a negative step is an error, never a backwards run;
+/// - `period_s` is the configured `cycle_period_s`, and nothing else sets the time scale;
+/// - `phase` must be finite and in [0, 1], `dt_s` finite, `period_s` positive and finite.
 ///
-/// The result must stay in [0, 1], or the next `SimConfig::validate` fails.
-pub fn advance_phase(phase: f64, dt_s: f64, period_s: f64) -> f64 {
-    let _ = (phase, dt_s, period_s);
-    todo!("advance_phase: Hunter's decision, see doc comment")
+/// Phase 1 is accepted as a starting value, but every step returns the
+/// canonical [0, 1) form, so a full-cycle step from 0 returns 0.
+///
+/// Revision 0 has no time axis: its fields depend only on phase, so this is
+/// navigation along the cycle, not dynamics. The 3 h period most callers pass
+/// is inherited from the exporter (the Meshik 2004 inference, which Hunter's
+/// own lane did not reproduce from ENDF data). Stepping with it does not
+/// validate that timing, and it does not change the pulse discontinuity at p = b.
+pub fn advance_phase(phase: f64, dt_s: f64, period_s: f64) -> Result<f64, ConfigError> {
+    if !(0.0..=1.0).contains(&phase) {
+        return Err(ConfigError::PhaseOutOfRange);
+    }
+    if !(period_s.is_finite() && period_s > 0.0) {
+        return Err(ConfigError::PeriodNotPositive);
+    }
+    if !dt_s.is_finite() {
+        return Err(ConfigError::StepNotFinite);
+    }
+    if dt_s < 0.0 {
+        return Err(ConfigError::NegativeStep);
+    }
+    let next = (phase + dt_s / period_s).rem_euclid(1.0);
+    if !next.is_finite() {
+        return Err(ConfigError::StepNotFinite);
+    }
+    Ok(next)
 }
 
 /// Compartment indicators at voxel (i, j, k). Spec section 3, geometry.
@@ -298,9 +320,10 @@ impl Sim {
     }
 
     /// Advance the phase by `dt_s` seconds and recompute every field in place.
+    /// On error nothing changes.
     pub fn step(&mut self, dt_s: f64) -> Result<(), ConfigError> {
         let mut next = self.cfg;
-        next.phase = advance_phase(self.cfg.phase, dt_s, self.cfg.cycle_period_s);
+        next.phase = advance_phase(self.cfg.phase, dt_s, self.cfg.cycle_period_s)?;
         next.validate()?;
         self.cfg = next;
         self.recompute();
