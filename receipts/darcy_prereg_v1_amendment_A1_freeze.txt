@@ -1,0 +1,22 @@
+Darcy pre-registration v1, Amendment A1: freeze receipt
+frozen_utc: 2026-10-17T22:31:30Z
+amendment: docs/specs/DARCY_FLOW_PREREG_v1_AMENDMENT_A1.md
+amendment_sha256: 39a7ae88b7861f065e02488076e3f52f4a84709b744a433383f469e5df1c55db
+v1_sha256 (unchanged): e0a13e103f090ac6adacdc249a6d75ed99f56e14577d726490b24aa0a7f2e1ca
+status: frozen amendment only. It authorizes no solver code, no parameter fitting and no claim about actual Oklo conditions.
+
+== sources read (exact copies, sha256)
+Robertson 1988, USGS OFR 88-441: e6f7e81b2ade4e679e92d8de490390cd738fc319b405ab1c59c8fb4ceb459abd
+  p. 5 (pdf 9) and p. 10 (pdf 14): 1 CU = 1e-3 cal/(cm s C) = 0.4184 W/(m K)
+  p. 10 (pdf 14): equation (6) K = K_F + gamma^2 [(K_S + p S) - K_F], read from the rendered page image (text extraction dropped it)
+  p. 22: figure 10 intercepts, sandstone with water in pores, 300 K, 5 MPa: K_F 1.48 CU, K_S 3.63 CU, S 0.157 CU/percent, 100 percent quartz intercept 19.35 CU
+  p. 37: temperature effect small, either sign, for porous rocks with K < 5 CU below 200 C; marked negative for dense quartz-rich rocks; extrapolation to higher T uncertain
+Gauthier-Lafaye et al. 1996 (same copy as the v1 receipt, sha256 recorded there): p. 4834 core porosity 10 to 15 percent; silica loss in ore
+
+== lambda_m and water heat capacity (iapws in oklo_heartbeat/.venv, python -I)
+lambda_m low (phi 0.25, quartz 0) 1.12523 W/mK; high (phi 0.10, quartz 100) 6.66867 W/mK; representative 2.73931 W/mK; high/low 5.926
+equation (6) at gamma^2=1, quartz 100: 19.33 CU (tabulated 19.35 CU)
+iapws 1.5.5
+state A: T=323.15 K P=30 MPa rho=1000.666795 cp=4118.0976 J/kgK rho*cp=4.120844e+06 J/m3K alpha*=6.6474e-07 m2/s
+state B: T=573.15 K P=30 MPa rho=750.658667 cp=5080.3138 J/kgK rho*cp=3.813582e+06 J/m3K alpha*=7.1830e-07 m2/s
+heartbeat water_300bar.csv cp at 323.15 K: 4118.097586833365
