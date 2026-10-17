@@ -3,3 +3,4 @@ target/
 ios/OkloCoreKit/.build/
 viewer/data/
 .DS_Store
+out/

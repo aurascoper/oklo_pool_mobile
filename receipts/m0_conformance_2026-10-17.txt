@@ -184,3 +184,36 @@ full arrays: a fresh OkloModel.OkloSimulation({}) instance (phase 0.15, active),
   polymer_yield     equals spec 2.1 data-block hash (MRC file)
   compartments      equals spec 2.1 data-block hash (MRC file)
 reading: at this one case the JS, Python and Rust implementations agree bit for bit except for the pulse-boundary constant; R0-1 is confirmed by execution. Still one case; CF-2's twenty cases are not run.
+
+== addendum 2026-10-17T20:53:52Z: time series, ChimeraX, WebAssembly engine, viewer v2
+series: crates/oklo_core/examples/export_series.rs writes 60 frames (p = i/60) x 6 fields as MRC2014 per the CF-3 table, b=0.17 and b=0.1667, to out/series (gitignored). Samples of prescribed functions of phase, not dynamics.
+test (f): frame 9 (p = 9/60 = 0.15 exactly) data blocks byte-identical to the six stored fixture files; every CF-3 header row passes, including NVERSION 20140.
+
+== cargo test (debug)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test a_matches_python_export_at_recorded_boundary ... ok
+test b_sensitivity_to_gui_boundary_is_detectable ... ok
+test c_matches_recorded_snapshot ... ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ignored, needs advance_phase (lib.rs TODO for Hunter)
+test f_series_frame_9_matches_fixture_and_cf3_header ... ok
+test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.20s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+== ChimeraX 1.12 headless probe of series frame 9 (CF-4, one case)
+all_pass True fields 6
+  compartments hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+  h2_concentration hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+  hydration hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+  polymer_yield hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+  temperature hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+  u235_ratio hash_match True step [0.5, 0.5, 0.5] origin [0.0, 0.0, 0.0]
+note: chimerax/oklo_cycle.cxc opens all six 60-frame series headless; its tile step needs the GUI (headless error: 'UI' object has no attribute 'mouse_modes'), so the probe ran on series opened without tiling.
+
+== WebAssembly engine (crates/oklo_web, wasm32-unknown-unknown) against native Rust
+wasm vs native: 720 of 720 frames byte-identical
+
+== viewer v2, served locally, Playwright Chromium: engine check 6 of 6 match spec 2.1; current frame matches native; ChimeraX row pass; play advances frames; no horizontal scroll at 736 px; WebGL2 3D renders (one screenshot).
+
+== observation for Hunter (not added to the spec): in revision 0 the pulse term P(p) is discontinuous at p = b. sin(pi*p/b) falls to 0 as p approaches b from below, and exp(-8*(p-b)) is 1 at p = b, so P jumps from 0 to 1 there. The viewer's cycle strip shows it as a second spike near 30 min.

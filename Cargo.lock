@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "oklo_core"
 version = "0.0.1"
+
+[[package]]
+name = "oklo_web"
+version = "0.0.1"
+dependencies = [
+ "oklo_core",
+]

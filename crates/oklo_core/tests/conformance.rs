@@ -249,6 +249,46 @@ fn d_abi_round_trip() {
     }
 }
 
+/// (f) Series frame 9 (p = 9/60) is the checked case: its MRC data blocks are
+/// byte-identical to the stored files, and its header meets the CF-3 table,
+/// including NVERSION 20140, which the revision 0 files lack (R0-2).
+#[test]
+fn f_series_frame_9_matches_fixture_and_cf3_header() {
+    assert_eq!(9.0f64 / 60.0, 0.15, "frame 9 must be exactly the checked phase");
+    let mut cfg = python_export_config(0.17);
+    cfg.phase = 9.0 / 60.0;
+    for field in Field::ALL {
+        let file = oklo_core::mrc::encode(&cfg, field);
+        let stored = read_mrc(field);
+        assert_eq!(file.len(), 1024 + 4 * VOXELS, "{}: file length", field.name());
+        assert!(file[1024..] == stored.block[..], "{}: data block differs from the stored file", field.name());
+
+        let i32_at = |off: usize| i32::from_le_bytes(file[off..off + 4].try_into().unwrap());
+        let f32_at = |off: usize| f32::from_le_bytes(file[off..off + 4].try_into().unwrap());
+        let ints = |offs: &[usize]| offs.iter().map(|&o| i32_at(o)).collect::<Vec<_>>();
+        let floats = |offs: &[usize]| offs.iter().map(|&o| f32_at(o)).collect::<Vec<_>>();
+        let name = field.name();
+        assert_eq!(ints(&[0, 4, 8]), [32, 32, 32], "{name}: NX NY NZ");
+        assert_eq!(i32_at(12), 2, "{name}: MODE");
+        assert_eq!(ints(&[16, 20, 24]), [0, 0, 0], "{name}: NXSTART");
+        assert_eq!(ints(&[28, 32, 36]), [32, 32, 32], "{name}: MX MY MZ");
+        assert_eq!(floats(&[40, 44, 48]), [16.0, 16.0, 16.0], "{name}: cell lengths");
+        assert_eq!(floats(&[52, 56, 60]), [90.0, 90.0, 90.0], "{name}: cell angles");
+        assert_eq!(ints(&[64, 68, 72]), [1, 2, 3], "{name}: MAPC MAPR MAPS");
+        assert_eq!(ints(&[88, 92]), [1, 0], "{name}: ISPG NSYMBT");
+        assert_eq!(i32_at(108), 20140, "{name}: NVERSION");
+        assert_eq!(floats(&[196, 200, 204]), [0.0, 0.0, 0.0], "{name}: ORIGIN");
+        assert_eq!(&file[208..212], b"MAP ", "{name}: MAP");
+        assert_eq!(&file[212..216], &[0x44, 0x44, 0x00, 0x00], "{name}: MACHST");
+        assert_eq!(i32_at(220), 1, "{name}: NLABL");
+        let [min, max, mean, sd] = oklo_core::mrc::stats(&stored.data);
+        assert_eq!(floats(&[76, 80, 84, 216]), [min as f32, max as f32, mean as f32, sd as f32], "{name}: DMIN DMAX DMEAN RMS(sd)");
+        let label = String::from_utf8_lossy(&file[224..304]).trim_end().to_string();
+        assert_eq!(label, format!("Oklo {name} phase=0.1500 null=False"), "{name}: label");
+    }
+    eprintln!("(f) frame 9: six data blocks byte-identical to the stored files; CF-3 header rows all pass");
+}
+
 /// Step behaviour depends on `advance_phase`, which is Hunter's decision.
 #[test]
 #[ignore = "needs advance_phase (lib.rs TODO for Hunter)"]

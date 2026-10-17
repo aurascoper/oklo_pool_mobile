@@ -25,16 +25,27 @@ Set OKLO_FIXTURE_DIR to test against another copy of the fixture.
 
 ## Interactive viewer
 
-[Oklo Fixture Viewer](https://claude.ai/artifact/39J73egtLdJJMwSizNmiQ9) shows the six fields at the tested case as a plan slice and a vertical section, with the R0-1 sensitivity map (temperature at b = 0.1667 minus b = 0.17, about 25.5 C at most). It hashes its data in the browser and compares the result with the spec's recorded hashes. The link is a private claude.ai artifact, so other people can open it only after it is shared with them from its Share menu. It shows only the tested case: there is no phase animation, because time steps are not defined yet.
+[Oklo Fixture Viewer](https://claude.ai/artifact/39J73egtLdJJMwSizNmiQ9) shows one field at a time over one cycle: a 3D volume, plan and section slices, play and scrub over 60 frames (3 minutes each under the 3 h period), a pulse-boundary toggle, a null-scenario toggle, and a strip chart of the field and of the prescribed pulse and desiccation curves. The page computes every value with crates/oklo_web, which is oklo_core compiled to WebAssembly, so the browser runs the same engine the tests check. On load it checks frame 9 against the spec's recorded hashes, and it can check all 720 frames against the native Rust series. The series samples prescribed functions of phase; it is not simulated dynamics, and no flow is modelled. The link is a private claude.ai artifact, so other people can open it only after it is shared from its Share menu.
 
-The page source is viewer/index.html. To rebuild its data and view it locally:
+To rebuild the viewer's files and view it locally:
 
 ```sh
-cargo run --example dump_fields -- viewer/data 0.17
-cargo run --example dump_fields -- viewer/data 0.1667
-python3 -I scripts/pack_viewer_data.py viewer/data
-(cd viewer && python3 -m http.server 8000)    # then open http://localhost:8000
+cargo build --release --target wasm32-unknown-unknown -p oklo_web
+cargo run --release --example export_series -- out/series/b0.17 0.17
+cargo run --release --example export_series -- out/series/b0.1667 0.1667
+node scripts/wasm_parity.mjs                   # writes viewer/data/native_hashes.json
+cp target/wasm32-unknown-unknown/release/oklo_web.wasm viewer/data/
+cp out/probes/chimerax_frame9.json viewer/data/   # from the ChimeraX probe below
+(cd viewer && python3 -m http.server 8000)     # then open http://localhost:8000
 ```
+
+## ChimeraX, one cycle side by side
+
+chimerax/oklo_cycle.cxc opens the six fields as 60-frame volume series from out/series/b0.17, names each with its unit as revision 0 labels it, gives each one display style, and tiles them in two rows of three so nothing overlaps. In ChimeraX, run `open chimerax/oklo_cycle.cxc`, then `vseries play #1-6 loop true`. The tile step needs the ChimeraX window; headless ChimeraX cannot run it. chimerax/probe_frame9.py is the CF-4 check: run after opening the series, it hashes ChimeraX's frame 9 matrices and records step and origin on all three axes in out/probes/chimerax_frame9.json.
+
+## Flow
+
+Revision 0 has no flow. docs/specs/DARCY_FLOW_PREREG_DRAFT.md is a pre-registration draft for steady Darcy flow on the fixture geometry. It is not approved and nothing in it is implemented.
 
 The original Oklo GUI (index.html in the fixture directory) is not linked here. It uses the 0.1667 boundary, so it disagrees with these tested values by up to 25.5 C, and it loads a development-only CDN script (findings R0-1 and R0-9).
 

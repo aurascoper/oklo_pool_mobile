@@ -1,0 +1,12 @@
+[package]
+name = "oklo_web"
+version = "0.0.1"
+edition = "2021"
+publish = false
+description = "WebAssembly exports of oklo_core for viewer/index.html. Same engine as the native and iOS builds."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+oklo_core = { path = "../oklo_core" }

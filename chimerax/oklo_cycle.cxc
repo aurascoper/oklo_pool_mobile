@@ -1,0 +1,39 @@
+# oklo_cycle.cxc
+# The six revision 0 fixture fields over one cycle, side by side and playable.
+# Each field opens as a 60-frame volume series, phase p = i/60, 3 minutes per
+# frame under the exporter's 3.0 h period. Frame 9 is p = 0.15, the checked case.
+# These are samples of prescribed functions of phase. No flow is modelled.
+#
+# Make the data first, from the repository root:
+#   cargo run --release --example export_series -- out/series/b0.17 0.17
+# Then in ChimeraX: open chimerax/oklo_cycle.cxc
+
+open ../out/series/b0.17/temperature_f*.mrc vseries true
+open ../out/series/b0.17/hydration_f*.mrc vseries true
+open ../out/series/b0.17/h2_concentration_f*.mrc vseries true
+open ../out/series/b0.17/u235_ratio_f*.mrc vseries true
+open ../out/series/b0.17/polymer_yield_f*.mrc vseries true
+open ../out/series/b0.17/compartments_f*.mrc vseries true
+
+rename #1 "temperature (deg C as labelled, coefficients underived)"
+rename #2 "hydration (saturation, dimensionless)"
+rename #3 "H2 index (labelled mmol/L, no dose basis)"
+rename #4 "235U/238U (atom ratio)"
+rename #5 "polymer index (labelled umol/L, no kinetics)"
+rename #6 "compartments (zones 0 to 4)"
+
+# Display choices, one per field. These are Hunter's to tune: each level picks
+# which feature of the field the surface outlines.
+volume #1 style surface level 160 color firebrick transparency 0.2
+volume #2 style surface level 0.5 color royalblue transparency 0.4
+volume #3 style surface level 2.0 color seagreen transparency 0.3
+volume #4 style surface level 0.006 color goldenrod transparency 0.5
+volume #5 style surface level 8.0 color mediumorchid transparency 0.3
+volume #6 style image
+
+# Lay the six out in two rows of three so nothing overlaps.
+tile #1-6 columns 3 spacingFactor 1.4
+view
+
+log text Header lengths are 16 units per side. By declared convention 1 unit = 1 m (finding R0-4), although ChimeraX labels them angstrom.
+log text Play the cycle with: vseries play #1-6 loop true   (stop with: vseries stop #1-6)

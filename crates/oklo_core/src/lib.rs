@@ -11,6 +11,7 @@
 //! may not be used to claim.
 
 pub mod ffi;
+pub mod mrc;
 
 use std::f64::consts::PI;
 
