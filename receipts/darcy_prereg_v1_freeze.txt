@@ -1,0 +1,104 @@
+Darcy pre-registration v1: freeze receipt
+frozen_utc: 2026-10-17T22:21:36Z
+spec: docs/specs/DARCY_FLOW_PREREG_v1.md
+spec_sha256: e0a13e103f090ac6adacdc249a6d75ed99f56e14577d726490b24aa0a7f2e1ca
+status: frozen specification only. It authorizes no solver code, no parameter fitting and no claim about actual Oklo conditions. Implementation needs Hunter's separate approval.
+
+== sources read (exact copies, sha256) and what each gave
+Toulhoat et al. 1996, J. Contam. Hydrol. 21:3-17: 9625f5f3e953e8aa40ad2c37440181eab30d87fadafa9d04692bddfee60159e6
+  p. 8 s3.1: hydraulic units at Okelobondo assigned K of 1e-8 to 1e-5 m/s (present day; system perturbed by mining); p. 8 s3.2: Bangombe effective K 1e-8 to 1e-7 m/s. No fluid temperature stated. Context only.
+Gauthier-Lafaye, Holliger and Blanc 1996, GCA 60(23):4831-4852: bf495591b742d4e716c6bf82da25cfea9794850eccb3569160a7e7112bb65ad9
+  p. 4833: operation 120 to 150 C at 300 bar (citing Gauthier-Lafaye 1986), context; p. 4834: open porosity 10 to 15 percent for criticality (citing Naudet 1991), used for core porosity; concluding section: enclosing clays, present sandstone permeability close to zero, qualitative.
+Zetterstrom 2000, SKB TR-00-17: 0ae310f0cfe357554c5f90c7c250a2f132482a23fc0c135a45956591fd1a419d
+  p. 12: hydrofracturing of FA sandstone under impermeable FB shale, qualitative.
+The Groundwater Project 2020, section 5.3, Figure 32 (after Freeze and Cherry 1979), image fig032.jpg: ccd6b5e9224cf77c689ec23d7409ab13dda2ea555682cdb116c723a156ce0d6e
+  every permeability range, digitized below. The original Freeze and Cherry table was not read.
+Not read, not used for any value: arXiv 1911.10774; E3S Web of Conferences 205, 02002 (2020).
+
+== digitization script (run with oklo_heartbeat/.venv python -I; PIL and numpy from that venv)
+"""Digitize bar endpoints from GW Project Figure 32 (after Freeze and Cherry 1979)
+on its k (cm^2) axis. Reproducible: prints the axis calibration and the pixel
+endpoints of each bar, then the endpoints in m^2 (1 cm^2 = 1e-4 m^2)."""
+import sys
+import numpy as np
+from PIL import Image
+
+img = np.asarray(Image.open(sys.argv[1]).convert("RGB")).astype(int)
+H, W, _ = img.shape
+print("image", W, "x", H)
+r, g, b = img[..., 0], img[..., 1], img[..., 2]
+dark = (r < 90) & (g < 90) & (b < 90)
+blue = (b > 150) & (r < 90) & (g < 120)
+ink = dark | blue
+
+# Axis lines: rows in the lower part where most columns in the plot span are dark.
+span = slice(int(W * 0.17), int(W * 0.97))
+frac = dark[:, span].mean(axis=1)
+axis_rows = [y for y in range(int(H * 0.6), H) if frac[y] > 0.8]
+groups = []
+for y in axis_rows:
+    if groups and y - groups[-1][-1] <= 2:
+        groups[-1].append(y)
+    else:
+        groups.append([y])
+axes = [int(np.mean(gp)) for gp in groups]
+print("axis lines at y =", axes)
+y_k = axes[1]  # middle axis: k in cm^2
+
+def runs(mask_row, min_len):
+    out, start = [], None
+    for x, v in enumerate(mask_row):
+        if v and start is None:
+            start = x
+        if not v and start is not None:
+            if x - start >= min_len:
+                out.append((start, x - 1))
+            start = None
+    if start is not None and len(mask_row) - start >= min_len:
+        out.append((start, len(mask_row) - 1))
+    return out
+
+# Tick marks hang just below the axis line: short dark runs in a row a few px below.
+below = dark[y_k + 5]
+ticks = [(a + c) / 2 for a, c in runs(below, 1)]
+print("k-axis ticks (px):", [round(t, 1) for t in ticks])
+assert len(ticks) == 14, f"expected 14 decade ticks (1e-16 .. 1e-3 cm^2), found {len(ticks)}"
+decades = np.arange(-16, -2)
+slope, intercept = np.polyfit(decades, ticks, 1)
+resid = np.array(ticks) - (slope * decades + intercept)
+print(f"calibration: x = {intercept:.2f} + {slope:.3f} * log10(k_cm2); max tick residual {abs(resid).max():.2f} px")
+
+def to_k(x):
+    return 10 ** ((x - intercept) / slope)
+
+BARS = {"Sandstone": 188, "Shale": 294, "Fractured Igneous & Metamorphic Rocks": 100, "Unweathered Marine Clay": 344}
+for name, y0 in BARS.items():
+    best = None
+    for y in range(y0 - 14, y0 + 15):
+        rr = runs(ink[y], 25)
+        if len(rr) >= 1:
+            width = rr[-1][1] - rr[0][0]
+            if best is None or width > best[2]:
+                best = (y, rr, width)
+    y, rr, _ = best
+    x0, x1 = rr[0][0], rr[-1][1]
+    k0, k1 = to_k(x0), to_k(x1)
+    print(f"{name}: row {y}, px {x0}..{x1}, k {k0:.2e}..{k1:.2e} cm^2 = {k0*1e-4:.2e}..{k1*1e-4:.2e} m^2, "
+          f"log10 m^2 {np.log10(k0*1e-4):.2f}..{np.log10(k1*1e-4):.2f}")
+
+== digitization output
+image 1417 x 792
+axis lines at y = [577, 666, 741]
+k-axis ticks (px): [233.0, 320.0, 409.0, 498.0, 587.0, 675.0, 764.0, 853.0, 942.0, 1031.0, 1120.0, 1208.0, 1297.0, 1386.0]
+calibration: x = 1652.11 + 88.771 * log10(k_cm2); max tick residual 1.23 px
+Sandstone: row 186, px 492..878, k 8.54e-14..1.90e-09 cm^2 = 8.54e-18..1.90e-13 m^2, log10 m^2 -17.07..-12.72
+Shale: row 291, px 216..582, k 6.64e-17..8.82e-13 cm^2 = 6.64e-21..8.82e-17 m^2, log10 m^2 -20.18..-16.05
+Fractured Igneous & Metamorphic Rocks: row 98, px 508..1054, k 1.29e-13..1.83e-07 cm^2 = 1.29e-17..1.83e-11 m^2, log10 m^2 -16.89..-10.74
+Unweathered Marine Clay: row 341, px 301..608, k 6.02e-16..1.73e-12 cm^2 = 6.02e-20..1.73e-16 m^2, log10 m^2 -19.22..-15.76
+
+== water properties (iapws, same venv)
+iapws 1.5.5
+state A: T=323.15 K P=30.0 MPa phase=Compressible liquid rho=1000.666795 kg/m3 mu=5.528165e-04 Pa s rho*g/mu=1.775126e+07
+state B: T=573.15 K P=30.0 MPa phase=Compressible liquid rho=750.658667 kg/m3 mu=9.325487e-05 Pa s rho*g/mu=7.893901e+07
+context only: T=298.15 K P=0.101325 MPa phase=Liquid rho=997.047637 kg/m3 mu=8.900225e-04 Pa s rho*g/mu=1.098590e+07
+heartbeat water_300bar.csv rho at 323.15 K: 1000.6667951886207

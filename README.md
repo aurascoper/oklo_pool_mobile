@@ -45,7 +45,7 @@ chimerax/oklo_cycle.cxc opens the six fields as 60-frame volume series from out/
 
 ## Flow
 
-Revision 0 has no flow. docs/specs/DARCY_FLOW_PREREG_DRAFT.md is a pre-registration draft for steady Darcy flow on the fixture geometry. It is not approved and nothing in it is implemented.
+Revision 0 has no flow. docs/specs/DARCY_FLOW_PREREG_v1.md is Darcy pre-registration v1: steady, single-phase, isothermal Darcy flow on the fixture geometry, with every parameter, boundary condition, solver setting and pass criterion declared in advance. It is frozen (sha256 recorded in receipts/darcy_prereg_v1_freeze.txt) and not approved for implementation; it authorizes no solver code, no parameter fitting and no claim about actual Oklo conditions. Its versioning is separate from the fixture's scientific-model revision 1.
 
 The original Oklo GUI (index.html in the fixture directory) is not linked here. It uses the 0.1667 boundary, so it disagrees with these tested values by up to 25.5 C, and it loads a development-only CDN script (findings R0-1 and R0-9).
 
