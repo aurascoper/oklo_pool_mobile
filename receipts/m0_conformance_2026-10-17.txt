@@ -171,3 +171,16 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 ✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.008 seconds.
 ✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.148 seconds.
 ✔ Test run with 4 tests in 0 suites passed after 0.148 seconds.
+
+== addendum 2026-10-17T19:40Z: the original GUI executed at phase 0.15 (first execution of oklo_model.js; the spec had only re-derived its equations)
+method: oklo_gui_scratch served read-only on 127.0.0.1:8765 (python3 -I -m http.server), loaded in Playwright Chromium (user agent Chrome/155.0.0.0); fixture hashes unchanged (index.html 8dac3ae9, embedded model equals oklo_model.js a300455c)
+GUI display at its default state (phase 0.15, active, temperature): statsOverlay "Min: 26.82 | Max: 191.38 | Mean: 81.95 deg C"; colorbar 26.822 / 81.951 / 191.377
+oklo_core at b=0.1667 predicted min 26.8219, max 191.3772, mean 81.9507, so the displayed statistics agree to every digit shown (CF-4 HTML GUI criterion is 4 significant figures, against a reference that here is oklo_core, not an independent CF-2 generator)
+full arrays: a fresh OkloModel.OkloSimulation({}) instance (phase 0.15, active), each Float32Array hashed with SHA-256 in the page:
+  temperature       equals oklo_core b=0.1667 dump (a300fe35...), differs from the b=0.17 MRC file, as R0-1 says
+  hydration         equals spec 2.1 data-block hash (MRC file)
+  h2_concentration  equals spec 2.1 data-block hash (MRC file)
+  u235_ratio        equals spec 2.1 data-block hash (MRC file)
+  polymer_yield     equals spec 2.1 data-block hash (MRC file)
+  compartments      equals spec 2.1 data-block hash (MRC file)
+reading: at this one case the JS, Python and Rust implementations agree bit for bit except for the pulse-boundary constant; R0-1 is confirmed by execution. Still one case; CF-2's twenty cases are not run.

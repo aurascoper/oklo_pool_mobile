@@ -2,3 +2,4 @@ target/
 *.xcframework/
 ios/OkloCoreKit/.build/
 viewer/data/
+.DS_Store
