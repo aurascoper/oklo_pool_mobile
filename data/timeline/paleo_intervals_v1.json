@@ -1,0 +1,79 @@
+{
+  "name": "paleo_intervals_v1",
+  "frozen": "2026-10-18, at the commit that adds this file; hash in receipts/timeline_v1_freeze.txt",
+  "purpose": "Source-labelled intervals for a possible future timeline layer. Each entry keeps its own source and definition; entries are never merged into one consensus date.",
+  "rules": [
+    "Every number below was read in the source named with it, at the location given. Where only an abstract was read, the entry says so.",
+    "Ages are in Ga (billions of years before present). Ranges are written older first.",
+    "A present-day basemap locates Oklo as it is today. It does not depict Paleoproterozoic geography, which needs a separate paleogeographic reconstruction."
+  ],
+  "entries": [
+    {
+      "id": "goe_gumsley_2017",
+      "label": "Great Oxidation Event, as defined by Gumsley et al. 2017",
+      "kind": "interval",
+      "definition": "From the onset of significant oxygenation, together with the first Paleoproterozoic global glaciation, to the end of the Lomagundi carbon-isotope excursion.",
+      "onset_ga": {"older": 2.460, "younger": 2.426},
+      "oxygen_oscillations_until_ga": "at or after 2.250 to 2.240",
+      "end_ga": 2.060,
+      "end_basis": "end of the Lomagundi carbon isotope excursion, ca. 2,060 Ma",
+      "source": "Gumsley, A.P., et al. 2017. Timing and tempo of the Great Oxidation Event. PNAS 114(8), 1811 to 1816. doi:10.1073/pnas.1608824114",
+      "read": "abstract only, via the Lund University research portal record; the full text was not retrieved",
+      "location": "abstract",
+      "caveat": "An extended transition with oscillating oxygen, not an instant. The onset age rests on Ongeluk Formation magmatism dated 2,426 +/- 3 Ma."
+    },
+    {
+      "id": "goe_as_framed_by_craig_2023",
+      "label": "Great Oxidation Event, as framed by Craig, Kumar and Hedges 2023",
+      "kind": "interval",
+      "definition": "The interval Craig et al. use for the GOE, attributed by them to Poulton et al. 2021.",
+      "older_ga": 2.43,
+      "younger_ga": 2.22,
+      "source": "Craig, J.M., Kumar, S., and Hedges, S.B. 2023. The origin of eukaryotes and rise in complexity were synchronous with the rise in oxygen. Frontiers in Bioinformatics 3, 1233281. doi:10.3389/fbinf.2023.1233281",
+      "read": "full text (open access PDF)",
+      "location": "abstract and introduction, PDF page 1",
+      "attribution_chain": "Craig et al. 2023 citing Poulton et al. 2021; Poulton et al. 2021 was not read here",
+      "caveat": "Not interchangeable with the Gumsley et al. 2017 definition, which runs to about 2.06 Ga."
+    },
+    {
+      "id": "oklo_reactors",
+      "label": "Oklo natural fission reactors",
+      "kind": "dated marker",
+      "value_ga": 1.95,
+      "uncertainty_ga": 0.04,
+      "basis": "Date of the nuclear reaction, from the global amount of fissiogenic Nd (or radiogenic Th) formed per atom of uranium compared with the mean fluence received; the authors then assume all reactors share the age of 1950 Ma.",
+      "source": "Gauthier-Lafaye, F., Holliger, P., and Blanc, P.-L. 1996. Natural fission reactors in the Franceville basin, Gabon. Geochimica et Cosmochimica Acta 60(23), 4831 to 4852",
+      "read": "full text (copy hashed in receipts/darcy_prereg_v1_freeze.txt)",
+      "location": "section 4.2, page 4834",
+      "corroborating_source": "Gauthier-Lafaye, F. 2002. 2 billion year old natural analogs for nuclear waste disposal: the natural nuclear fission reactors in Gabon (Africa). C. R. Physique 3, 839 to 849, page 841: the age of the uranium deposit is 1950 +/- 40 Ma",
+      "caveat": "A dated event with its stated uncertainty. How long the reactors operated is not part of this entry."
+    },
+    {
+      "id": "eukaryogenesis_craig_2023",
+      "label": "Origin of eukaryotes, one study's estimate",
+      "kind": "literature-estimate range",
+      "conservative_ga": {"older": 2.2, "younger": 1.5},
+      "core_ga_abstract": {"older": 2.0, "younger": 1.8},
+      "core_ga_results_text": {"older": 2.04, "younger": 1.79},
+      "source": "Craig, Kumar and Hedges 2023 (as above)",
+      "read": "full text (open access PDF)",
+      "location": "abstract, PDF page 1; core interval 2.04 to 1.79 Ga in the results, PDF page 3",
+      "caveat": "One study's estimate for the origin of eukaryotes, not a consensus date and not the date of the mitochondrial endosymbiosis itself. The same paper notes earlier molecular-clock estimates spanning about 2.10 to 0.91 Ga."
+    }
+  ],
+  "derived_date_separations": {
+    "label": "Derived date separation between Oklo's nominal 1.95 Ga and a stated bound. Not a GOE-to-Oklo lag; it ignores Oklo's +/- 0.04 Ga and each bound's own uncertainty.",
+    "values_gyr": [
+      {"from": "goe_as_framed_by_craig_2023 older bound 2.43 Ga", "separation": 0.48},
+      {"from": "goe_as_framed_by_craig_2023 younger bound 2.22 Ga", "separation": 0.27},
+      {"from": "goe_gumsley_2017 onset 2.460 to 2.426 Ga", "separation": "0.476 to 0.510"},
+      {"from": "goe_gumsley_2017 end ca. 2.060 Ga", "separation": 0.11}
+    ]
+  },
+  "display_guidance": {
+    "goe": "an interval band per definition, each labelled with its source",
+    "oklo": "a dated marker with its +/- 0.04 Ga uncertainty",
+    "eukaryogenesis": "a labelled range from one study, with its conservative and core intervals",
+    "map": "keep the present-day locator separate from any paleogeographic reconstruction"
+  }
+}

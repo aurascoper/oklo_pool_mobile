@@ -1,0 +1,13 @@
+Timeline v1 (data/timeline/paleo_intervals_v1.json): freeze receipt
+frozen_utc: 2026-10-18T03:50:27Z
+file_sha256: a018bac70d09395e3cf4679abdc29f5a9907033e34ae3fdd1e4e70725e331048
+Every number in the file was read in the source named beside it. No geolocator or globe file was changed.
+
+== sources read (exact copies)
+Gumsley et al. 2017, PNAS 114(8):1811-1816, doi:10.1073/pnas.1608824114: abstract only, read via the Lund University research portal record (portal.research.lu.se); the eScholarship PDF download returned an empty file. Ages read: onset ca. 2,460 to 2,426 Ma; oscillations until <=2,250-2,240 Ma; GOE continued until the end of the Lomagundi excursion ca. 2,060 Ma; Ongeluk magmatism 2,426 +/- 3 Ma.
+Craig, Kumar and Hedges 2023, Front. Bioinform. 3:1233281 (full text PDF): 0a3e8f378022a00bddcc880677069cee8df044ffef023802e574e146a3704bdc
+  PDF page 1: GOE framed as 2.43-2.22 Ga citing Poulton et al. 2021 (Poulton not read); conservative eukaryogenesis interval 2.2-1.5 Ga; core 2.0-1.8 Ga; earlier estimates 2.1-0.91 Ga. PDF page 3: core interval 2.04-1.79 Ga.
+Gauthier-Lafaye, Holliger and Blanc 1996, GCA 60(23) (copy hashed in receipts/darcy_prereg_v1_freeze.txt): section 4.2, page 4834: reaction dated 1950 +/- 40 Ma from fissiogenic Nd per U atom versus mean fluence; all reactors assumed 1950 Ma.
+Gauthier-Lafaye 2002, C. R. Physique 3:839-849: 7ed77117b0e1c3991cb985798353e4a6a2baa4370be4d21d14c1b6cee9b49171
+  page 841: age of the uranium deposit 1950 +/- 40 Ma, by U-Pb on uraninites and by dating the fission reactions.
+Not read: Poulton et al. 2021 (only as cited by Craig et al. 2023).
