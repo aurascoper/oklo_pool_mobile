@@ -1,0 +1,14 @@
+Darcy pre-registration v1, Amendment A2: freeze receipt
+frozen_utc: 2026-10-18T02:18:20Z
+amendment: docs/specs/DARCY_FLOW_PREREG_v1_AMENDMENT_A2.md
+amendment_sha256: 1d31ad5f334a07e096f71091b46cdde09298a4589a7ba73e415bd2d39803e1c3
+A1_sha256 (unchanged): 39a7ae88b7861f065e02488076e3f52f4a84709b744a433383f469e5df1c55db
+v1_sha256 (unchanged): e0a13e103f090ac6adacdc249a6d75ed99f56e14577d726490b24aa0a7f2e1ca
+status: frozen clarification only. No numerical value changed. It authorizes no solver code, no parameter fitting and no claim about actual Oklo conditions. Implementation of v1 with A1 and A2 awaits Hunter's separate go-ahead.
+
+superseded A1 text (A1 line 65, quoted exactly):
+- Porosity enters only the pore velocity of v1 section 7. Pore velocities are reported, but never described as physically validated while those assumptions remain. None of this blocks the head or Darcy-flux calculation, and porosity does not enter Pe.
+
+replacements:
+  'Porosity enters only the pore velocity of v1 section 7.' -> 'Flow porosity phi_z enters only the pore velocity of v1 section 7.'
+  'and porosity does not enter Pe.' -> 'flow porosity phi_z does not enter Pe; thermal-property porosity phi_th enters Pe through lambda_m (A1.2).'
