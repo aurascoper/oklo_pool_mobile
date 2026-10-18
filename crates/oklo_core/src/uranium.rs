@@ -268,12 +268,17 @@ fn faces(col: &Column) -> Vec<Face> {
 
 /// A and b assembled from the face rules: R dC_i/dt = (F_i - F_{i+1}) / dx - k_red chi_i C_i.
 pub fn operator(col: &Column) -> Operator {
+    operator_with_sink_sign(col, 1.0)
+}
+
+/// `sink_sign` is 1 for the model; -1 only for C2's corrupted variant (a).
+fn operator_with_sink_sign(col: &Column, sink_sign: f64) -> Operator {
     let (n, dx) = (col.n, col.dx());
     let f = faces(col);
     let mut a = Tridiag { lo: vec![0.0; n], di: vec![0.0; n], up: vec![0.0; n] };
     for i in 0..n {
         let k = if col.chi[i] { col.k_red } else { 0.0 };
-        a.di[i] = (f[i].right - f[i + 1].left) / dx - k;
+        a.di[i] = (f[i].right - f[i + 1].left) / dx - sink_sign * k;
         if i > 0 {
             a.lo[i] = f[i].left / dx;
         }
@@ -539,12 +544,30 @@ impl RunResult {
 /// equation, and the boundary fluxes are integrated with that weighting, so
 /// the ledger closes in exact arithmetic (v1 section 3).
 pub fn run(col: &Column, landing: Landing, n_intervals: usize, outputs: &[usize]) -> RunResult {
+    run_variant(col, landing, n_intervals, outputs, Variant::Model)
+}
+
+/// The model, or one of control C2's two corrupted variants (v1 section 6,
+/// A1.7). The variants are test-only and never reported as results; they take
+/// the landing computed from the uncorrupted model, so each differs from it
+/// only by its sign flip.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Variant {
+    Model,
+    /// (a) the sign of the reaction term in the C equation flipped.
+    FlipCReaction,
+    /// (b) the sign of the S source flipped.
+    FlipSSource,
+}
+
+pub fn run_variant(col: &Column, landing: Landing, n_intervals: usize, outputs: &[usize], variant: Variant) -> RunResult {
     let (n, dx, dt) = (col.n, col.dx(), landing.dt);
-    let op = operator(col);
+    let op = operator_with_sink_sign(col, if variant == Variant::FlipCReaction { -1.0 } else { 1.0 });
     let integ = Integrator::new(col, &op, dt);
     let inlet = faces(col)[0];
     let zone: Vec<usize> = (0..n).filter(|&i| col.chi[i]).collect();
-    let s_gain = THETA * col.k_red * dt / (2.0 * RHO_B);
+    let s_sign = if variant == Variant::FlipSSource { -1.0 } else { 1.0 };
+    let s_gain = s_sign * THETA * col.k_red * dt / (2.0 * RHO_B);
 
     let (mut c, mut next, mut s) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
     let (mut inflow, mut outflow) = (0.0, 0.0);
@@ -818,4 +841,93 @@ pub fn b2() -> B2Result {
     }
     r.orders = [(r.errors[0] / r.errors[1]).log2(), (r.errors[1] / r.errors[2]).log2()];
     r
+}
+
+/// A production run of a variant, with the landing of the uncorrupted model.
+pub fn run_production_variant(cfg: &RunConfig, variant: Variant) -> Result<RunResult, ColumnError> {
+    let col = cfg.column()?;
+    let l = production_landing(cfg, &col);
+    Ok(run_variant(&col, l, 100, &OUTPUT_INTERVALS, variant))
+}
+
+// ---------------------------------------------------------------- controls (v1 section 6, A1.7)
+
+/// Whether the advective or the positivity term of dt_rule binds (A1.8).
+pub fn binding_term(col: &Column) -> &'static str {
+    if col.dt_rule() == 0.5 * col.r * col.dx() / col.v {
+        "advective"
+    } else {
+        "positivity"
+    }
+}
+
+/// C2's detection rules: (a) the ledger closure exceeds 1e-10 x inflow at an
+/// output time; (b) S < -1e-12 S_ref in any cell at any step.
+pub fn ledger_rule_triggered(r: &RunResult) -> bool {
+    !r.ledger_check().1
+}
+
+pub fn s_rule_triggered(r: &RunResult) -> bool {
+    r.bounds.s_min < -N1_REL * S_REF
+}
+
+#[derive(Clone, Debug)]
+pub struct C2Result {
+    pub cfg: RunConfig,
+    pub model_ledger_worst: f64,
+    pub model_s_min: f64,
+    pub model_clean: bool,
+    pub a_ledger_worst: f64,
+    pub a_detected: bool,
+    pub b_s_min: f64,
+    pub b_detected: bool,
+}
+
+impl C2Result {
+    pub fn pass(&self) -> bool {
+        self.model_clean && self.a_detected && self.b_detected
+    }
+}
+
+/// The 36 configurations of C2: every v, D_eff and K_d with k_red = 1e-10.
+pub fn c2_configs() -> Vec<RunConfig> {
+    sweep().into_iter().filter(|c| c.k_red == 1e-10).collect()
+}
+
+/// C2 in one configuration, given the uncorrupted model's run.
+pub fn c2(cfg: &RunConfig, model: &RunResult) -> C2Result {
+    let a = run_production_variant(cfg, Variant::FlipCReaction).expect("valid column");
+    let b = run_production_variant(cfg, Variant::FlipSSource).expect("valid column");
+    C2Result {
+        cfg: *cfg,
+        model_ledger_worst: model.ledger_check().0,
+        model_s_min: model.bounds.s_min,
+        model_clean: !ledger_rule_triggered(model) && !s_rule_triggered(model),
+        a_ledger_worst: a.ledger_check().0,
+        a_detected: ledger_rule_triggered(&a),
+        b_s_min: b.bounds.s_min,
+        b_detected: s_rule_triggered(&b),
+    }
+}
+
+/// Map over items on all available cores (std only); results keep input order.
+pub fn par_map<T: Sync, R: Send>(items: &[T], f: impl Fn(&T) -> R + Sync) -> Vec<R> {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Mutex;
+    let next = AtomicUsize::new(0);
+    let out: Mutex<Vec<Option<R>>> = Mutex::new((0..items.len()).map(|_| None).collect());
+    let workers = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).min(items.len().max(1));
+    std::thread::scope(|scope| {
+        for _ in 0..workers {
+            scope.spawn(|| loop {
+                let i = next.fetch_add(1, Ordering::Relaxed);
+                if i >= items.len() {
+                    break;
+                }
+                let r = f(&items[i]);
+                out.lock().expect("result lock")[i] = Some(r);
+            });
+        }
+    });
+    out.into_inner().expect("result lock").into_iter().map(|r| r.expect("every item mapped")).collect()
 }

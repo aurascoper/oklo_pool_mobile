@@ -458,3 +458,66 @@ fn b2_finite_domain_steady_state_order() {
     assert!(r.residual < 1e-12);
     assert!(r.pass(), "B2 orders {:?} outside {:?}", r.orders, ORDER_RANGE);
 }
+
+// ---------------------------------------------------------------- ledger, N1 and controls over the sweep
+
+#[test]
+fn ledger_and_n1_hold_in_every_production_run() {
+    let cfgs = sweep();
+    let runs = par_map(&cfgs, |c| run_production(c).unwrap());
+    let mut failures = Vec::new();
+    let (mut worst_ledger, mut c_min, mut c_max, mut s_min) = (0.0f64, f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY);
+    for (cfg, r) in cfgs.iter().zip(&runs) {
+        let (w, pass) = r.ledger_check();
+        worst_ledger = worst_ledger.max(w);
+        c_min = c_min.min(r.bounds.c_min);
+        c_max = c_max.max(r.bounds.c_max);
+        s_min = s_min.min(r.bounds.s_min);
+        if !pass {
+            failures.push(format!("{} ledger {w:e}", cfg.label()));
+        }
+        if !r.bounds.n1_pass() {
+            failures.push(format!("{} N1 {:?}", cfg.label(), r.bounds.first));
+        }
+    }
+    eprintln!("144 runs: worst ledger closure / inflow {worst_ledger:e}; C in [{c_min:e}, {c_max:e}]; min S {s_min:e}");
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+#[test]
+fn c1_without_reaction_the_solid_is_exactly_zero() {
+    let cfgs: Vec<RunConfig> = sweep().into_iter().filter(|c| c.k_red == 0.0).collect();
+    assert_eq!(cfgs.len(), 36);
+    let runs = par_map(&cfgs, |c| run_production(c).unwrap());
+    for (cfg, r) in cfgs.iter().zip(&runs) {
+        let s_max = r.snapshots.iter().flat_map(|s| s.s.iter()).fold(0.0f64, |a, x| a.max(x.abs()));
+        assert_eq!(s_max, 0.0, "{}", cfg.label());
+        assert!(r.ledger.iter().all(|p| p.immobilized == 0.0), "{}", cfg.label());
+        assert_eq!(r.bounds.s_min, 0.0, "{}", cfg.label());
+        assert!(r.ledger_check().1, "{} ledger {:e}", cfg.label(), r.ledger_check().0);
+    }
+}
+
+#[test]
+fn c2_both_corrupted_variants_are_detected_in_all_36_configurations() {
+    let cfgs = c2_configs();
+    assert_eq!(cfgs.len(), 36);
+    let results = par_map(&cfgs, |c| c2(c, &run_production(c).unwrap()));
+    let mut failures = Vec::new();
+    for r in &results {
+        eprintln!(
+            "{}: model ledger {:e} min S {:e} clean {}; (a) ledger {:e} detected {}; (b) min S {:e} detected {}",
+            r.cfg.label(), r.model_ledger_worst, r.model_s_min, r.model_clean, r.a_ledger_worst, r.a_detected, r.b_s_min, r.b_detected
+        );
+        if !r.pass() {
+            failures.push(r.cfg.label());
+        }
+    }
+    assert!(failures.is_empty(), "C2 failed in {failures:?}");
+}
+
+#[test]
+fn par_map_keeps_order() {
+    let xs: Vec<usize> = (0..1000).collect();
+    assert_eq!(par_map(&xs, |x| x * 2), xs.iter().map(|x| x * 2).collect::<Vec<_>>());
+}
