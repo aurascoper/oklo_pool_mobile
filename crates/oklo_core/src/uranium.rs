@@ -753,3 +753,69 @@ pub fn t1() -> T1Result {
     r.order = (r.e[0] / r.e[1]).log2();
     r
 }
+
+// ---------------------------------------------------------------- B2 finite-domain steady state (v1 section 6)
+
+/// B2: the production boundary-value problem with uniform reaction.
+pub const B2_LENGTH: f64 = 16.0;
+pub const B2_V: f64 = 1e-9;
+pub const B2_D: f64 = 1e-9;
+pub const B2_K: f64 = 1e-10;
+pub const B2_GRIDS: [usize; 3] = [64, 128, 256];
+
+pub fn b2_column(n: usize) -> Column {
+    Column::new(B2_LENGTH, n, B2_V, B2_D, B2_K, 1.0, vec![true; n]).expect("B2 column is valid")
+}
+
+/// r1, r2 = (v +- sqrt(v^2 + 4 D k)) / (2 D), the roots of D r^2 - v r - k = 0.
+pub fn b2_roots() -> (f64, f64) {
+    let q = (B2_V * B2_V + 4.0 * B2_D * B2_K).sqrt();
+    ((B2_V + q) / (2.0 * B2_D), (B2_V - q) / (2.0 * B2_D))
+}
+
+/// C(x) = C0 [r2 e^(r2 L) e^(r1 x) - r1 e^(r1 L) e^(r2 x)] / [r2 e^(r2 L) - r1 e^(r1 L)].
+pub fn b2_exact(x: f64) -> f64 {
+    let (r1, r2) = b2_roots();
+    let l = B2_LENGTH;
+    C0 * (r2 * (r2 * l).exp() * (r1 * x).exp() - r1 * (r1 * l).exp() * (r2 * x).exp()) / (r2 * (r2 * l).exp() - r1 * (r1 * l).exp())
+}
+
+/// The discrete steady state, A C + b = 0 (dt -> infinity), solved directly.
+pub fn steady_state(col: &Column) -> Vec<f64> {
+    let op = operator(col);
+    let neg = Tridiag { lo: op.a.lo.iter().map(|x| -x).collect(), di: op.a.di.iter().map(|x| -x).collect(), up: op.a.up.iter().map(|x| -x).collect() };
+    let mut c = vec![0.0; col.n];
+    c[0] = op.b0;
+    Thomas::new(&neg).solve(&mut c);
+    c
+}
+
+#[derive(Clone, Debug)]
+pub struct B2Result {
+    pub errors: [f64; 3],
+    pub orders: [f64; 2],
+    /// Largest |A C + b| relative to b0 over the three grids.
+    pub residual: f64,
+}
+
+impl B2Result {
+    pub fn pass(&self) -> bool {
+        self.orders.iter().all(|p| (ORDER_RANGE.0..=ORDER_RANGE.1).contains(p))
+    }
+}
+
+/// B2: discrete steady state against the exact solution at N = 64, 128, 256,
+/// L2 error over the whole column.
+pub fn b2() -> B2Result {
+    let mut r = B2Result { errors: [0.0; 3], orders: [0.0; 2], residual: 0.0 };
+    for (g, &n) in B2_GRIDS.iter().enumerate() {
+        let col = b2_column(n);
+        let c = steady_state(&col);
+        let op = operator(&col);
+        r.residual = r.residual.max(op.apply(&c).iter().fold(0.0f64, |a, x| a.max(x.abs())) / op.b0);
+        let dx = col.dx();
+        r.errors[g] = (0..n).map(|i| dx * (c[i] - b2_exact((i as f64 + 0.5) * dx)).powi(2)).sum::<f64>().sqrt();
+    }
+    r.orders = [(r.errors[0] / r.errors[1]).log2(), (r.errors[1] / r.errors[2]).log2()];
+    r
+}

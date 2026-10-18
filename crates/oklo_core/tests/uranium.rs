@@ -431,3 +431,30 @@ fn t1_temporal_order_on_b1() {
     assert!(r.n1_pass, "N1 failed on T1");
     assert!(r.pass(), "T1 order {} outside {:?}", r.order, ORDER_RANGE);
 }
+
+// ---------------------------------------------------------------- B2
+
+#[test]
+fn b2_exact_solution_satisfies_its_problem() {
+    let (r1, r2) = b2_roots();
+    // receipts/uranium_prereg_v1_freeze.txt
+    assert!(close(r1, 1.0916079783099617, 1e-14) && close(r2, -0.09160797830996159, 1e-14), "{r1} {r2}");
+    assert!(close(b2_exact(0.0), C0, 1e-14));
+    // Analytic derivative of the exact solution: zero at the outlet.
+    let l = B2_LENGTH;
+    let den = r2 * (r2 * l).exp() - r1 * (r1 * l).exp();
+    let dc = |x: f64| C0 * r1 * r2 * ((r2 * l).exp() * (r1 * x).exp() - (r1 * l).exp() * (r2 * x).exp()) / den;
+    assert!(dc(l).abs() <= 1e-12 * dc(0.0).abs(), "outlet slope {:e} vs inlet {:e}", dc(l), dc(0.0));
+    // It satisfies D C'' - v C' - k C = 0 (checked through the characteristic roots).
+    for r in [r1, r2] {
+        assert!((B2_D * r * r - B2_V * r - B2_K).abs() <= 1e-12 * B2_K);
+    }
+}
+
+#[test]
+fn b2_finite_domain_steady_state_order() {
+    let r = b2();
+    eprintln!("B2 L2 errors {:?} orders {:?} (pass band {:?}); max |A C + b| / b0 {:e}", r.errors, r.orders, ORDER_RANGE, r.residual);
+    assert!(r.residual < 1e-12);
+    assert!(r.pass(), "B2 orders {:?} outside {:?}", r.orders, ORDER_RANGE);
+}
