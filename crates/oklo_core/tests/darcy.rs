@@ -1,6 +1,7 @@
-//! Darcy pre-registration v1 with A1 to A3: contract tests and checks D1 to D5.
+//! Darcy pre-registration v1 with A1 to A4: contract tests and checks D1 to D5.
 //! Tolerances are the pre-registered constants in oklo_core::darcy; a failure
-//! here is reported as a failure, never tuned away. Run with --release.
+//! here is reported as a failure, never tuned away. Run with --release and
+//! OKLO_DARCY_RULE=v1 (v1's CG rule) or OKLO_DARCY_RULE=a4 (A4's rerun rule).
 //! Hypothetical numerical experiment, not Oklo hydrogeology.
 
 use oklo_core::darcy::*;
@@ -8,6 +9,13 @@ use oklo_core::mrc;
 
 fn close(a: f64, b: f64, rel: f64) -> bool {
     (a - b).abs() <= rel * b.abs()
+}
+
+/// The CG rule chosen by OKLO_DARCY_RULE; printed so every log names it.
+fn rule() -> SolverRule {
+    let r = SolverRule::from_env();
+    eprintln!("solver rule {} (CG true-residual tolerance {:e})", r.name(), r.tol());
+    r
 }
 
 // ---------------------------------------------------------------- contract
@@ -113,7 +121,7 @@ fn base_problem() -> (Vec<Zone>, Config, Problem) {
 #[test]
 fn d1_conservation_base_case() {
     let (_, _, p) = base_problem();
-    let s = cg(&p);
+    let s = cg(&p, rule());
     let d = d1(&p, &s);
     eprintln!(
         "D1 base: converged {} iterations {} restarts {} rel_residual {:.3e}; Q_in {:.6e} Q_out {:.6e} m^3/s; eps {:.3e}; global {:.3e}; paths {:.3e}; ||b||/Q_ref {:.3}",
@@ -126,14 +134,14 @@ fn d1_conservation_base_case() {
 #[test]
 fn d1_zero_flow_control() {
     let (mask, cfg, _) = base_problem();
-    let (ok, s) = d1_zero_flow(&mask, &cfg);
+    let (ok, s) = d1_zero_flow(&mask, &cfg, rule());
     eprintln!("D1 zero flow: h and r_phys identically zero: {ok}, iterations {}", s.iterations);
     assert!(ok);
 }
 
 #[test]
 fn d2_manufactured_solution_converges_at_second_order() {
-    let levels: Vec<D2Level> = [16, 32, 64].into_iter().map(d2_level).collect();
+    let levels: Vec<D2Level> = [16, 32, 64].into_iter().map(|n| d2_level(n, rule())).collect();
     for l in &levels {
         eprintln!("D2 N={}: E2 {:.6e} Einf {:.6e} iterations {} converged {}", l.n, l.e2, l.einf, l.solve_iterations, l.converged);
         assert!(l.converged);
@@ -149,14 +157,14 @@ fn d2_manufactured_solution_converges_at_second_order() {
 
 #[test]
 fn d3a_layers_in_series() {
-    let d = d3(true);
+    let d = d3(true, rule());
     eprintln!("D3a series: Q rel direct {:.3e}, heads direct {:.3e} dh, Q rel CG {:.3e} (converged {})", d.q_rel_direct, d.head_err_direct, d.q_rel_cg, d.cg_converged);
     assert!(d.pass());
 }
 
 #[test]
 fn d3b_layers_in_parallel() {
-    let d = d3(false);
+    let d = d3(false, rule());
     eprintln!("D3b parallel: Q rel direct {:.3e}, heads direct {:.3e} dh, Q rel CG {:.3e} (converged {})", d.q_rel_direct, d.head_err_direct, d.q_rel_cg, d.cg_converged);
     assert!(d.pass());
 }
@@ -164,7 +172,7 @@ fn d3b_layers_in_parallel() {
 #[test]
 fn d4_mirror_symmetry_base_case() {
     let (_, _, p) = base_problem();
-    let s = cg(&p);
+    let s = cg(&p, rule());
     let d = d4(&p, &s);
     eprintln!("D4 base: head x {:.3e} y {:.3e} (over dh); flux x {:.3e} y {:.3e} (over Q_ref)", d.head_x, d.head_y, d.flux_x, d.flux_y);
     assert!(d.pass());
@@ -173,7 +181,7 @@ fn d4_mirror_symmetry_base_case() {
 #[test]
 fn d5_equal_permeability_control() {
     let mask = zone_mask_fixture();
-    let d = d5(&mask);
+    let d = d5(&mask, rule());
     let with_conduit = d.layers.iter().filter(|(_, a)| *a > 0.0).count();
     eprintln!("D5: max |flux share - area share| {:.3e} over {} layers ({} contain conduit), CG converged {}", d.max_dev, d.layers.len(), with_conduit, d.converged);
     assert_eq!(d.layers.len(), N);

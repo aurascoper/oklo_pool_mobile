@@ -1,12 +1,13 @@
-//! Run Darcy pre-registration v1 with A1 to A3: the eleven configurations of
+//! Run Darcy pre-registration v1 with A1 to A4: the eleven configurations of
 //! v1 section 3.3 at water states A and B, the refinement study, the zero-flow
 //! control and checks D1 to D5; write the MRC outputs of v1 section 7 and a
 //! JSON receipt. A hypothetical numerical experiment, not Oklo hydrogeology.
 //! Failures are recorded as failures.
 //!
-//! Usage: cargo run --release --example darcy_run -- <out_dir> <receipt.json> <meta.json>
+//! Usage: cargo run --release --example darcy_run -- <out_dir> <receipt.json> <meta.json> <v1|a4>
 //! meta.json: an object with provenance the program cannot compute itself
 //! (spec hashes, git HEAD, rustc version, UTC time); it is embedded verbatim.
+//! The last argument names the CG rule: v1 (1e-12) or a4 (1e-13, Amendment A4).
 
 use oklo_core::darcy::*;
 use oklo_core::mrc;
@@ -39,10 +40,12 @@ fn write_mrc(path: &str, data: &[f64], labels: &[&str]) {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let [_, out_dir, receipt_path, meta_path] = args.as_slice() else {
-        eprintln!("usage: darcy_run <out_dir> <receipt.json> <meta.json>");
+    let [_, out_dir, receipt_path, meta_path, rule_arg] = args.as_slice() else {
+        eprintln!("usage: darcy_run <out_dir> <receipt.json> <meta.json> <v1|a4>");
         std::process::exit(2);
     };
+    let rule = SolverRule::parse(rule_arg).unwrap_or_else(|| panic!("rule must be v1 or a4, got {rule_arg:?}"));
+    eprintln!("solver rule {} (CG true-residual tolerance {:e})", rule.name(), rule.tol());
     let meta = std::fs::read_to_string(meta_path).expect("read meta.json");
     std::fs::create_dir_all(out_dir).expect("create out_dir");
 
@@ -58,7 +61,7 @@ fn main() {
 
     for cfg in configurations() {
         let p = Problem::from_config(N, &mask, &cfg, &STATE_A, DH);
-        let sol = cg(&p);
+        let sol = cg(&p, rule);
         let d = d1(&p, &sol);
         all_d1_pass &= d.pass();
         all_converged &= sol.converged;
@@ -124,12 +127,12 @@ fn main() {
 
     // Checks D1 to D5, computed with the same code and thresholds as the tests.
     let base = configurations().into_iter().next().unwrap();
-    let (zero_ok, _) = d1_zero_flow(&mask, &base);
+    let (zero_ok, _) = d1_zero_flow(&mask, &base, rule);
     checks.push(format!("{{\"id\": \"D1\", \"run\": true, \"status\": {}, \"detail\": \"all eleven configurations: eps <= 1e-10, global <= 1e-10, residual paths <= 1e-12; see configurations[].d1\"}}", s(status(all_d1_pass))));
     checks.push(format!("{{\"id\": \"D1-zero-flow\", \"run\": true, \"status\": {}}}", s(status(zero_ok))));
     checks.push(format!("{{\"id\": \"CG-convergence\", \"run\": true, \"status\": {}, \"detail\": \"all eleven configurations within 10 N^3 iterations at the pre-registered rule\"}}", s(status(all_converged))));
 
-    let levels: Vec<D2Level> = [16, 32, 64].into_iter().map(d2_level).collect();
+    let levels: Vec<D2Level> = [16, 32, 64].into_iter().map(|n| d2_level(n, rule)).collect();
     let p1 = (levels[0].e2 / levels[1].e2).log2();
     let p2 = (levels[1].e2 / levels[2].e2).log2();
     let d2_pass = [p1, p2].iter().all(|p| (D2_ORDER_RANGE.0..=D2_ORDER_RANGE.1).contains(p));
@@ -137,7 +140,7 @@ fn main() {
     checks.push(format!("{{\"id\": \"D2\", \"run\": true, \"status\": {}, \"l2_orders\": [{}, {}], \"levels\": [{}]}}", s(status(d2_pass)), num(p1), num(p2), lv.join(", ")));
 
     for (id, series) in [("D3a", true), ("D3b", false)] {
-        let d = d3(series);
+        let d = d3(series, rule);
         checks.push(format!(
             "{{\"id\": {}, \"run\": true, \"status\": {}, \"q_rel_direct\": {}, \"head_err_direct_over_dh\": {}, \"q_rel_cg\": {}, \"cg_converged\": {}, \"tolerances\": {{\"direct\": 1e-12, \"cg\": 1e-10}}}}",
             s(id), s(status(d.pass())), num(d.q_rel_direct), num(d.head_err_direct), num(d.q_rel_cg), d.cg_converged
@@ -145,19 +148,19 @@ fn main() {
     }
 
     let pb = Problem::from_config(N, &mask, &base, &STATE_A, DH);
-    let sb = cg(&pb);
+    let sb = cg(&pb, rule);
     let d4r = d4(&pb, &sb);
     checks.push(format!(
         "{{\"id\": \"D4\", \"run\": true, \"status\": {}, \"head_x\": {}, \"head_y\": {}, \"flux_x\": {}, \"flux_y\": {}}}",
         s(status(d4r.pass())), num(d4r.head_x), num(d4r.head_y), num(d4r.flux_x), num(d4r.flux_y)
     ));
-    let d5r = d5(&mask);
+    let d5r = d5(&mask, rule);
     checks.push(format!("{{\"id\": \"D5\", \"run\": true, \"status\": {}, \"max_deviation\": {}}}", s(status(d5r.pass())), num(d5r.max_dev)));
 
     // Refinement study, reported without a threshold.
     let fine = refine_mask(&mask, N);
     let pf = Problem::from_config(2 * N, &fine, &base, &STATE_A, DH);
-    let sf = cg(&pf);
+    let sf = cg(&pf, rule);
     let q64: f64 = fluxes(&pf, &sf.h).bottom.iter().sum();
     let change = (q64 - base_q32) / base_q32;
     checks.push(format!(
@@ -170,7 +173,8 @@ fn main() {
     let mut j = String::new();
     write!(
         j,
-        "{{\n\"receipt\": \"Darcy pre-registration v1 with Amendments A1, A2 and A3: implementation run\",\n\
+        "{{\n\"receipt\": {},\n\
+         \"solver_rule\": {{\"name\": {}, \"cg_true_residual_tolerance\": {}, \"note\": {}}},\n\
          \"caveat\": {},\n\
          \"scope\": \"Hypothetical numerical experiment on the revision 0 fixture geometry. It does not describe the hydrogeology of the Oklo reactors at any time. Nothing was fitted. Pore velocities use unsourced flow porosities except the core and are not physically validated.\",\n\
          \"ci\": \"none; no continuous-integration run is implied\",\n\
@@ -181,6 +185,16 @@ fn main() {
          \"checks\": [\n{}\n],\n\
          \"specified_but_not_run\": [],\n\
          \"configurations\": [\n{}\n]\n}}\n",
+        s(match rule {
+            SolverRule::V1 => "Darcy pre-registration v1 with Amendments A1 to A3: implementation run under v1's CG rule",
+            SolverRule::A4 => "Darcy pre-registration v1, Amendment A4 verification rerun (A1 to A4); a new experiment, not a retroactive validation of v1",
+        }),
+        s(rule.name()),
+        num(rule.tol()),
+        s(match rule {
+            SolverRule::V1 => "v1 rule, 1e-12 relative to ||b||_2",
+            SolverRule::A4 => "A4 rule, 1e-13 relative to ||b||_2; every acceptance threshold, case and parameter unchanged from v1",
+        }),
         s(&format!("{CAVEAT}. Not a description of Oklo.")),
         meta.trim(),
         num(PHI_TH.lo), num(PHI_TH.hi),

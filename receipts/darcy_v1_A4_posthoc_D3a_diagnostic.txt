@@ -1,0 +1,41 @@
+POST-HOC DIAGNOSTIC, NOT PRE-REGISTERED. It changes no result, check, tolerance, metric or code in the repository.
+Purpose: explain why D3a's CG flux error is identical under v1 (1e-12) and A4 (1e-13). Generated 2026-10-18T03:03:59Z against oklo_core at HEAD 415c218 plus the uncommitted A4 rule parameter.
+Built outside the repository: rustc --edition 2021 -O -L target/release/deps --extern oklo_core=target/release/liboklo_core.rlib main.rs
+
+== program (main.rs)
+// Post-hoc diagnostic for D3a (not pre-registered; writes nothing to the repo).
+use oklo_core::darcy::*;
+
+fn main() {
+    let p = d3_problem(true);
+    let (q_exact, h_exact) = d3_exact(true);
+    let direct = cholesky(&p);
+    let qd: f64 = fluxes(&p, &direct.h).bottom.iter().sum();
+    println!("direct: rel residual {:.3e}, Q rel err {:.3e}", direct.rel_residual, (qd - q_exact).abs() / q_exact);
+    for rule in [SolverRule::V1, SolverRule::A4] {
+        let s = cg(&p, rule);
+        let fl = fluxes(&p, &s.h);
+        let q: f64 = fl.bottom.iter().sum();
+        let qo: f64 = fl.top.iter().sum();
+        let dh_max = s.h.iter().zip(&direct.h).fold(0.0f64, |m, (a, b)| m.max((a - b).abs()));
+        let he_max = s.h.iter().zip(&h_exact).fold(0.0f64, |m, (a, b)| m.max((a - b).abs()));
+        println!(
+            "cg {}: iterations {} restarts {} true rel residual {:.3e}; Q_in rel err {:.3e}; Q_out rel err {:.3e}; max|h_cg - h_direct| {:.3e}; max|h_cg - h_exact| {:.3e}",
+            rule.name(), s.iterations, s.restarts, s.rel_residual, (q - q_exact).abs() / q_exact, (qo - q_exact).abs() / q_exact, dh_max, he_max
+        );
+    }
+    let b = p.rhs();
+    let bn = b.iter().map(|x| x * x).sum::<f64>().sqrt();
+    println!("||b||_2 / Q_exact = {:.1}", bn / q_exact);
+}
+
+== output
+direct: rel residual 1.045e-15, Q rel err 3.121e-13
+cg v1: iterations 9 restarts 0 true rel residual 5.839e-14; Q_in rel err 2.581e-10; Q_out rel err 8.657e-14; max|h_cg - h_direct| 3.065e-13; max|h_cg - h_exact| 2.517e-13
+cg a4: iterations 9 restarts 0 true rel residual 5.839e-14; Q_in rel err 2.581e-10; Q_out rel err 8.657e-14; max|h_cg - h_direct| 3.065e-13; max|h_cg - h_exact| 2.517e-13
+||b||_2 / Q_exact = 555.5
+
+== reading (not a pre-registered interpretation)
+CG reaches a true relative residual of 5.84e-14 in 9 iterations, below both rules, so v1 and A4 accept the same iterate and A4 cannot change D3a.
+The CG heads agree with the direct solve to 3.1e-13 and with the exact profile to 2.5e-13. D3a measures Q at the bottom face, beside the most permeable layer (K = 1e-5 m/s), where the half-cell head drop is about 2.25e-4 m; a head error near 1e-13 there becomes a relative flux error near 1e-9 (observed 2.58e-10). The same CG solution's flux at the top face, where the drop is about 0.225 m, is accurate to 8.7e-14.
+So the D3a CG failure reflects cancellation in the pre-registered bottom-face flux measurement combined with CG's head accuracy, which a tighter stopping rule does not reach once the residual is already below it. Measuring at the top face would pass, but changing the metric after seeing results is not allowed; D3a stays failed under v1 and under A4.

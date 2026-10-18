@@ -18,8 +18,46 @@ pub const PE_LENGTH_M: f64 = 0.5;
 /// Carried on every output (MRC label 2 and the receipt).
 pub const CAVEAT: &str = "HYPOTHETICAL scenario, not Oklo; Darcy v1+A1-A3";
 
-// Pre-registered tolerances (v1 sections 5 and 6, unchanged by A1 to A3).
-pub const CG_REL_TOL: f64 = 1e-12;
+// Pre-registered CG acceptance rules: v1's 1e-12, and A4's 1e-13 for the
+// separate A4 verification rerun. Nothing else differs between the two.
+pub const CG_REL_TOL_V1: f64 = 1e-12;
+pub const CG_REL_TOL_A4: f64 = 1e-13;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SolverRule {
+    V1,
+    A4,
+}
+
+impl SolverRule {
+    pub fn tol(self) -> f64 {
+        match self {
+            SolverRule::V1 => CG_REL_TOL_V1,
+            SolverRule::A4 => CG_REL_TOL_A4,
+        }
+    }
+    pub fn name(self) -> &'static str {
+        match self {
+            SolverRule::V1 => "v1",
+            SolverRule::A4 => "a4",
+        }
+    }
+    pub fn parse(s: &str) -> Option<SolverRule> {
+        match s {
+            "v1" => Some(SolverRule::V1),
+            "a4" => Some(SolverRule::A4),
+            _ => None,
+        }
+    }
+    /// The rule named by OKLO_DARCY_RULE ("v1" or "a4"). A4.3 requires an
+    /// explicit choice, so an unset or unknown value is an error.
+    pub fn from_env() -> SolverRule {
+        let v = std::env::var("OKLO_DARCY_RULE").unwrap_or_default();
+        SolverRule::parse(&v).unwrap_or_else(|| panic!("set OKLO_DARCY_RULE to v1 or a4 (got {v:?})"))
+    }
+}
+
+// Pre-registered acceptance thresholds (v1 sections 5 and 6, unchanged by A1 to A4).
 pub const TOL_D1_EPS: f64 = 1e-10;
 pub const TOL_D1_GLOBAL: f64 = 1e-10;
 pub const TOL_D1_PATHS: f64 = 1e-12;
@@ -453,11 +491,12 @@ fn true_residual(p: &Problem, b: &[f64], h: &[f64], ah: &mut [f64]) -> Vec<f64> 
 
 /// Unpreconditioned conjugate gradient in f64 from the linear profile. An
 /// iterate is accepted only when the true residual meets the pre-registered
-/// rule ||b - A h||_2 <= 1e-12 ||b||_2; when the recursive residual meets it
-/// but the true one does not, CG restarts from the current h with the true
-/// residual. The iteration cap counts every iteration. Not converging is
-/// returned as such, never retried with other settings.
-pub fn cg(p: &Problem) -> Solve {
+/// rule ||b - A h||_2 <= tol ||b||_2, with tol from `rule` (v1 1e-12, A4
+/// 1e-13); when the recursive residual meets it but the true one does not,
+/// CG restarts from the current h with the true residual. The iteration cap
+/// counts every iteration. Not converging is returned as such, never retried
+/// with other settings.
+pub fn cg(p: &Problem, rule: SolverRule) -> Solve {
     let b = p.rhs();
     let b_norm = dot(&b, &b).sqrt();
     let mut h = p.linear_profile();
@@ -469,7 +508,7 @@ pub fn cg(p: &Problem) -> Solve {
         let ok = r.iter().all(|v| *v == 0.0);
         return Solve { h, iterations: 0, restarts: 0, rel_residual: 0.0, converged: ok, b_norm, method: "cg" };
     }
-    let target = CG_REL_TOL * b_norm;
+    let target = rule.tol() * b_norm;
     let mut r = true_residual(p, &b, &h, &mut ah);
     let mut d = r.clone();
     let mut rr = dot(&r, &r);
@@ -721,9 +760,9 @@ pub fn d1(p: &Problem, s: &Solve) -> D1 {
 }
 
 /// D1 zero-flow control: dh = 0 and s = 0 must give h = 0 and r_phys = 0 exactly.
-pub fn d1_zero_flow(mask: &[Zone], cfg: &Config) -> (bool, Solve) {
+pub fn d1_zero_flow(mask: &[Zone], cfg: &Config, rule: SolverRule) -> (bool, Solve) {
     let p = Problem::from_config(N, mask, cfg, &STATE_A, 0.0);
-    let s = cg(&p);
+    let s = cg(&p, rule);
     let r = residual_phys_matrix(&p, &s.h);
     let ok = s.h.iter().all(|v| *v == 0.0) && r.iter().all(|v| *v == 0.0);
     (ok, s)
@@ -752,7 +791,7 @@ pub struct D2Level {
     pub converged: bool,
 }
 
-pub fn d2_level(n: usize) -> D2Level {
+pub fn d2_level(n: usize, rule: SolverRule) -> D2Level {
     let dx = L / n as f64;
     let m = n * n * n;
     let mut src = vec![0.0; m];
@@ -765,7 +804,7 @@ pub fn d2_level(n: usize) -> D2Level {
         }
     }
     let p = Problem::new(n, vec![D2_K; m], DH, src);
-    let s = cg(&p);
+    let s = cg(&p, rule);
     let (mut sum, mut einf) = (0.0, 0.0f64);
     for k in 0..n {
         for j in 0..n {
@@ -841,12 +880,12 @@ impl D3 {
     }
 }
 
-pub fn d3(series: bool) -> D3 {
+pub fn d3(series: bool, rule: SolverRule) -> D3 {
     let p = d3_problem(series);
     let (q_exact, h_exact) = d3_exact(series);
     let qin = |s: &Solve| fluxes(&p, &s.h).bottom.iter().sum::<f64>();
     let direct = cholesky(&p);
-    let iter = cg(&p);
+    let iter = cg(&p, rule);
     let head_err = direct.h.iter().zip(h_exact.iter()).fold(0.0f64, |m, (a, b)| m.max((a - b).abs())) / DH;
     D3 {
         q_rel_direct: (qin(&direct) - q_exact).abs() / q_exact,
@@ -968,11 +1007,11 @@ impl D5 {
     }
 }
 
-pub fn d5(mask: &[Zone]) -> D5 {
+pub fn d5(mask: &[Zone], rule: SolverRule) -> D5 {
     let ks = SANDSTONE_ANALOGUE.k_range().rep;
     let cfg = Config { name: "uniform".into(), k: [ks; 4] };
     let p = Problem::from_config(N, mask, &cfg, &STATE_A, DH);
-    let s = cg(&p);
+    let s = cg(&p, rule);
     let fl = fluxes(&p, &s.h);
     let layers = layer_shares(&p, mask, &fl);
     let max_dev = layers.iter().fold(0.0f64, |m, (s, a)| m.max((s - a).abs()));
