@@ -10,6 +10,7 @@
 //! evidence about Oklo. See docs/PROVENANCE.md for what each field may and
 //! may not be used to claim.
 
+pub mod darcy;
 pub mod ffi;
 pub mod mrc;
 

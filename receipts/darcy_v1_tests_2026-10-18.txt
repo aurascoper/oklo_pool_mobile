@@ -1,0 +1,119 @@
+cargo test --offline --release --no-fail-fast -- --nocapture --test-threads=1   (2026-10-18T02:53:13Z, rustc 1.97.1 (8bab26f4f 2026-07-14), HEAD 70e8673 plus the uncommitted implementation)
+Verbatim output follows. Failures are recorded as failures; nothing was re-run with changed settings.
+
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running unittests src/lib.rs (target/release/deps/oklo_core-e79deb3f508bcecc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conformance.rs (target/release/deps/conformance-686cee5355afb817)
+
+running 7 tests
+test a_matches_python_export_at_recorded_boundary ... (a) temperature: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) hydration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) h2_concentration: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) u235_ratio: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) polymer_yield: byte_identical=true max_abs_diff=0e0 at voxel (0, 0, 0) violations=0
+(a) compartments: byte_identical=true mismatched=0 near_threshold_listed=[]
+ok
+test b_sensitivity_to_gui_boundary_is_detectable ... (b) sensitivity diagnostic, temperature at b=0.1667 vs file: max_abs_diff=25.4847 C at voxel (15, 15, 12), violations=32768
+ok
+test c_matches_recorded_snapshot ... (c) temperature: min/max/mean/sd = [26.849241256713867, 216.86190795898438, 84.6617570084054, 27.992193195523154] recorded [26.849241, 216.861908, 84.661757, 27.992193]
+(c) hydration: min/max/mean/sd = [0.019999999552965164, 0.8817071914672852, 0.7578545317146563, 0.12566158257772567] recorded [0.02, 0.881707, 0.757855, 0.125662]
+(c) h2_concentration: min/max/mean/sd = [0.0011106339516118169, 3.652888536453247, 1.0643795449404507, 0.7055697165619638] recorded [0.001111, 3.652889, 1.06438, 0.70557]
+(c) u235_ratio: min/max/mean/sd = [0.004214244894683361, 0.0072493236511945724, 0.006733849087311228, 0.000593239970287759] recorded [0.004214, 0.007249, 0.006734, 0.000593]
+(c) polymer_yield: min/max/mean/sd = [0.004336145240813494, 14.159290313720703, 5.301710125719239, 2.8717618066461448] recorded [0.004336, 14.15929, 5.30171, 2.871762]
+(c) compartments: min/max/mean/sd = [0.0, 4.0, 1.5091552734375, 0.9645393215640743] recorded [0.0, 4.0, 1.509155, 0.964539]
+(c) zone counts [7560, 3356, 20656, 0, 1196] recorded [7560, 3356, 20656, 0, 1196]
+ok
+test d_abi_round_trip ... ok
+test e_step_keeps_phase_in_range ... ok
+test f_series_frame_9_matches_fixture_and_cf3_header ... (f) frame 9: six data blocks byte-identical to the stored files; CF-3 header rows all pass
+ok
+test g_temperature_isovalue_160_frames ... (g) b=0.17: frames with a 160 isosurface: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.81s
+
+     Running tests/darcy.rs (target/release/deps/darcy-d5d8f56d927e1551)
+
+running 14 tests
+test contract_eleven_configurations ... configurations: ["base", "ratio_1", "ratio_10", "ratio_100", "ratio_1000", "sandstone_core_low", "sandstone_core_high", "halo_low", "halo_high", "conduit_low", "conduit_high"]
+ok
+test contract_lambda_m_reproduces_a1_from_thermal_porosity_span ... lambda_m low 1.12523 rep 2.73931 high 6.66867 W/(m K) from phi_th 0.1..0.25 and quartz (0.0, 100.0)
+ok
+test contract_permeability_digitization_reproduces_v1_table ... calibration x = 1652.1143 + 88.77143 log10(k_cm2)
+Sandstone: low 8.539749e-18 rep 1.275170e-15 high 1.904106e-13 m^2
+Shale: low 6.642578e-21 rep 7.652631e-19 high 8.816269e-17 m^2
+Fractured Igneous & Metamorphic Rocks: low 1.293252e-17 rep 1.538144e-14 high 1.829409e-11 m^2
+ok
+test contract_two_porosity_roles_stay_separate ... ok
+test contract_water_states_reproduce_v1_and_a1 ... B/A flux factor 4.446952
+ok
+test contract_zone_mask_comes_from_the_fixture_null_scenario ... zone counts sandstone/core/halo/conduit: [7560, 3356, 20656, 1196]
+ok
+test d1_conservation_base_case ... D1 base: converged true iterations 8288 restarts 0 rel_residual 9.687e-13; Q_in 1.449130e-8 Q_out 1.449130e-8 m^3/s; eps 2.056e-12; global 1.395e-11; paths 2.149e-16; ||b||/Q_ref 22.744
+ok
+test d1_zero_flow_control ... D1 zero flow: h and r_phys identically zero: true, iterations 0
+ok
+test d2_manufactured_solution_converges_at_second_order ... D2 N=16: E2 1.138076e-4 Einf 3.172687e-4 iterations 1 converged true
+D2 N=32: E2 2.841076e-5 Einf 8.006773e-5 iterations 1 converged true
+D2 N=64: E2 7.100123e-6 Einf 2.006404e-5 iterations 1 converged true
+D2 observed L2 orders 2.0021, 2.0005; Einf orders (reported, no criterion) 1.9864, 1.9966
+ok
+test d3a_layers_in_series ... D3a series: Q rel direct 3.121e-13, heads direct 6.173e-14 dh, Q rel CG 2.581e-10 (converged true)
+
+thread 'd3a_layers_in_series' (5825582) panicked at crates/oklo_core/tests/darcy.rs:154:5:
+assertion failed: d.pass()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test d3b_layers_in_parallel ... D3b parallel: Q rel direct 6.099e-16, heads direct 2.442e-15 dh, Q rel CG 4.574e-16 (converged true)
+ok
+test d4_mirror_symmetry_base_case ... D4 base: head x 0.000e0 y 2.120e-12 (over dh); flux x 0.000e0 y 6.259e-13 (over Q_ref)
+ok
+test d5_equal_permeability_control ... D5: max |flux share - area share| 1.082e-15 over 32 layers (13 contain conduit), CG converged true
+ok
+test encode_array_writes_any_array_with_labels ... ok
+
+failures:
+
+failures:
+    d3a_layers_in_series
+
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.43s
+
+error: test failed, to rerun pass `-p oklo_core --test darcy`
+     Running tests/step.rs (target/release/deps/step-a8950340aad37d24)
+
+running 10 tests
+test c_abi_step_returns_codes_and_never_panics ... ok
+test full_and_multiple_periods_return_to_start ... ok
+test full_period_from_zero_returns_zero ... ok
+test invalid_inputs_are_errors_not_panics ... ok
+test phase_one_is_accepted_and_canonicalised ... ok
+test sim_step_recomputes_at_the_new_phase_and_errors_change_nothing ... ok
+test small_forward_step ... ok
+test step_across_the_cycle_end_wraps ... ok
+test ten_thousand_valid_steps_stay_in_range ... ok
+test zero_step_keeps_phase ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/release/deps/oklo_web-be9a9baf62f0eea4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests oklo_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p oklo_core --test darcy`
+
+cargo test exit status: 101
