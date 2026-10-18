@@ -13,6 +13,7 @@
 pub mod darcy;
 pub mod ffi;
 pub mod mrc;
+pub mod uranium;
 
 use std::f64::consts::PI;
 
