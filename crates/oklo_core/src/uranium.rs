@@ -470,3 +470,125 @@ impl Bounds {
         self.violations == 0
     }
 }
+
+// ---------------------------------------------------------------- solid inventory and ledger (v1 sections 2, 3 and 6)
+
+/// The ledger at one landing point, per unit bulk cross-section (mol/m2).
+#[derive(Clone, Copy, Debug)]
+pub struct LedgerPoint {
+    pub step: usize,
+    pub t: f64,
+    /// Dissolved plus sorbed U(VI), sum of theta R C dx.
+    pub aqueous_sorbed: f64,
+    /// Immobilized uranium, sum of rho_b S dx.
+    pub immobilized: f64,
+    pub inflow: f64,
+    pub outflow: f64,
+}
+
+impl LedgerPoint {
+    /// Inventory minus (cumulative inflow - cumulative outflow); zero in exact arithmetic.
+    pub fn closure(&self) -> f64 {
+        self.aqueous_sorbed + self.immobilized - (self.inflow - self.outflow)
+    }
+
+    /// |closure| / cumulative inflow, the quantity v1's ledger check bounds by 1e-10.
+    pub fn closure_rel(&self) -> f64 {
+        self.closure().abs() / self.inflow
+    }
+}
+
+/// C and S at one output time.
+#[derive(Clone, Debug)]
+pub struct Snapshot {
+    pub step: usize,
+    pub t: f64,
+    pub c: Vec<f64>,
+    pub s: Vec<f64>,
+}
+
+#[derive(Clone, Debug)]
+pub struct RunResult {
+    pub landing: Landing,
+    pub steps: usize,
+    /// Outlet value C_N (the outlet face's advective value) at every landing point, from t = 0.
+    pub breakthrough: Vec<(f64, f64)>,
+    /// Ledger at every landing point, from t = 0.
+    pub ledger: Vec<LedgerPoint>,
+    /// Snapshots at the requested landing points.
+    pub snapshots: Vec<Snapshot>,
+    pub bounds: Bounds,
+}
+
+impl RunResult {
+    /// Ledger points at the snapshot times, where v1's closure check applies.
+    pub fn ledger_at_outputs(&self) -> Vec<LedgerPoint> {
+        self.snapshots.iter().map(|s| *self.ledger.iter().find(|p| p.step == s.step).expect("ledger at output")).collect()
+    }
+
+    /// Largest closure_rel at the output times, and whether every one is within LEDGER_REL.
+    pub fn ledger_check(&self) -> (f64, bool) {
+        let worst = self.ledger_at_outputs().iter().map(|p| p.closure_rel()).fold(0.0, f64::max);
+        (worst, worst <= LEDGER_REL)
+    }
+}
+
+/// Run a column from C = S = 0 for n_intervals landing intervals of m steps
+/// each, keeping snapshots at the landing indices in `outputs`. S is advanced
+/// with the same Crank-Nicolson weighting of theta k_red chi C as the C
+/// equation, and the boundary fluxes are integrated with that weighting, so
+/// the ledger closes in exact arithmetic (v1 section 3).
+pub fn run(col: &Column, landing: Landing, n_intervals: usize, outputs: &[usize]) -> RunResult {
+    let (n, dx, dt) = (col.n, col.dx(), landing.dt);
+    let op = operator(col);
+    let integ = Integrator::new(col, &op, dt);
+    let inlet = faces(col)[0];
+    let zone: Vec<usize> = (0..n).filter(|&i| col.chi[i]).collect();
+    let s_gain = THETA * col.k_red * dt / (2.0 * RHO_B);
+
+    let (mut c, mut next, mut s) = (vec![0.0; n], vec![0.0; n], vec![0.0; n]);
+    let (mut inflow, mut outflow) = (0.0, 0.0);
+    let f_in = |c: &[f64]| THETA * (inlet.constant + inlet.right * c[0]);
+    let f_out = |c: &[f64]| THETA * col.v * c[n - 1];
+    let point = |step: usize, c: &[f64], s: &[f64], inflow: f64, outflow: f64| LedgerPoint {
+        step,
+        t: step as f64 * dt,
+        aqueous_sorbed: THETA * col.r * dx * c.iter().sum::<f64>(),
+        immobilized: RHO_B * dx * s.iter().sum::<f64>(),
+        inflow,
+        outflow,
+    };
+
+    let mut res = RunResult { landing, steps: landing.m * n_intervals, breakthrough: vec![(0.0, 0.0)], ledger: vec![point(0, &c, &s, 0.0, 0.0)], snapshots: Vec::new(), bounds: Bounds::default() };
+    if outputs.contains(&0) {
+        res.snapshots.push(Snapshot { step: 0, t: 0.0, c: c.clone(), s: s.clone() });
+    }
+    for step in 1..=res.steps {
+        integ.step(&c, &mut next);
+        inflow += 0.5 * dt * (f_in(&c) + f_in(&next));
+        outflow += 0.5 * dt * (f_out(&c) + f_out(&next));
+        for &i in &zone {
+            s[i] += s_gain * (c[i] + next[i]);
+        }
+        std::mem::swap(&mut c, &mut next);
+        res.bounds.steps += 1;
+        res.bounds.observe_c(step, &c);
+        res.bounds.observe_s(step, &s);
+        if step % landing.m == 0 {
+            let t = step as f64 * dt;
+            res.breakthrough.push((t, c[n - 1]));
+            res.ledger.push(point(step, &c, &s, inflow, outflow));
+            if outputs.contains(&(step / landing.m)) {
+                res.snapshots.push(Snapshot { step, t, c: c.clone(), s: s.clone() });
+            }
+        }
+    }
+    res
+}
+
+/// A production run of v1 section 4: T_end = 5 tau, snapshots at the six output times.
+pub fn run_production(cfg: &RunConfig) -> Result<RunResult, ColumnError> {
+    let col = cfg.column()?;
+    let l = production_landing(cfg, &col);
+    Ok(run(&col, l, 100, &OUTPUT_INTERVALS))
+}

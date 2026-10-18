@@ -321,3 +321,54 @@ fn bounds_flag_values_outside_n1() {
     assert_eq!(b.violations, 4);
     assert_eq!(b.first, Some(Violation { step: 2, cell: 1, what: "C below -1e-12 C0", value: -2e-12 }));
 }
+
+// ---------------------------------------------------------------- solid inventory and ledger
+
+#[test]
+fn solid_inventory_grows_only_in_the_zone_and_matches_the_reaction_sink() {
+    for cfg in [RunConfig { v: 1e-9, d: 1e-10, k_red: 1e-9, kd: 0.0 }, RunConfig { v: 1e-10, d: 1e-9, k_red: 1e-10, kd: 630.0 }] {
+        let col = cfg.column().unwrap();
+        let r = run_production(&cfg).unwrap();
+        let mut prev = vec![0.0; col.n];
+        for snap in &r.snapshots {
+            for i in 0..col.n {
+                assert!(snap.s[i] >= prev[i], "{} S decreased at cell {i}", cfg.label());
+                if !col.chi[i] {
+                    assert_eq!(snap.s[i], 0.0, "{} S outside the zone", cfg.label());
+                }
+            }
+            prev = snap.s.clone();
+        }
+        let last = r.ledger.last().unwrap();
+        eprintln!("{}: immobilized {:e} mol/m2, inflow {:e}, outflow {:e}, closure {:e}", cfg.label(), last.immobilized, last.inflow, last.outflow, last.closure());
+        assert!(last.immobilized > 0.0);
+    }
+}
+
+#[test]
+fn ledger_closes_on_representative_columns() {
+    // One run per (v, D) pair at the largest k_red and K_d; every run is
+    // checked by the ledger control test.
+    for v in VS {
+        for d in DS {
+            let cfg = RunConfig { v, d, k_red: 1e-9, kd: 630.0 };
+            let r = run_production(&cfg).unwrap();
+            let (worst, pass) = r.ledger_check();
+            eprintln!("{}: worst closure / inflow {worst:e}", cfg.label());
+            assert!(pass, "{}: {worst:e}", cfg.label());
+            assert_eq!(r.snapshots.len(), 6);
+            assert_eq!(r.ledger.len(), 101);
+            for (snap, tau) in r.snapshots.iter().zip(OUTPUT_TAUS) {
+                assert!(close(snap.t, tau * cfg.tau(), 1e-12));
+            }
+        }
+    }
+}
+
+#[test]
+fn without_reaction_the_solid_stays_exactly_zero() {
+    let cfg = RunConfig { v: 1e-9, d: 1e-9, k_red: 0.0, kd: 6.3 };
+    let r = run_production(&cfg).unwrap();
+    assert!(r.snapshots.iter().all(|s| s.s.iter().all(|x| *x == 0.0)));
+    assert!(r.ledger.iter().all(|p| p.immobilized == 0.0));
+}
