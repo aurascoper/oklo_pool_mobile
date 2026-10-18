@@ -243,3 +243,81 @@ fn face_fluxes_are_consistent_with_the_operator_and_signed_correctly() {
         assert!(full.iter().all(|x| close(*x, col.v * C0, 1e-12)), "{name}");
     }
 }
+
+// ---------------------------------------------------------------- Crank-Nicolson
+
+#[test]
+fn thomas_solves_the_implicit_system() {
+    for (name, col) in all_columns() {
+        let op = operator(&col);
+        let dt = col.dt_rule();
+        let (m, _) = cn_matrices(&col, &op, dt);
+        let x_true = test_profile(col.n);
+        let rhs: Vec<f64> = (0..col.n)
+            .map(|i| {
+                let mut y = m.di[i] * x_true[i];
+                if i > 0 {
+                    y += m.lo[i] * x_true[i - 1];
+                }
+                if i + 1 < col.n {
+                    y += m.up[i] * x_true[i + 1];
+                }
+                y
+            })
+            .collect();
+        let mut x = rhs.clone();
+        Thomas::new(&m).solve(&mut x);
+        let err = x.iter().zip(&x_true).fold(0.0f64, |a, (p, q)| a.max((p - q).abs()));
+        assert!(err <= 1e-13, "{name}: {err:e}");
+    }
+}
+
+#[test]
+fn one_step_satisfies_the_crank_nicolson_relation() {
+    for (name, col) in all_columns() {
+        let op = operator(&col);
+        let dt = col.dt_rule();
+        let integ = Integrator::new(&col, &op, dt);
+        let c = test_profile(col.n);
+        let mut c1 = vec![0.0; col.n];
+        integ.step(&c, &mut c1);
+        let mid: Vec<f64> = c.iter().zip(&c1).map(|(a, b)| 0.5 * (a + b)).collect();
+        let rhs = op.apply(&mid);
+        for i in 0..col.n {
+            let lhs = col.r * (c1[i] - c[i]) / dt;
+            assert!((lhs - rhs[i]).abs() <= 1e-11 * op.b0, "{name} cell {i}: {lhs:e} vs {:e}", rhs[i]);
+        }
+    }
+}
+
+#[test]
+fn without_reaction_the_column_fills_to_c0_and_stays_in_bounds() {
+    let col = Column::new(16.0, 64, 1e-9, 1e-9, 0.0, 1.0, vec![false; 64]).unwrap();
+    let integ = Integrator::new(&col, &operator(&col), col.dt_rule());
+    let (mut c, mut next) = (vec![0.0; 64], vec![0.0; 64]);
+    let mut b = Bounds::default();
+    // 200000 steps of 2e7 s: about 15 diffusion times L^2 / D and 250 travel times L / v.
+    for step in 1..=200_000 {
+        integ.step(&c, &mut next);
+        std::mem::swap(&mut c, &mut next);
+        b.observe_c(step, &c);
+    }
+    let worst = c.iter().fold(0.0f64, |a, x| a.max((x - C0).abs()));
+    eprintln!("after 200000 steps max |C - C0| = {worst:e}; C in [{:e}, {:e}]", b.c_min, b.c_max);
+    assert!(worst <= 1e-12, "{worst:e}");
+    assert!(b.n1_pass(), "{:?}", b.first);
+}
+
+#[test]
+fn bounds_flag_values_outside_n1() {
+    let mut b = Bounds::default();
+    b.observe_c(1, &[0.0, 0.5, 1.0, -1e-13, 1.0 + 1e-13]);
+    b.observe_s(1, &[0.0, -1e-13 * S_REF]);
+    assert!(b.n1_pass());
+    b.observe_c(2, &[0.2, -2e-12]);
+    b.observe_c(3, &[1.0 + 2e-12]);
+    b.observe_s(4, &[-2e-12 * S_REF]);
+    b.observe_c(5, &[f64::NAN]);
+    assert_eq!(b.violations, 4);
+    assert_eq!(b.first, Some(Violation { step: 2, cell: 1, what: "C below -1e-12 C0", value: -2e-12 }));
+}

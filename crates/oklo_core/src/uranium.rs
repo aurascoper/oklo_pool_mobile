@@ -337,3 +337,136 @@ pub fn cn_matrices(col: &Column, op: &Operator, dt: f64) -> (Tridiag, Tridiag) {
     };
     (m, e)
 }
+
+// ---------------------------------------------------------------- Crank-Nicolson (v1 section 3, A1.2, A1.3)
+
+/// Thomas factorization of a tridiagonal matrix, without pivoting. The
+/// matrices factored here are strictly diagonally dominant M-matrices, for
+/// which elimination without pivoting is stable.
+#[derive(Clone, Debug)]
+pub struct Thomas {
+    lo: Vec<f64>,
+    denom: Vec<f64>,
+    cprime: Vec<f64>,
+}
+
+impl Thomas {
+    pub fn new(m: &Tridiag) -> Thomas {
+        let n = m.di.len();
+        let mut denom = vec![0.0; n];
+        let mut cprime = vec![0.0; n];
+        denom[0] = m.di[0];
+        cprime[0] = m.up[0] / denom[0];
+        for i in 1..n {
+            denom[i] = m.di[i] - m.lo[i] * cprime[i - 1];
+            cprime[i] = if i + 1 < n { m.up[i] / denom[i] } else { 0.0 };
+        }
+        Thomas { lo: m.lo.clone(), denom, cprime }
+    }
+
+    /// Overwrites rhs with the solution x of M x = rhs.
+    pub fn solve(&self, rhs: &mut [f64]) {
+        let n = rhs.len();
+        rhs[0] /= self.denom[0];
+        for i in 1..n {
+            rhs[i] = (rhs[i] - self.lo[i] * rhs[i - 1]) / self.denom[i];
+        }
+        for i in (0..n - 1).rev() {
+            rhs[i] -= self.cprime[i] * rhs[i + 1];
+        }
+    }
+}
+
+/// One column's Crank-Nicolson step at a fixed dt: M c_new = E c + dt b.
+#[derive(Clone, Debug)]
+pub struct Integrator {
+    pub dt: f64,
+    e: Tridiag,
+    thomas: Thomas,
+    dt_b0: f64,
+}
+
+impl Integrator {
+    pub fn new(col: &Column, op: &Operator, dt: f64) -> Integrator {
+        let (m, e) = cn_matrices(col, op, dt);
+        Integrator { dt, e, thomas: Thomas::new(&m), dt_b0: dt * op.b0 }
+    }
+
+    pub fn step(&self, c: &[f64], out: &mut [f64]) {
+        let n = c.len();
+        let e = &self.e;
+        for i in 0..n {
+            let mut y = e.di[i] * c[i];
+            if i > 0 {
+                y += e.lo[i] * c[i - 1];
+            }
+            if i + 1 < n {
+                y += e.up[i] * c[i + 1];
+            }
+            out[i] = y;
+        }
+        out[0] += self.dt_b0;
+        self.thomas.solve(out);
+    }
+}
+
+/// First value outside the N1 bounds (A1.5).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Violation {
+    pub step: usize,
+    pub cell: usize,
+    pub what: &'static str,
+    pub value: f64,
+}
+
+/// N1 bookkeeping: extremes of C and S over every step and cell, and the
+/// number of values outside -1e-12 C0 <= C <= (1 + 1e-12) C0, S >= -1e-12 S_ref.
+#[derive(Clone, Copy, Debug)]
+pub struct Bounds {
+    pub c_min: f64,
+    pub c_max: f64,
+    pub s_min: f64,
+    pub steps: usize,
+    pub violations: usize,
+    pub first: Option<Violation>,
+}
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Bounds { c_min: f64::INFINITY, c_max: f64::NEG_INFINITY, s_min: f64::INFINITY, steps: 0, violations: 0, first: None }
+    }
+}
+
+impl Bounds {
+    fn flag(&mut self, step: usize, cell: usize, what: &'static str, value: f64) {
+        self.violations += 1;
+        if self.first.is_none() {
+            self.first = Some(Violation { step, cell, what, value });
+        }
+    }
+
+    pub fn observe_c(&mut self, step: usize, c: &[f64]) {
+        for (i, &x) in c.iter().enumerate() {
+            self.c_min = self.c_min.min(x);
+            self.c_max = self.c_max.max(x);
+            if !(x >= -N1_REL * C0) {
+                self.flag(step, i, "C below -1e-12 C0", x);
+            } else if !(x <= (1.0 + N1_REL) * C0) {
+                self.flag(step, i, "C above (1 + 1e-12) C0", x);
+            }
+        }
+    }
+
+    pub fn observe_s(&mut self, step: usize, s: &[f64]) {
+        for (i, &x) in s.iter().enumerate() {
+            self.s_min = self.s_min.min(x);
+            if !(x >= -N1_REL * S_REF) {
+                self.flag(step, i, "S below -1e-12 S_ref", x);
+            }
+        }
+    }
+
+    pub fn n1_pass(&self) -> bool {
+        self.violations == 0
+    }
+}
