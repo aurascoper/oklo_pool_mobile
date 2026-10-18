@@ -592,3 +592,164 @@ pub fn run_production(cfg: &RunConfig) -> Result<RunResult, ColumnError> {
     let l = production_landing(cfg, &col);
     Ok(run(&col, l, 100, &OUTPUT_INTERVALS))
 }
+
+// ---------------------------------------------------------------- B1 Ogata-Banks benchmark and T1 (v1 section 6, A1.6)
+
+/// B1: a separate semi-infinite problem on a long column, not the production column.
+pub const B1_LENGTH: f64 = 64.0;
+pub const B1_V: f64 = 1e-9;
+pub const B1_D: f64 = 1e-9;
+pub const B1_T: f64 = 1.6e10;
+pub const B1_WINDOW: f64 = 32.0;
+pub const B1_GRIDS: [usize; 3] = [256, 512, 1024];
+pub const T1_N: usize = 256;
+
+/// Below this argument erfc is 1 - erf from the positive series; at or above
+/// it, the continued fraction for erfcx.
+pub const ERFC_SWITCH: f64 = 2.0;
+
+/// erf(x) = (2/sqrt(pi)) exp(-x^2) sum_n 2^n x^(2n+1) / (2n+1)!!, whose terms
+/// all share the sign of x, so the sum has no cancellation.
+fn erf_series(x: f64) -> f64 {
+    let x2 = x * x;
+    let (mut term, mut sum, mut n) = (x, x, 0.0);
+    while term.abs() > 1e-17 * sum.abs() {
+        n += 1.0;
+        term *= 2.0 * x2 / (2.0 * n + 1.0);
+        sum += term;
+    }
+    std::f64::consts::FRAC_2_SQRT_PI * (-x2).exp() * sum
+}
+
+/// exp(x^2) erfc(x) for x >= ERFC_SWITCH from the continued fraction
+/// erfc(x) = exp(-x^2) / sqrt(pi) / (x + (1/2) / (x + 1 / (x + (3/2) / (x + ...)))),
+/// evaluated by the modified Lentz method.
+fn erfcx_cf(x: f64) -> f64 {
+    const TINY: f64 = 1e-300;
+    let (mut f, mut c, mut d) = (x, x, 0.0);
+    for n in 1..100_000 {
+        let a = 0.5 * n as f64;
+        d = x + a * d;
+        d = if d == 0.0 { 1.0 / TINY } else { 1.0 / d };
+        c = x + a / c;
+        if c == 0.0 {
+            c = TINY;
+        }
+        let delta = c * d;
+        f *= delta;
+        if (delta - 1.0).abs() <= 2.0 * f64::EPSILON {
+            break;
+        }
+    }
+    0.5 * std::f64::consts::FRAC_2_SQRT_PI / f
+}
+
+/// Complementary error function for real x.
+pub fn erfc(x: f64) -> f64 {
+    if x < 0.0 {
+        2.0 - erfc(-x)
+    } else if x < ERFC_SWITCH {
+        1.0 - erf_series(x)
+    } else {
+        (-x * x).exp() * erfcx_cf(x)
+    }
+}
+
+/// Scaled complementary error function exp(x^2) erfc(x), for x >= 0.
+pub fn erfcx(x: f64) -> f64 {
+    assert!(x >= 0.0, "erfcx is used here only for x >= 0");
+    if x < ERFC_SWITCH {
+        (x * x).exp() * (1.0 - erf_series(x))
+    } else {
+        erfcx_cf(x)
+    }
+}
+
+/// Ogata and Banks 1961, equation 12: C / C0 = (1/2) [erfc((x - vt) / (2 sqrt(Dt)))
+/// + exp(vx / D) erfc((x + vt) / (2 sqrt(Dt)))], with the second term
+/// evaluated as exp(vx / D - z^2) erfcx(z) to avoid overflow of exp(vx / D).
+pub fn ogata_banks(x: f64, t: f64, v: f64, d: f64) -> f64 {
+    let s = 2.0 * (d * t).sqrt();
+    let z1 = (x - v * t) / s;
+    let z2 = (x + v * t) / s;
+    0.5 * C0 * (erfc(z1) + (v * x / d - z2 * z2).exp() * erfcx(z2))
+}
+
+pub fn b1_column(n: usize) -> Column {
+    Column::new(B1_LENGTH, n, B1_V, B1_D, 0.0, 1.0, vec![false; n]).expect("B1 column is valid")
+}
+
+/// sqrt(sum dx f_i^2) over the cells whose centres lie in 0 to B1_WINDOW.
+pub fn window_l2(col: &Column, f: impl Fn(usize) -> f64) -> f64 {
+    let dx = col.dx();
+    (0..col.n).filter(|&i| (i as f64 + 0.5) * dx <= B1_WINDOW).map(|i| dx * f(i) * f(i)).sum::<f64>().sqrt()
+}
+
+#[derive(Clone, Debug)]
+pub struct B1Result {
+    pub steps: [usize; 3],
+    pub dt: [f64; 3],
+    pub errors: [f64; 3],
+    pub orders: [f64; 2],
+    pub n1_pass: bool,
+    pub ledger_worst: f64,
+}
+
+impl B1Result {
+    pub fn pass(&self) -> bool {
+        self.orders.iter().all(|p| (ORDER_RANGE.0..=ORDER_RANGE.1).contains(p))
+    }
+}
+
+/// B1: the Ogata-Banks problem at N = 256, 512, 1024, compared at t* over 0 to 32 m.
+pub fn b1() -> B1Result {
+    let mut r = B1Result { steps: [0; 3], dt: [0.0; 3], errors: [0.0; 3], orders: [0.0; 2], n1_pass: true, ledger_worst: 0.0 };
+    for (g, &n) in B1_GRIDS.iter().enumerate() {
+        let col = b1_column(n);
+        let l = landing(B1_T, col.dt_rule());
+        let run = run(&col, l, 1, &[1]);
+        let c = &run.snapshots[0].c;
+        let dx = col.dx();
+        r.steps[g] = run.steps;
+        r.dt[g] = l.dt;
+        r.errors[g] = window_l2(&col, |i| c[i] - ogata_banks((i as f64 + 0.5) * dx, B1_T, B1_V, B1_D));
+        r.n1_pass &= run.bounds.n1_pass();
+        r.ledger_worst = r.ledger_worst.max(run.ledger_check().0);
+    }
+    r.orders = [(r.errors[0] / r.errors[1]).log2(), (r.errors[1] / r.errors[2]).log2()];
+    r
+}
+
+#[derive(Clone, Debug)]
+pub struct T1Result {
+    pub steps: [usize; 3],
+    pub e: [f64; 2],
+    pub order: f64,
+    pub n1_pass: bool,
+}
+
+impl T1Result {
+    pub fn pass(&self) -> bool {
+        (ORDER_RANGE.0..=ORDER_RANGE.1).contains(&self.order)
+    }
+}
+
+/// T1: the B1 problem at N = 256 with dt_0 = t* / m_0, dt_0 / 2 and dt_0 / 4;
+/// the order comes from successive differences, which cancel the shared
+/// spatial error.
+pub fn t1() -> T1Result {
+    let col = b1_column(T1_N);
+    let m0 = landing(B1_T, col.dt_rule()).m;
+    let mut sols = Vec::new();
+    let mut r = T1Result { steps: [0; 3], e: [0.0; 2], order: f64::NAN, n1_pass: true };
+    for j in 0..3 {
+        let m = m0 << j;
+        let run = run(&col, Landing { interval: B1_T, m, dt: B1_T / m as f64 }, 1, &[1]);
+        r.steps[j] = m;
+        r.n1_pass &= run.bounds.n1_pass();
+        sols.push(run.snapshots[0].c.clone());
+    }
+    r.e = [window_l2(&col, |i| sols[0][i] - sols[1][i]), window_l2(&col, |i| sols[1][i] - sols[2][i])];
+    r.order = (r.e[0] / r.e[1]).log2();
+    r
+}

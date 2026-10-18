@@ -372,3 +372,62 @@ fn without_reaction_the_solid_stays_exactly_zero() {
     assert!(r.snapshots.iter().all(|s| s.s.iter().all(|x| *x == 0.0)));
     assert!(r.ledger.iter().all(|p| p.immobilized == 0.0));
 }
+
+// ---------------------------------------------------------------- B1 and T1
+
+#[test]
+fn erfc_matches_reference_values_on_both_branches() {
+    // Reference values from CPython math.erfc / math.erf (C library).
+    let refs = [(0.5, 0.4795001221869535), (1.0, 0.15729920705028516), (2.0, 0.0046777349810472645), (3.0, 2.2090496998585438e-05), (5.0, 1.537459794428035e-12)];
+    for (x, want) in refs {
+        assert!(close(erfc(x), want, 1e-14), "erfc({x}) = {:e} vs {want:e}", erfc(x));
+        assert!(close(erfc(-x), 2.0 - want, 1e-15), "erfc(-{x})");
+    }
+    assert!(close(erfcx(5.0), 0.11070463773306864, 1e-14));
+    assert!(close(erfcx(10.0), 0.05614099274382259, 1e-14));
+    assert_eq!(erfc(0.0), 1.0);
+    for x in [1.9, 1.99, 1.999999, 2.0, 2.000001, 2.01, 2.5] {
+        let a = erfcx(x);
+        let b = (x * x).exp() * erfc(x);
+        assert!(close(a, b, 1e-13), "erfcx({x}) {a:e} vs exp(x^2) erfc(x) {b:e}");
+    }
+    // The two branches agree where they meet.
+    let x = ERFC_SWITCH;
+    let series = 1.0 - (1.0 - erfc(x - 1e-12));
+    assert!(close(series, erfc(x), 1e-11), "{series:e} vs {:e}", erfc(x));
+}
+
+#[test]
+fn ogata_banks_meets_its_boundary_conditions() {
+    for t in [1e8, 1e9, B1_T] {
+        assert!(close(ogata_banks(0.0, t, B1_V, B1_D), C0, 1e-14), "x = 0 at t = {t:e}");
+        // At t*, x = 64 m is six spreads (2 sqrt(D t*) = 8 m) past the front, so
+        // C / C0 is about erfc(6) / 2 + exp(-36) erfcx(10) / 2, near 2.4e-17.
+        assert!(ogata_banks(B1_LENGTH, t, B1_V, B1_D) < 1e-15);
+    }
+    let mut prev = C0;
+    for i in 1..=320 {
+        let c = ogata_banks(0.1 * i as f64, B1_T, B1_V, B1_D);
+        assert!(c <= prev && c >= 0.0, "not monotone at {i}");
+        prev = c;
+    }
+    eprintln!("Ogata-Banks at the front x = vt = 16 m: {:.15}", ogata_banks(16.0, B1_T, B1_V, B1_D));
+}
+
+#[test]
+fn b1_ogata_banks_spatial_order() {
+    let r = b1();
+    eprintln!("B1 steps {:?} dt {:?}", r.steps, r.dt);
+    eprintln!("B1 L2 errors {:?} orders {:?} (pass band {:?}); N1 {}; worst ledger closure / inflow {:e}", r.errors, r.orders, ORDER_RANGE, r.n1_pass, r.ledger_worst);
+    assert!(r.n1_pass, "N1 failed on B1");
+    assert!(r.pass(), "B1 orders {:?} outside {:?}", r.orders, ORDER_RANGE);
+}
+
+#[test]
+fn t1_temporal_order_on_b1() {
+    let r = t1();
+    eprintln!("T1 steps {:?} E0 {:e} E1 {:e} order {} (pass band {:?}); N1 {}", r.steps, r.e[0], r.e[1], r.order, ORDER_RANGE, r.n1_pass);
+    assert_eq!(r.steps, [800, 1600, 3200]);
+    assert!(r.n1_pass, "N1 failed on T1");
+    assert!(r.pass(), "T1 order {} outside {:?}", r.order, ORDER_RANGE);
+}
