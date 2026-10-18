@@ -1,0 +1,14 @@
+Darcy pre-registration v1, Amendment A3: freeze receipt
+frozen_utc: 2026-10-18T02:43:54Z
+amendment: docs/specs/DARCY_FLOW_PREREG_v1_AMENDMENT_A3.md
+amendment_sha256: 54c0e72387cbf6583edd404231e1fb06455a9eea9768be0f33ee1fba7241dc75
+v1_sha256 (unchanged): e0a13e103f090ac6adacdc249a6d75ed99f56e14577d726490b24aa0a7f2e1ca
+A1_sha256 (unchanged): 39a7ae88b7861f065e02488076e3f52f4a84709b744a433383f469e5df1c55db
+A2_sha256 (unchanged): 1d31ad5f334a07e096f71091b46cdde09298a4589a7ba73e415bd2d39803e1c3
+status: residual bookkeeping correction, frozen before any Darcy solver code exists and before any run (no darcy.rs in crates/oklo_core/src at freeze time). No physical problem, parameter, case, check, tolerance, stopping rule or output changed. No claim about actual Oklo conditions.
+
+superseded v1 passages (quoted exactly; each found once in v1):
+  line 83: 'and r = b - A h exactly: the linear-solver residual vector is the cell mass-imbalance vector, in m³/s.'
+  line 90: 'Reconciling tolerances (C4). Because r = b - A h, the CG stopping rule bounds the D1 mass-balance error'
+  line 96: 'The residual is computed twice, once as b - A h from the matrix and once by summing separately coded face fluxes'
+replacements: see A3.5. Definitions: r_phys = A h - b (net outward flux minus source); r_solv = b - A h = -r_phys; CG stop ||b - A h||_2 <= 1e-12 ||b||_2 unchanged.
