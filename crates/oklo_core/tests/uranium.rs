@@ -129,3 +129,117 @@ fn contract_validation_rejects_invalid_columns() {
     }
     assert_eq!(RunConfig { v: 1e-9, d: 1e-9, k_red: 0.0, kd: -1.0 }.column().unwrap_err(), ColumnError::RetardationBelowOne);
 }
+
+// ---------------------------------------------------------------- operator
+
+/// The 144 production columns plus the benchmark columns of v1 section 6
+/// (B1: 64 m, no reaction; B2: 16 m, reaction everywhere).
+fn all_columns() -> Vec<(String, Column)> {
+    let mut out: Vec<(String, Column)> = sweep().iter().map(|c| (c.label(), c.column().unwrap())).collect();
+    for n in [256, 512, 1024] {
+        out.push((format!("B1 N={n}"), Column::new(64.0, n, 1e-9, 1e-9, 0.0, 1.0, vec![false; n]).unwrap()));
+    }
+    for n in [64, 128, 256] {
+        out.push((format!("B2 N={n}"), Column::new(16.0, n, 1e-9, 1e-9, 1e-10, 1.0, vec![true; n]).unwrap()));
+    }
+    out
+}
+
+/// Deterministic profile in [0, C0] for consistency checks (no dependencies).
+fn test_profile(n: usize) -> Vec<f64> {
+    let mut x: u64 = 0x9E3779B97F4A7C15;
+    (0..n)
+        .map(|_| {
+            x ^= x << 13;
+            x ^= x >> 7;
+            x ^= x << 17;
+            C0 * (x >> 11) as f64 / (1u64 << 53) as f64
+        })
+        .collect()
+}
+
+#[test]
+fn operator_from_face_rules_matches_the_a1_diagonals() {
+    for (name, col) in all_columns() {
+        let op = operator(&col);
+        let (v, d, dx, n) = (col.v, col.d, col.dx(), col.n);
+        for i in 0..n {
+            let k = if col.chi[i] { col.k_red } else { 0.0 };
+            let want = match i {
+                0 => 3.0 * d / (dx * dx) + v / (2.0 * dx) + k,
+                i if i + 1 == n => d / (dx * dx) + v / (2.0 * dx) + k,
+                _ => 2.0 * d / (dx * dx) + k,
+            };
+            assert!(close(-op.a.di[i], want, 1e-14), "{name} cell {i}: {} vs {want}", -op.a.di[i]);
+            if i > 0 {
+                assert!(close(op.a.lo[i], (v / 2.0 + d / dx) / dx, 1e-14), "{name} lo {i}");
+            }
+            if i + 1 < n {
+                let want_up = (d / dx - v / 2.0) / dx;
+                assert!((op.a.up[i] - want_up).abs() <= 1e-14 * (d / (dx * dx)), "{name} up {i}");
+            }
+        }
+        assert!(close(op.b0, (v / dx + 2.0 * d / (dx * dx)) * C0, 1e-14), "{name} b0");
+    }
+}
+
+#[test]
+fn operator_off_diagonals_are_non_negative_in_binary64() {
+    for (name, col) in all_columns() {
+        let op = operator(&col);
+        let lo_min = op.a.lo[1..].iter().cloned().fold(f64::INFINITY, f64::min);
+        let up_min = op.a.up[..col.n - 1].iter().cloned().fold(f64::INFINITY, f64::min);
+        assert!(lo_min >= 0.0 && up_min >= 0.0, "{name}: lo {lo_min:e} up {up_min:e}");
+    }
+}
+
+#[test]
+fn crank_nicolson_matrices_have_the_a1_sign_structure_at_the_landed_step() {
+    let mut worst_diag = f64::INFINITY;
+    for cfg in sweep() {
+        let col = cfg.column().unwrap();
+        let dt = production_landing(&cfg, &col).dt;
+        let (m, e) = cn_matrices(&col, &operator(&col), dt);
+        for i in 0..col.n {
+            worst_diag = worst_diag.min(e.di[i] / col.r);
+            assert!(e.di[i] >= 0.5 * col.r * (1.0 - N1_REL), "{} E diag {i}: {}", cfg.label(), e.di[i] / col.r);
+            assert!(e.lo[i] >= 0.0 && e.up[i] >= 0.0, "{} E off-diagonal {i}", cfg.label());
+            assert!(m.lo[i] <= 0.0 && m.up[i] <= 0.0 && m.di[i] > 0.0, "{} M signs {i}", cfg.label());
+            assert!(m.di[i] > -m.lo[i] - m.up[i], "{} M not strictly dominant in row {i}", cfg.label());
+        }
+    }
+    eprintln!("min over all runs and cells of E_ii / R: {worst_diag:?}");
+}
+
+#[test]
+fn uniform_inlet_profile_is_steady_without_reaction() {
+    for (name, col) in all_columns().into_iter().filter(|(_, c)| c.k_red == 0.0) {
+        let op = operator(&col);
+        let r = op.apply(&vec![C0; col.n]);
+        let worst = r.iter().fold(0.0f64, |a, x| a.max(x.abs()));
+        assert!(worst <= 1e-12 * op.b0, "{name}: {worst:e}");
+    }
+}
+
+#[test]
+fn face_fluxes_are_consistent_with_the_operator_and_signed_correctly() {
+    for (name, col) in all_columns() {
+        let (n, dx) = (col.n, col.dx());
+        let op = operator(&col);
+        let c = test_profile(n);
+        let f = face_fluxes(&col, &c);
+        assert_eq!(f.len(), n + 1);
+        let ac = op.apply(&c);
+        for i in 0..n {
+            let k = if col.chi[i] { col.k_red } else { 0.0 };
+            let div = (f[i] - f[i + 1]) / dx - k * c[i];
+            assert!((div - ac[i]).abs() <= 1e-12 * op.b0, "{name} cell {i}");
+        }
+        assert_eq!(f[n], col.v * c[n - 1]);
+        let empty = face_fluxes(&col, &vec![0.0; n]);
+        assert!(close(empty[0], (col.v + 2.0 * col.d / dx) * C0, 1e-15) && empty[0] > 0.0, "{name}");
+        assert!(empty[1..].iter().all(|x| *x == 0.0));
+        let full = face_fluxes(&col, &vec![C0; n]);
+        assert!(full.iter().all(|x| close(*x, col.v * C0, 1e-12)), "{name}");
+    }
+}

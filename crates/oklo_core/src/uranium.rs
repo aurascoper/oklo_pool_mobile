@@ -223,3 +223,117 @@ pub fn sweep() -> Vec<RunConfig> {
 pub fn production_landing(cfg: &RunConfig, col: &Column) -> Landing {
     landing(LANDING_FRACTION * cfg.tau(), col.dt_rule())
 }
+
+// ---------------------------------------------------------------- operator (v1 section 3)
+
+/// Tridiagonal matrix: `lo[i]` couples cell i to i-1 (lo[0] unused), `up[i]`
+/// couples cell i to i+1 (up[n-1] unused).
+#[derive(Clone, Debug)]
+pub struct Tridiag {
+    pub lo: Vec<f64>,
+    pub di: Vec<f64>,
+    pub up: Vec<f64>,
+}
+
+/// The semi-discrete system R dC/dt = A C + b, with b nonzero only in the
+/// inlet cell, b_0 = b0.
+#[derive(Clone, Debug)]
+pub struct Operator {
+    pub a: Tridiag,
+    pub b0: f64,
+}
+
+/// Face j as a linear function of its neighbours, F_j = left C_{j-1} + right
+/// C_j + constant, per unit pore area. Face 0 is the inlet, face n the outlet.
+#[derive(Clone, Copy, Debug)]
+struct Face {
+    left: f64,
+    right: f64,
+    constant: f64,
+}
+
+fn faces(col: &Column) -> Vec<Face> {
+    let (v, d, dx, n) = (col.v, col.d, col.dx(), col.n);
+    let mut f = Vec::with_capacity(n + 1);
+    // Inlet: advective value C0, diffusive D (C_1 - C0) / (dx / 2).
+    f.push(Face { left: 0.0, right: -2.0 * d / dx, constant: (v + 2.0 * d / dx) * C0 });
+    // Interior: central advective average, central diffusive difference.
+    for _ in 1..n {
+        f.push(Face { left: v / 2.0 + d / dx, right: v / 2.0 - d / dx, constant: 0.0 });
+    }
+    // Outlet: zero diffusive gradient, advective value of the last cell.
+    f.push(Face { left: v, right: 0.0, constant: 0.0 });
+    f
+}
+
+/// A and b assembled from the face rules: R dC_i/dt = (F_i - F_{i+1}) / dx - k_red chi_i C_i.
+pub fn operator(col: &Column) -> Operator {
+    let (n, dx) = (col.n, col.dx());
+    let f = faces(col);
+    let mut a = Tridiag { lo: vec![0.0; n], di: vec![0.0; n], up: vec![0.0; n] };
+    for i in 0..n {
+        let k = if col.chi[i] { col.k_red } else { 0.0 };
+        a.di[i] = (f[i].right - f[i + 1].left) / dx - k;
+        if i > 0 {
+            a.lo[i] = f[i].left / dx;
+        }
+        if i + 1 < n {
+            a.up[i] = -f[i + 1].right / dx;
+        }
+    }
+    Operator { a, b0: f[0].constant / dx }
+}
+
+/// The n + 1 face fluxes F_j for a profile c, per unit pore area (mol m^-2 s^-1
+/// of pore water); multiply by theta for flux per unit bulk cross-section.
+pub fn face_fluxes(col: &Column, c: &[f64]) -> Vec<f64> {
+    let n = col.n;
+    faces(col)
+        .iter()
+        .enumerate()
+        .map(|(j, f)| {
+            let l = if j > 0 { f.left * c[j - 1] } else { 0.0 };
+            let r = if j < n { f.right * c[j] } else { 0.0 };
+            l + r + f.constant
+        })
+        .collect()
+}
+
+impl Operator {
+    /// (A c + b)_i.
+    pub fn apply(&self, c: &[f64]) -> Vec<f64> {
+        let n = c.len();
+        (0..n)
+            .map(|i| {
+                let mut y = self.a.di[i] * c[i];
+                if i > 0 {
+                    y += self.a.lo[i] * c[i - 1];
+                }
+                if i + 1 < n {
+                    y += self.a.up[i] * c[i + 1];
+                }
+                if i == 0 {
+                    y += self.b0;
+                }
+                y
+            })
+            .collect()
+    }
+}
+
+/// The Crank-Nicolson pair for step dt: implicit M = R I - (dt/2) A and
+/// explicit E = R I + (dt/2) A.
+pub fn cn_matrices(col: &Column, op: &Operator, dt: f64) -> (Tridiag, Tridiag) {
+    let h = 0.5 * dt;
+    let m = Tridiag {
+        lo: op.a.lo.iter().map(|x| -h * x).collect(),
+        di: op.a.di.iter().map(|x| col.r - h * x).collect(),
+        up: op.a.up.iter().map(|x| -h * x).collect(),
+    };
+    let e = Tridiag {
+        lo: op.a.lo.iter().map(|x| h * x).collect(),
+        di: op.a.di.iter().map(|x| col.r + h * x).collect(),
+        up: op.a.up.iter().map(|x| h * x).collect(),
+    };
+    (m, e)
+}
