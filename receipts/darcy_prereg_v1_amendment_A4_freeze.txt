@@ -1,0 +1,14 @@
+Darcy pre-registration v1, Amendment A4: freeze receipt
+frozen_utc: 2026-10-18T02:57:50Z
+amendment: docs/specs/DARCY_FLOW_PREREG_v1_AMENDMENT_A4.md
+amendment_sha256: b874e8adf13358f62dc822e7bc881993b1bb4cd2923a32d7db03ece0ab801715
+v1_sha256 (unchanged): e0a13e103f090ac6adacdc249a6d75ed99f56e14577d726490b24aa0a7f2e1ca
+A1_sha256 (unchanged): 39a7ae88b7861f065e02488076e3f52f4a84709b744a433383f469e5df1c55db
+A2_sha256 (unchanged): 1d31ad5f334a07e096f71091b46cdde09298a4589a7ba73e415bd2d39803e1c3
+A3_sha256 (unchanged): 54c0e72387cbf6583edd404231e1fb06455a9eea9768be0f33ee1fba7241dc75
+frozen before any A4 code change or rerun; HEAD at freeze: 075734a6e3b9400086ae81f008f3d0f8fe2f2675
+only change: CG true-residual acceptance 1e-12 -> 1e-13 relative to ||b||_2 for the A4 rerun; every threshold, case, parameter, cap and equation unchanged.
+v1 results preserved; hashes now, rechecked after the rerun:
+  receipts/darcy_v1_run_2026-10-18.json: 5a3b3a952709f629ed57ca989ad2d4192526106b5aae7d15ee39c8c18e7bf206
+  receipts/darcy_v1_tests_2026-10-18.txt: 91c58a337c8f283da1ca7dcaf02ac210b5db99b7eebd35b76df177c63383802e
+No claim about actual Oklo conditions. No parameter fitting.
