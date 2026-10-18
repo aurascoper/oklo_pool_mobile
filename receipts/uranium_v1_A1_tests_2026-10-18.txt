@@ -1,0 +1,137 @@
+Uranium pre-registration v1 with Amendment A1: verbatim test log
+git_head: 0af5af44ad5c8e56e042eb767010d965a3e409b3 (branch uranium-column-v1, working tree clean before this log)
+rustc: rustc 1.97.1 (8bab26f4f 2026-07-14)
+started_utc: 2026-10-18T07:38:34Z
+command: cargo test --release --offline -p oklo_core --test uranium --no-fail-fast -- --nocapture --test-threads=1
+no continuous integration ran
+
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running tests/uranium.rs (target/release/deps/uranium-35d3c2a019420999)
+
+running 29 tests
+test b1_ogata_banks_spatial_order ... B1 steps [800, 3137, 12417] dt [20000000.0, 5100414.408670705, 1288556.0119191431]
+B1 L2 errors [0.0009557851615788115, 0.0002385846794998524, 5.96222778857613e-5] orders [2.0021849654884822, 2.000578004584559] (pass band (1.8, 2.2)); N1 true; worst ledger closure / inflow 4.587386639094227e-13
+ok
+test b2_exact_solution_satisfies_its_problem ... ok
+test b2_finite_domain_steady_state_order ... B2 L2 errors [0.00015551118817088878, 3.8859715735719954e-5, 9.713794088177926e-6] orders [2.0006711254703937, 2.0001685377200213] (pass band (1.8, 2.2)); max |A C + b| / b0 2.0052863334618851e-16
+ok
+test bounds_flag_values_outside_n1 ... ok
+test c1_without_reaction_the_solid_is_exactly_zero ... ok
+test c2_both_corrupted_variants_are_detected_in_all_36_configurations ... v1e-10_D1e-11_k1e-10_Kd0e0: model ledger 1.5819407558537173e-14 min S 0e0 clean true; (a) ledger 1.7706352514655634e2 detected true; (b) min S -4.1119653688821214e-3 detected true
+v1e-10_D1e-11_k1e-10_Kd6.3e-2: model ledger 7.953167435353542e-15 min S 0e0 clean true; (a) ledger 1.7706352514656209e2 detected true; (b) min S -3.8942368025997927e0 detected true
+v1e-10_D1e-11_k1e-10_Kd6.3e0: model ledger 9.217437399306223e-15 min S 0e0 clean true; (a) ledger 1.7706352514655688e2 detected true; (b) min S -3.890165956884608e2 detected true
+v1e-10_D1e-11_k1e-10_Kd6.3e2: model ledger 1.8615321706905307e-14 min S 0e0 clean true; (a) ledger 1.7706352514655498e2 detected true; (b) min S -3.8901252484274046e4 detected true
+v1e-10_D1e-10_k1e-10_Kd0e0: model ledger 3.0665354058527226e-14 min S 0e0 clean true; (a) ledger 3.9578799945900477e2 detected true; (b) min S -2.8579106909604785e-3 detected true
+v1e-10_D1e-10_k1e-10_Kd6.3e-2: model ledger 5.875185044879248e-14 min S 0e0 clean true; (a) ledger 3.9578799945905496e2 detected true; (b) min S -2.706584319874443e0 detected true
+v1e-10_D1e-10_k1e-10_Kd6.3e0: model ledger 3.683680418057141e-14 min S 0e0 clean true; (a) ledger 3.957879994590316e2 detected true; (b) min S -2.7037549882902664e2 detected true
+v1e-10_D1e-10_k1e-10_Kd6.3e2: model ledger 6.329904931568587e-15 min S 0e0 clean true; (a) ledger 3.957879994590106e2 detected true; (b) min S -2.703726694974379e4 detected true
+v1e-10_D1e-9_k1e-10_Kd0e0: model ledger 2.3387851357619606e-13 min S 0e0 clean true; (a) ledger 1.389281433468958e1 detected true; (b) min S -2.4533376598373027e-3 detected true
+v1e-10_D1e-9_k1e-10_Kd6.3e-2: model ledger 3.2932609155312087e-13 min S 0e0 clean true; (a) ledger 1.3892814334691728e1 detected true; (b) min S -2.323433430748364e0 detected true
+v1e-10_D1e-9_k1e-10_Kd6.3e0: model ledger 4.420200332831884e-13 min S 0e0 clean true; (a) ledger 1.3892814334703733e1 detected true; (b) min S -2.321004626465498e2 detected true
+v1e-10_D1e-9_k1e-10_Kd6.3e2: model ledger 1.1961101199136322e-13 min S 0e0 clean true; (a) ledger 1.3892814334693366e1 detected true; (b) min S -2.3209803384217626e4 detected true
+v1e-9_D1e-11_k1e-10_Kd0e0: model ledger 3.834971104349712e-13 min S 0e0 clean true; (a) ledger 8.885689714054027e-1 detected true; (b) min S -4.917864744234314e-4 detected true
+v1e-9_D1e-11_k1e-10_Kd6.3e-2: model ledger 7.497756404169321e-14 min S 0e0 clean true; (a) ledger 8.885689714061549e-1 detected true; (b) min S -4.657463806027616e-1 detected true
+v1e-9_D1e-11_k1e-10_Kd6.3e0: model ledger 1.0529951638654373e-13 min S 0e0 clean true; (a) ledger 8.885689714059212e-1 detected true; (b) min S -4.652595119931401e1 detected true
+v1e-9_D1e-11_k1e-10_Kd6.3e2: model ledger 2.695039622091616e-13 min S 0e0 clean true; (a) ledger 8.885689714059737e-1 detected true; (b) min S -4.652546433070116e3 detected true
+v1e-9_D1e-10_k1e-10_Kd0e0: model ledger 3.1358324267709555e-15 min S 0e0 clean true; (a) ledger 8.928418515873798e-1 detected true; (b) min S -4.8249606038144963e-4 detected true
+v1e-9_D1e-10_k1e-10_Kd6.3e-2: model ledger 1.7184699798674577e-14 min S 0e0 clean true; (a) ledger 8.928418515874385e-1 detected true; (b) min S -4.569478939842523e-1 detected true
+v1e-9_D1e-10_k1e-10_Kd6.3e0: model ledger 5.877911014448497e-15 min S 0e0 clean true; (a) ledger 8.928418515874034e-1 detected true; (b) min S -4.5647022288448035e1 detected true
+v1e-9_D1e-10_k1e-10_Kd6.3e2: model ledger 1.186399024278128e-14 min S 0e0 clean true; (a) ledger 8.928418515874057e-1 detected true; (b) min S -4.564654461734818e3 detected true
+v1e-9_D1e-9_k1e-10_Kd0e0: model ledger 5.2925864518586085e-15 min S 0e0 clean true; (a) ledger 9.56952474006943e-1 detected true; (b) min S -4.4789963189296387e-4 detected true
+v1e-9_D1e-9_k1e-10_Kd6.3e-2: model ledger 5.8480526561153384e-15 min S 0e0 clean true; (a) ledger 9.569524740069989e-1 detected true; (b) min S -4.241833463842315e-1 detected true
+v1e-9_D1e-9_k1e-10_Kd6.3e0: model ledger 2.858479163111863e-14 min S 0e0 clean true; (a) ledger 9.569524740070652e-1 detected true; (b) min S -4.2373992574867046e1 detected true
+v1e-9_D1e-9_k1e-10_Kd6.3e2: model ledger 1.4158319735661113e-14 min S 0e0 clean true; (a) ledger 9.569524740069068e-1 detected true; (b) min S -4.237354915422984e3 detected true
+v1e-8_D1e-11_k1e-10_Kd0e0: model ledger 2.80860710010525e-12 min S 0e0 clean true; (a) ledger 7.347366335313403e-2 detected true; (b) min S -4.9277427435149106e-5 detected true
+v1e-8_D1e-11_k1e-10_Kd6.3e-2: model ledger 2.6205085745760624e-12 min S 0e0 clean true; (a) ledger 7.347366335462699e-2 detected true; (b) min S -4.666818765232531e-2 detected true
+v1e-8_D1e-11_k1e-10_Kd6.3e0: model ledger 3.3543654838662115e-12 min S 0e0 clean true; (a) ledger 7.347366335380917e-2 detected true; (b) min S -4.6619402999158215e0 detected true
+v1e-8_D1e-11_k1e-10_Kd6.3e2: model ledger 4.710615255982488e-12 min S 0e0 clean true; (a) ledger 7.34736633510609e-2 detected true; (b) min S -4.661891515257043e2 detected true
+v1e-8_D1e-10_k1e-10_Kd0e0: model ledger 7.030533672583352e-14 min S 0e0 clean true; (a) ledger 7.34436893061021e-2 detected true; (b) min S -4.926207033788801e-5 detected true
+v1e-8_D1e-10_k1e-10_Kd6.3e-2: model ledger 7.54176671390489e-14 min S 0e0 clean true; (a) ledger 7.344368930615926e-2 detected true; (b) min S -4.6653643713500885e-2 detected true
+v1e-8_D1e-10_k1e-10_Kd6.3e0: model ledger 3.1000182183986394e-14 min S 0e0 clean true; (a) ledger 7.344368930624086e-2 detected true; (b) min S -4.6604874263871015e0 detected true
+v1e-8_D1e-10_k1e-10_Kd6.3e2: model ledger 5.17418734360791e-14 min S 0e0 clean true; (a) ledger 7.344368930618338e-2 detected true; (b) min S -4.660438656937083e2 detected true
+v1e-8_D1e-9_k1e-10_Kd0e0: model ledger 5.544184892010734e-15 min S 0e0 clean true; (a) ledger 7.34247305455725e-2 detected true; (b) min S -4.911402447154393e-5 detected true
+v1e-8_D1e-9_k1e-10_Kd6.3e-2: model ledger 3.952036904604698e-15 min S 0e0 clean true; (a) ledger 7.342473054557704e-2 detected true; (b) min S -4.651343687577573e-2 detected true
+v1e-8_D1e-9_k1e-10_Kd6.3e0: model ledger 7.0279370824927674e-15 min S 0e0 clean true; (a) ledger 7.34247305455792e-2 detected true; (b) min S -4.646481399154756e0 detected true
+v1e-8_D1e-9_k1e-10_Kd6.3e2: model ledger 8.259829216633525e-15 min S 0e0 clean true; (a) ledger 7.342473054556711e-2 detected true; (b) min S -4.646432776270623e2 detected true
+ok
+test contract_constants_reproduce_v1_and_the_manifest ... R by K_d: [1.0, 947.0500000000001, 94606.0, 9460501.0]
+ok
+test contract_grid_rule_reproduces_the_nine_a1_values ... N by (v, D): [81, 64, 64, 801, 80, 64, 8001, 800, 80]
+ok
+test contract_organic_mask_marks_cell_centres_in_6_to_10_m ... ok
+test contract_step_counts_match_the_a1_arithmetic_record ... ok
+test contract_step_obeys_both_a1_limits_and_lands_on_output_times ... ok
+test contract_sweep_is_the_full_factorial_of_144_runs ... ok
+test contract_validation_rejects_invalid_columns ... ok
+test crank_nicolson_matrices_have_the_a1_sign_structure_at_the_landed_step ... min over all runs and cells of E_ii / R: 0.5
+ok
+test erfc_matches_reference_values_on_both_branches ... ok
+test face_fluxes_are_consistent_with_the_operator_and_signed_correctly ... ok
+test ledger_and_n1_hold_in_every_production_run ... 144 runs: worst ledger closure / inflow 4.710615255982488e-12; C in [0e0, 1.0000000000000013e0]; min S 0e0
+ok
+test ledger_closes_on_representative_columns ... v1e-10_D1e-11_k1e-9_Kd6.3e2: worst closure / inflow 1.2978287668899209e-14
+v1e-10_D1e-10_k1e-9_Kd6.3e2: worst closure / inflow 3.7280453253421206e-14
+v1e-10_D1e-9_k1e-9_Kd6.3e2: worst closure / inflow 8.129441166891358e-13
+v1e-9_D1e-11_k1e-9_Kd6.3e2: worst closure / inflow 1.8819999114094847e-13
+v1e-9_D1e-10_k1e-9_Kd6.3e2: worst closure / inflow 1.0225317557314252e-14
+v1e-9_D1e-9_k1e-9_Kd6.3e2: worst closure / inflow 7.357722629550657e-14
+v1e-8_D1e-11_k1e-9_Kd6.3e2: worst closure / inflow 4.551697003851088e-12
+v1e-8_D1e-10_k1e-9_Kd6.3e2: worst closure / inflow 1.2408862735272743e-13
+v1e-8_D1e-9_k1e-9_Kd6.3e2: worst closure / inflow 1.186399024278128e-14
+ok
+test ogata_banks_meets_its_boundary_conditions ... Ogata-Banks at the front x = vt = 16 m: 0.568499728812531
+ok
+test one_step_satisfies_the_crank_nicolson_relation ... ok
+test operator_from_face_rules_matches_the_a1_diagonals ... ok
+test operator_off_diagonals_are_non_negative_in_binary64 ... ok
+test par_map_keeps_order ... ok
+test solid_inventory_grows_only_in_the_zone_and_matches_the_reaction_sink ... v1e-9_D1e-10_k1e-9_Kd0e0: immobilized 1.0692030382167516e1 mol/m2, inflow 1.2015000000000077e1, outflow 2.534065778540799e-1, closure -4.263256414560601e-14
+v1e-10_D1e-9_k1e-10_Kd6.3e2: immobilized 1.4980849133026326e8 mol/m2, inflow 1.8936187093111387e8, outflow 2.8794616058364544e7, closure -2.2649765014648438e-5
+ok
+test t1_temporal_order_on_b1 ... T1 steps [800, 1600, 3200] E0 2.974463741778717e-6 E1 7.43612900262663e-7 order 2.0000058885921765 (pass band (1.8, 2.2)); N1 true
+ok
+test thomas_solves_the_implicit_system ... ok
+test uniform_inlet_profile_is_steady_without_reaction ... ok
+test without_reaction_the_column_fills_to_c0_and_stays_in_bounds ... after 200000 steps max |C - C0| = 1.4277468096679513e-13; C in [4.172741311893047e-55, 9.999999999999993e-1]
+ok
+test without_reaction_the_solid_stays_exactly_zero ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 101.98s
+
+
+exit_status: 0
+finished_utc: 2026-10-18T07:40:17Z
+
+== unrelated suites in the same tree (step contract, M0 conformance)
+   Compiling oklo_core v0.0.1 (/Users/aurascoper/Developer/oklo_pool_mobile/crates/oklo_core)
+    Finished `release` profile [optimized] target(s) in 1.51s
+     Running tests/conformance.rs (target/release/deps/conformance-686cee5355afb817)
+
+running 7 tests
+test b_sensitivity_to_gui_boundary_is_detectable ... ok
+test c_matches_recorded_snapshot ... ok
+test a_matches_python_export_at_recorded_boundary ... ok
+test d_abi_round_trip ... ok
+test f_series_frame_9_matches_fixture_and_cf3_header ... ok
+test g_temperature_isovalue_160_frames ... ok
+test e_step_keeps_phase_in_range ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.02s
+
+     Running tests/step.rs (target/release/deps/step-a8950340aad37d24)
+
+running 10 tests
+test full_and_multiple_periods_return_to_start ... ok
+test full_period_from_zero_returns_zero ... ok
+test phase_one_is_accepted_and_canonicalised ... ok
+test invalid_inputs_are_errors_not_panics ... ok
+test small_forward_step ... ok
+test step_across_the_cycle_end_wraps ... ok
+test zero_step_keeps_phase ... ok
+test ten_thousand_valid_steps_stay_in_range ... ok
+test c_abi_step_returns_codes_and_never_panics ... ok
+test sim_step_recomputes_at_the_new_phase_and_errors_change_nothing ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+exit_status: 0
