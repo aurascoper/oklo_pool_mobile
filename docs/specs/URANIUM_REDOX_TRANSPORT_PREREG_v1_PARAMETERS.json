@@ -1,0 +1,138 @@
+{
+  "name": "uranium_redox_transport_prereg_v1_parameters",
+  "frozen": "2026-10-18, with Amendment A1, at the commit that adds this file; hash in receipts/uranium_prereg_v1_amendment_A1_freeze.txt",
+  "transcribes": [
+    "docs/specs/URANIUM_REDOX_TRANSPORT_PREREG_v1.md (sha256 5370767fa8e64a607f7e169901f05d1ac1514ad699ce4721c2e39444591002e4), sections 2 to 6",
+    "docs/specs/URANIUM_REDOX_TRANSPORT_PREREG_v1_AMENDMENT_A1.md"
+  ],
+  "authority": "A transcription for machine use. It adds no value. If it disagrees with the frozen text of v1 or A1, the text wins and the disagreement is a defect to report.",
+  "caveat": "Synthetic column. Not a reconstruction of Oklo or the Franceville Basin, and no value here is an Oklo measurement.",
+  "status_vocabulary": {
+    "source_supported": "read in the named source at the stated location; for K_d, a sensitivity bound only",
+    "derived": "computed from other entries by the stated formula",
+    "assumed_synthetic": "a declared assumption of the synthetic column, not sourced",
+    "unverified": "taken from a source that was not read; no entry currently has this status",
+    "declared_setting": "a numerical or benchmark setting fixed before any code, not a physical quantity"
+  },
+  "physical_parameters": [
+    {
+      "id": "L_col", "value": 16.0, "unit": "m",
+      "definition": "column length",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4: chosen to match the fixture's vertical extent for comparability only"
+    },
+    {
+      "id": "organic_zone", "value": {"x_a": 6.0, "x_b": 10.0, "L_org": 4.0}, "unit": "m",
+      "definition": "stationary organic zone, chi_org = 1 for x_a <= x <= x_b",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "C0", "value": 1.0, "unit": "mol per m3 of pore water",
+      "definition": "inlet concentration of dissolved U(VI)",
+      "status": "assumed_synthetic",
+      "role": "normalization; the model is linear in C, so C and S scale with C0",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "theta", "value": 0.15, "unit": "dimensionless",
+      "definition": "porosity, water-saturated",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4: the fixture's unsourced sandstone flow porosity (Darcy A2, phi_z)"
+    },
+    {
+      "id": "grain_density", "value": 2650.0, "unit": "kg per m3 of solid",
+      "definition": "density of the solid grains",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4: quartz-dominated sandstone, unsourced here"
+    },
+    {
+      "id": "rho_b", "value": 2252.5, "unit": "kg of solid per m3 of bulk medium",
+      "definition": "dry bulk density",
+      "status": "derived",
+      "formula": "(1 - theta) * grain_density",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "v", "values": [1e-10, 1e-9, 1e-8], "unit": "m/s",
+      "definition": "pore-water velocity (not Darcy flux)",
+      "status": "assumed_synthetic",
+      "context": "v1 section 4: the Darcy v1 base case gives a domain-mean pore velocity near 3.8e-10 m/s at its hypothetical 1 m head difference",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "D_eff", "values": [1e-11, 1e-10, 1e-9], "unit": "m2/s",
+      "definition": "effective dispersion-diffusion coefficient of dissolved U(VI)",
+      "status": "assumed_synthetic",
+      "context": "docs/research/uranium_evidence_review_v1.md: Bai, Liu and Ball 2009 (abstract only) report an effective aqueous diffusion coefficient of 1.6e-10 m2/s for U(VI) in Hanford silt/clay at pH 8.0 and calcite saturation; it lies inside this range but is not its source",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "k_red", "values": [0.0, 1e-11, 1e-10, 1e-9], "unit": "1/s",
+      "definition": "first-order rate of effective conversion of dissolved U(VI) into the immobile solid, inside the organic zone only",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4: no read source gives a rate"
+    },
+    {
+      "id": "pH_for_Kd_table", "value": 7, "unit": "pH",
+      "definition": "pH at which EPA Table 5.17 is read; not a model variable",
+      "status": "assumed_synthetic",
+      "source": "v1 section 4"
+    },
+    {
+      "id": "K_d", "unit": "m3/kg", "applies_to": "U(VI) only",
+      "definition": "linear equilibrium partition coefficient, sorbed per kg of solid over dissolved per m3 of water",
+      "role": "sensitivity bounds for a synthetic column, never Oklo values",
+      "values": [
+        {"value": 0.0, "status": "assumed_synthetic", "note": "no-sorption baseline"},
+        {"value": 0.063, "status": "source_supported", "note": "63 mL/g, minimum at pH 7, EPA 402-R-99-004B Table 5.17, page 5.75"},
+        {"value": 6.3, "status": "derived", "formula": "geometric mean of 63 and 630,000 mL/g = 6,300 mL/g"},
+        {"value": 630.0, "status": "source_supported", "note": "630,000 mL/g, maximum at pH 7, EPA 402-R-99-004B Table 5.17, page 5.75"}
+      ],
+      "uncertainty": "EPA (page 5.75) states its maximum curve is biased high, possibly by an order of magnitude or more, partly because some measurements may include precipitation; EPA (front matter) states that site-specific values are essential",
+      "extraction": "read from the table of the hashed copy; see receipts/uranium_prereg_v1_freeze.txt"
+    },
+    {
+      "id": "R", "values": [1.0, 947.05, 94606.0, 9460501.0], "unit": "dimensionless",
+      "definition": "retardation factor of dissolved U(VI)",
+      "status": "derived",
+      "formula": "1 + rho_b * K_d / theta, one value per K_d, to the digits shown in v1",
+      "source": "v1 section 4"
+    }
+  ],
+  "run_design": {
+    "sweep": "full factorial 3 v x 3 D_eff x 4 k_red x 4 K_d = 144 runs; all reported, none selected",
+    "tau": "R * L_col / v (derived)",
+    "T_end": "5 tau",
+    "output_times_in_tau": [0.1, 0.25, 0.5, 1, 2, 5],
+    "initial_conditions": "C = 0 and S = 0",
+    "inlet": "Dirichlet C = C0 for t > 0",
+    "outlet": "zero diffusive gradient, advective outflow"
+  },
+  "numerical_settings": [
+    {"id": "grid_rule", "status": "declared_setting", "value": "N = max(64, ceil(Pe_s / 2)), Pe_s = (v * L_col) / D_eff in binary64, in that order (A1.4)"},
+    {"id": "N_by_pair", "status": "derived", "order": "v = 1e-10, 1e-9, 1e-8; within each, D_eff = 1e-11, 1e-10, 1e-9", "values": [81, 64, 64, 801, 80, 64, 8001, 800, 80]},
+    {"id": "dt_rule", "status": "declared_setting", "value": "min(0.5 R dx / v, R / max_i |A_ii|) with |A_ii| = 2D/dx2 + k chi_i (interior), 3D/dx2 + v/(2dx) + k chi_1 (inlet), D/dx2 + v/(2dx) + k chi_N (outlet) (A1.2)"},
+    {"id": "landing", "status": "declared_setting", "value": "production: I = 0.05 tau, m = ceil(I / dt_rule), dt = I / m, T_end = 100 m steps; B1: m = ceil(t_star / dt_rule), dt = t_star / m (A1.3)"},
+    {"id": "time_integration", "status": "declared_setting", "value": "Crank-Nicolson for C and for the S source, same weighting (v1 section 3)"}
+  ],
+  "checks": [
+    {"id": "B1", "status": "declared_setting", "value": "Ogata-Banks; R = 1, k_red = 0, v = D = 1e-9 m/s and m2/s, L_B1 = 64 m, t_star = 1.6e10 s, window 0 to 32 m, N = 256, 512, 1024; pass: both L2 orders in [1.8, 2.2]"},
+    {"id": "B2", "status": "declared_setting", "value": "finite-domain steady state; chi = 1 everywhere, v = D = 1e-9, k = 1e-10 1/s, L = 16 m, N = 64, 128, 256; pass: both L2 orders in [1.8, 2.2]; roots r1 = 1.0916079783099617, r2 = -0.09160797830996159 1/m (derived, v1 receipt)"},
+    {"id": "ledger", "status": "declared_setting", "value": "absolute closure error <= 1e-10 x cumulative inflow at every output time after the first step, every run"},
+    {"id": "C1", "status": "declared_setting", "value": "k_red = 0: max |S| = 0 exactly, and ledger closure"},
+    {"id": "C2", "status": "declared_setting", "value": "variants (a) reaction sign flipped in the C equation, detected by ledger error > 1e-10 x inflow; (b) S source sign flipped, detected by S < -1e-12 S_ref; run in all 36 configurations with k_red = 1e-10; pass only if both are detected in every configuration and the uncorrupted model triggers neither rule (A1.7)"},
+    {"id": "N1", "status": "declared_setting", "value": "every uncorrupted run, every step, every cell: -1e-12 C0 <= C <= (1 + 1e-12) C0 and S >= -1e-12 S_ref (A1.5)"},
+    {"id": "S_ref", "status": "derived", "value": 6.659267e-5, "unit": "mol/kg", "formula": "theta * C0 / rho_b"},
+    {"id": "T1", "status": "declared_setting", "value": "B1 problem at N = 256 with dt_0 = t_star / m_0, m_0 = ceil(t_star / dt_rule) (800 by the A1 arithmetic), dt_0 / 2 and dt_0 / 4; E_j = L2 difference of successive solutions over 0 to 32 m at t_star; pass: log2(E_0 / E_1) in [1.8, 2.2] (A1.6)"}
+  ],
+  "dimensionless_groups": {
+    "Pe_s": "v L_col / D_eff, with L = L_col = 16 m; distinct from the thermal Peclet number of Darcy Amendment A1",
+    "Pe_cell": "v dx / D_eff",
+    "Da": "k_red L_org / v"
+  },
+  "chronology": {
+    "pointer": "data/timeline/paleo_intervals_v1.json",
+    "role": "metadata for the research programme only; no date enters any equation, parameter or check of this column"
+  }
+}
