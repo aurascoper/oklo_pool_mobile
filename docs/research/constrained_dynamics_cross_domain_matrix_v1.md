@@ -1,6 +1,6 @@
 # Constrained Dynamics and Evidentiary Scope Across Domains
 
-Status: conceptual research note v1. Separate from the frozen uranium-column specification and implementation PR. This note does not authorize changes to model equations, parameters, thresholds, or receipts.
+Status: conceptual research note v1.1 review revision on a research-only branch. Separate from the frozen uranium-column specification and implementation PR. This note does not authorize changes to model equations, parameters, thresholds, or receipts.
 
 ## Abstract
 
@@ -10,12 +10,12 @@ Abstract ecological niche theory, prebiotic replication models, deep-subsurface 
 
 ## 1. Revised cross-domain comparison matrix
 
-| Analytical dimension | Deep-subsurface geochemistry | Prebiotic RNA replication and evolution | Computational verification and pipeline engineering | Validation or falsification criterion |
-| --- | --- | --- | --- | --- |
-| Resource balance | Quantified chemical fluxes, redox donors and acceptors, transport, and radiolytic production only where supported by site-specific evidence. | Monomer supply, template abundance, replication resource consumption, and compartment constraints. | CPU time, memory, bandwidth, energy, quotas, and explicitly modeled buffers or retries. | Define a balance over a stated interval. Test whether modeled consumption and losses can be supported by supply and allowed stored reserves. |
-| State-transition rules | Declared reaction kinetics, transport equations, boundary conditions, and stoichiometric relationships. | Per-site copying fidelity, mutation structure, relative fitness, and replication dynamics. | Typed data-flow edges, permitted state transitions, graph preflight, runtime assertions, and explicit exception handling. | Specify the invariant and its test: conservation residual, predicted sequence distribution or fitness behavior, or an intentionally invalid connection that must be rejected. |
-| Failure detection | Measured or modeled loss of a target chemical state, reaction feasibility, or inability to sustain a stipulated metabolic regime. | A defined error-threshold prediction, loss of a selected genotype or functional phenotype, or predicted replicator-population transition. | Failed invariants, resource exhaustion, invalid graph edges, assertion failures, and incomplete evidence. | Predefine failure conditions, acceptance limits, positive and negative controls, and expected verdicts. Demonstrate detection using controlled perturbations; do not infer a universal viability limit. |
-| Evidence and scope | Site-specific geochemical assays, mineralogy, fluid inclusions, isotope data, and uncertainty-aware interpretations. | In vitro replication and evolution experiments, copying-error measurements, sequence or phenotype tracking, and fitness estimates. | Artifact digests, source and environment identifiers, build/run provenance, test logs, conformance results, and independently checked attestations where available. | Separate measurement, model inference, reported execution, independently reproduced results, and validation against real-world observations. |
+| Analytical dimension | Deep-subsurface geochemistry | Ecological niche and adaptive perception | Prebiotic RNA replication and evolution | Computational verification and numerical modeling | Validation or falsification criterion |
+| --- | --- | --- | --- | --- | --- |
+| Resource balance | Quantified chemical fluxes, redox donors and acceptors, transport, and radiolytic production only where supported by site-specific evidence. | Resource availability, ecological interactions, and the relationship between environmental state and reproductive payoff; for perceptual models, sensory and action costs only when modeled. | Monomer supply, template abundance, replication resource consumption, and compartment constraints. | CPU time, memory, bandwidth, energy, quotas, and explicitly modeled buffers or retries. | Define a balance or budget over a stated interval. Test whether modeled consumption and losses can be supported by supply and allowed reserves. |
+| State-transition rules | Declared reaction kinetics, transport equations, boundary conditions, and stoichiometric relationships. | Species interactions and persistence rules, or a declared mapping from observations to actions and fitness outcomes. | Per-site copying fidelity, mutation structure, relative fitness, and replication dynamics. | Typed data-flow edges, permitted state transitions, graph preflight, runtime assertions, numerical operators, and explicit exception handling. | Specify the rule and its test: chemical balance, ecological persistence, a sequence/fitness prediction, a rejected invalid edge, or a numerical invariant. |
+| Failure detection | Measured or modeled loss of a target chemical state, reaction feasibility, or inability to sustain a stipulated metabolic regime. | Loss of persistence or reproductive success under a declared ecological model; perceptual strategies must be compared under the same environment and payoff schedule. | A defined error-threshold prediction, loss of a selected genotype or functional phenotype, or a predicted replicator-population transition. | Failed invariants, resource exhaustion, invalid graph edges, assertion failures, non-convergence, or incomplete evidence. | Predefine failure conditions, acceptance limits, positive and negative controls, and expected verdicts. Use controlled perturbations; do not infer a universal viability or perception law. |
+| Evidence and scope | Site-specific geochemical assays, mineralogy, fluid inclusions, isotope data, and uncertainty-aware interpretations. | Field/experimental data or explicitly scoped evolutionary-game simulations, including the payoff matrix and assumptions. | In vitro replication and evolution experiments, copying-error measurements, sequence or phenotype tracking, and fitness estimates. | Artifact digests, source and environment identifiers, build/run provenance, test logs, conformance results, and independently checked attestations where available. | Separate measurement, model inference, simulation result, reported execution, independently reproduced result, and validation against real-world observations. |
 
 ## 2. Standard schema for every proposed correspondence
 
@@ -102,3 +102,91 @@ This note does not claim that:
 - a common mathematical pattern makes two domains causally interchangeable.
 
 The intended contribution is methodological: compare constrained systems using explicit variables, rules, observables, and evidentiary limits while preserving each domain's mechanisms and standards of proof.
+
+
+## 7. Resource costs, information fidelity, and conditional "Goldilocks" hypotheses
+
+A non-monotonic optimum is a **candidate model property**, not a law shared by every biological, ecological, and computational system. A convenient formal condition is a declared objective
+\[
+J(q) = B(q) - C(q),
+\]
+where q is an explicitly defined trait or fidelity parameter, B is its modeled benefit, and C its modeled cost. An interior optimum requires a point q* at which B'(q*) = C'(q*) and J''(q*) < 0, as well as feasibility within the allowed domain. If those conditions have not been established, use "trade-off hypothesis" rather than "Goldilocks law." Some systems instead have monotonic gains, thresholds, plateaus, multiple optima, or boundary optima.
+
+### 7.1 Information bottleneck: the cost coefficient is not automatically energy
+
+A standard information-bottleneck form is
+\[
+\max_{p(r\mid x)} \left[I(R;U) - \beta I(R;X)\right],
+\]
+where X is an observed/environmental state, R is an internal representation, and U is a decision-relevant outcome or utility variable. Under the usual graphical assumptions, R is generated from X and contains no additional information about U once X is given. I(R;U) measures retained relevance; I(R;X) is an information-complexity term. The multiplier beta controls the relevance/compression trade-off.
+
+**Do not label beta as joules per bit, ATP cost per bit, or CPU cost per bit without an explicit physical or computational cost model linking that cost to the information measure.** Mutual information is measured in information units under a chosen logarithm convention; the conversion to metabolic energy or runtime is system-specific. A cost-aware extension can introduce a separately defined cost C(p(r|x)) or impose a resource constraint. The information-bottleneck formalism does not itself prove that objective, high-dimensional truth is metabolically unaffordable.
+
+Hoffman and colleagues' "fitness beats truth" results are best reported as results within their specified evolutionary-game/perception model and assumptions, not as an unqualified universal theorem that selection always favors false perception. The literature contains substantive critique of the inference from fitness-payoff models to general perceptual theory. A research note should state the world-state model, payoff matrix, perceptual strategy class, complexity matching, and adaptation timescale before transferring the conclusion to an organism.
+
+References:
+- Hoffman, Singh and Prakash (2015), "The Interface Theory of Perception," Psychological Review: https://pubmed.ncbi.nlm.nih.gov/26384988/
+- Prakash et al. (2021), "Fitness Beats Truth in the Evolution of Perception," Acta Biotheoretica: https://pubmed.ncbi.nlm.nih.gov/33231784/
+- A critique of the generalization from fitness-payoff models to perception: https://pubmed.ncbi.nlm.nih.gov/26384986/
+- Tishby, Pereira and Bialek, "The Information Bottleneck Method": https://www.cnbc.cmu.edu/~tai/readings/coding/tishby99information.pdf
+
+### 7.2 Trajectory 1: stochastic RNA-replicator and compartment models
+
+- **Construct:** information retention under mutation, selection, decay, and finite-compartment dynamics.
+- **State variables:** sequence length L, per-copy error probability epsilon, fidelity Q_L, genotype/function counts per compartment, division and decay events, and spatially varying fields where the specification declares them.
+- **Governing relation:** with independent, uniform per-site fidelity, Q_L = (1 - epsilon)^L is the probability that a length-L copy has no errors. A population-level error threshold additionally depends on the fitness landscape, mutation structure, population/compartment process, and selection regime.
+- **Constraints:** the particular model's declared genome classes, finite compartment capacity, selection and discard rules, stochastic update order, spatial field, and initial conditions.
+- **Observable:** persistence/extinction by genome class, functional-compartment fraction, measured threshold versus the preregistered bracket, and between-seed uncertainty.
+- **Failure criterion:** a predefined persistence or threshold check fails, or the observed threshold falls outside the preregistered acceptance rule. A low mutation rate is not automatically "evolutionary stagnation"; adaptation or loss of adaptive capacity must be measured under an explicit changing-environment design.
+- **Evidence class:** analytical result under stated assumptions; then simulation results and, separately, any in-vitro empirical evidence. Do not collapse these evidence classes.
+- **Transfer limit:** a demonstration model with imposed spatial mutation/dose fields is not evidence that prebiotic RNA populations experienced that exact field or that the modeled threshold describes early Earth.
+
+The quasispecies concept describes a mutation-selection distribution of related genotypes; it does not by itself establish a universally optimal intermediate mutation rate. The error threshold is landscape- and model-dependent. See Biebricher and Eigen (2005), https://pubmed.ncbi.nlm.nih.gov/15649558/, and the review "Quasispecies theory in the context of population genetics," https://pmc.ncbi.nlm.nih.gov/articles/PMC1208876/.
+
+### 7.3 Trajectory 2: Cellular Potts/protocell models and the proposed trait optimum
+
+- **Construct:** the effect of cell shape, volume, adhesion, motility, damage-linked terms, and potentially a costly protective trait on model dynamics.
+- **State variables:** lattice labels/cell identity, Hamiltonian terms, delta-H for candidate moves, the effective CPM temperature parameter, declared trait variables, and separate growth/death observables if the model contains them.
+- **Governing relation:** a common CPM rule accepts a move with P = min(1, exp(-delta-H/T_CPM)) for a positive effective temperature parameter, subject to the model's exact convention. The Hamiltonian governs move acceptance; it is not automatically biological fitness, Gibbs free energy, ATP expenditure, or reproductive success.
+- **Constraints:** permitted lattice moves, the declared Hamiltonian, topology and volume constraints, parameter bounds, and the random-number/update contract.
+- **Observable:** move acceptance and morphology for a pure CPM; survival, reproduction, and net growth only if separately implemented. A claimed trait optimum requires a specified objective and an independent sweep or derivation.
+- **Failure criterion:** a predeclared numerical or morphological contract fails, or a predicted internal optimum is absent under the exact model and acceptance rule. Derive the objective before calling the optimum a biological optimum.
+- **Evidence class:** model specification and simulation evidence; evidence of real biological adaptation requires separate calibration/validation.
+- **Transfer limit:** do not conflate CPM with the individual-based Oklo Pool lattice. The latter's own spec describes parcels/individuals on sites, a diffusing concentration field, and explicitly no CPM Hamiltonian, adhesion, volume constraint, or cell identity. A hybrid system may contain both a field and lattice individuals without becoming a pure continuum PDE.
+
+**Unverified formula warning:** the proposed closed form
+\[
+w^* = \frac{1}{c_M} - \frac{\beta_t}{\beta_s s_M}
+\]
+is not accepted here as a derived result. It must be re-derived from the exact objective and the exact growth/death expressions before inclusion as an analytical optimum. For example, under the much simpler assumptions p_g proportional to (1 - c_M w), p_d proportional to exp(-s_M w), and an objective that maximizes the ratio p_g/p_d, the interior stationary point would instead be w* = 1/c_M - 1/s_M, provided it is positive and lies inside the allowed interval. Adding a baseline death term or changing the objective changes the condition again. Thus the pasted beta-weighted form requires its own derivation, assumptions, dimensional check, boundary clamping, and numerical test. The melanin trait was described as deferred in the available Oklo-predictor identifiability plan, so do not present that extension as an already executed model result without a separate frozen specification.
+
+### 7.4 Trajectory 3: numerical PDE verification, not "truth at infinite resolution"
+
+- **Construct:** choose a numerical discretization that meets declared accuracy, boundedness, and resource requirements for a specified mathematical model.
+- **State variables:** the model's continuum fields, spatial and temporal grid, discretization parameters, boundary conditions, numerical residuals, convergence metrics, resource use, and output hashes.
+- **Governing relation:** the frozen synthetic uranium column uses its declared advection-diffusion-reaction equations, finite-volume face rules and Crank-Nicolson integration. Its grid and time-step limits are specific to that contract.
+- **Constraints:** the pre-registered cell Péclet bound, Amendment A1 time-step selector, N1 concentration bounds, ledger-closure tolerance, spatial/temporal convergence bands, and declared runtime/environment.
+- **Observable:** convergence orders, per-step bounds, ledger residuals, output-file hashes, and measured execution cost on a stated hardware/software environment.
+- **Failure criterion:** any declared invariant, benchmark, hash reproduction, or acceptance threshold fails. For central differencing, a cell Péclet number above 2 can lead to loss of monotonicity and nonphysical oscillations; it should not be described as a universal instability theorem for every solver.
+- **Evidence class:** mathematical analysis of the discrete scheme, unit tests and benchmark results, recorded execution receipts, and independently reproduced runs. These are distinct layers of evidence.
+- **Transfer limit:** grid convergence establishes behavior of the discretization for the specified equations, not empirical correctness of the model or parameters. A finer mesh cannot repair a wrong equation, missing mechanism, or unsupported parameter.
+
+Under a fixed domain and a specified numerical method, refinement typically increases computational work while reducing discretization error over a convergence regime. The rate depends on the time-step rule, solver and dimensionality; roundoff and model error need not increase monotonically with refinement. Therefore, the numerical "Goldilocks" problem is normally a constrained accuracy-cost/Pareto problem, not automatically an inverted-U fitness curve. In the frozen uranium-column contract, the grid values and tolerance bands are pre-registered engineering criteria, not a universal optimum for all reactive-transport models.
+
+The Oklo Pool predictor is not the same model class as the uranium column: its spec describes a stochastic individual-based lattice with a separate diffusing concentration field. The predictor-identifiability relation between parameters such as alpha and eta is a model-specific identifiability issue, not a generic property of continuum PDEs. Jackson's Maxwell equations form another distinct continuous-field model class; shared boundary-value techniques do not make its state variables or governing physics equivalent to neutron transport or uranium reactive transport.
+
+### 7.5 Cross-trajectory conclusion
+
+Use "Goldilocks" only when the objective, cost function, admissible set, and interior-optimum condition are explicit. For RNA models the objective may be persistence or adaptive performance under mutation; for CPM it may be a declared morphology/dynamics observable or a separate growth-fitness function; for numerical solvers it is usually error or uncertainty subject to compute and validation constraints. Their mathematical shapes may be compared, but their state variables, causal mechanisms, and success criteria are not interchangeable.
+
+## 8. Source and claim discipline for this extension
+
+For every numerical or theoretical statement added from a model artifact, record whether it is:
+- a frozen assumption,
+- an analytic result under named assumptions,
+- a simulation measurement with seed/run protocol,
+- an empirical observation,
+- a literature claim that has been read at full text or only in abstract,
+- or a proposed hypothesis awaiting a test.
+
+Do not transfer a result from the demonstration Oklo Pool lattice into the frozen uranium-column implementation. Do not promote a closed-form optimum, runtime guarantee, or ecological/perceptual theory from a pasted synthesis unless its derivation, conditions, and evidence are independently available. No part of this section modifies the uranium-column v1 specification, Amendment A1, parameter manifest, solver code, thresholds, or receipts.
