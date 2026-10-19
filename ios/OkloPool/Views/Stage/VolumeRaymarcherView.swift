@@ -2,14 +2,32 @@ import SwiftUI
 import MetalKit
 import simd
 
-struct RaymarcherUniforms {
-    var camPos: SIMD3<Float>
+struct PackedFloat3: Equatable, Sendable {
+    var x: Float
+    var y: Float
+    var z: Float
+
+    init(_ x: Float, _ y: Float, _ z: Float) {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+
+    init(_ v: SIMD3<Float>) {
+        self.x = v.x
+        self.y = v.y
+        self.z = v.z
+    }
+}
+
+struct RaymarcherUniforms: Equatable, Sendable {
+    var camPos: PackedFloat3
     var aspect: Float
-    var camRight: SIMD3<Float>
+    var camRight: PackedFloat3
     var opacity: Float
-    var camUp: SIMD3<Float>
+    var camUp: PackedFloat3
     var invertA: Int32
-    var camFwd: SIMD3<Float>
+    var camFwd: PackedFloat3
     var categorical: Int32
 }
 
@@ -298,13 +316,13 @@ struct MetalVolumeRepresentable: UIViewRepresentable {
             let up = cross(right, fwd)
 
             var uniforms = RaymarcherUniforms(
-                camPos: pos,
+                camPos: PackedFloat3(pos),
                 aspect: aspect,
-                camRight: right,
+                camRight: PackedFloat3(right),
                 opacity: currentOpacity,
-                camUp: up,
+                camUp: PackedFloat3(up),
                 invertA: currentInvertA,
-                camFwd: fwd,
+                camFwd: PackedFloat3(fwd),
                 categorical: currentCategorical
             )
 

@@ -12,6 +12,18 @@ struct RaymarcherUniforms {
     int categorical;
 };
 
+static_assert(sizeof(RaymarcherUniforms) == 64, "RaymarcherUniforms size must be 64 bytes");
+static_assert(alignof(RaymarcherUniforms) == 4, "RaymarcherUniforms alignment must be 4 bytes");
+static_assert(__builtin_offsetof(RaymarcherUniforms, camPos) == 0, "camPos offset must be 0");
+static_assert(__builtin_offsetof(RaymarcherUniforms, aspect) == 12, "aspect offset must be 12");
+static_assert(__builtin_offsetof(RaymarcherUniforms, camRight) == 16, "camRight offset must be 16");
+static_assert(__builtin_offsetof(RaymarcherUniforms, opacity) == 28, "opacity offset must be 28");
+static_assert(__builtin_offsetof(RaymarcherUniforms, camUp) == 32, "camUp offset must be 32");
+static_assert(__builtin_offsetof(RaymarcherUniforms, invertA) == 44, "invertA offset must be 44");
+static_assert(__builtin_offsetof(RaymarcherUniforms, camFwd) == 48, "camFwd offset must be 48");
+static_assert(__builtin_offsetof(RaymarcherUniforms, categorical) == 60, "categorical offset must be 60");
+
+
 struct VertexIn {
     float2 position [[attribute(0)]];
 };

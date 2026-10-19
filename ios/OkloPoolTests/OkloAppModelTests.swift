@@ -163,4 +163,24 @@ final class OkloAppModelTests: XCTestCase {
         }
         XCTAssertTrue(true, "Repeated allocation and deallocation succeeded without leak or crash")
     }
+
+    func testRaymarcherUniformsMemoryLayout() {
+        XCTAssertEqual(MemoryLayout<PackedFloat3>.size, 12)
+        XCTAssertEqual(MemoryLayout<PackedFloat3>.stride, 12)
+        XCTAssertEqual(MemoryLayout<PackedFloat3>.alignment, 4)
+
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.size, 64)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.stride, 64)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.alignment, 4)
+
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.camPos), 0)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.aspect), 12)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.camRight), 16)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.opacity), 28)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.camUp), 32)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.invertA), 44)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.camFwd), 48)
+        XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.categorical), 60)
+    }
 }
+
