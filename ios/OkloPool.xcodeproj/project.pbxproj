@@ -1,0 +1,724 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0579D016B470CD832E22CCF1 /* ScenarioControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5CA77231B277BA0312E70C /* ScenarioControlsView.swift */; };
+		1FD92B1E266A7171D59093CC /* VolumeRaymarcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7331591844830C2C6B4F454B /* VolumeRaymarcherView.swift */; };
+		298650BCEA879C4D1EEC091C /* PrescribedCurves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12E37764F7843BA079F1AAD8 /* PrescribedCurves.swift */; };
+		3FF44B60CCE4A89406214DAE /* StripChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A58448202CD69E27927FF4 /* StripChartView.swift */; };
+		4367895337BC835843C337D6 /* ProvenanceSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C647D254E79C5EAA2A0F9C7F /* ProvenanceSheetView.swift */; };
+		498CF2B792EA3A6241C7E2AE /* ColorRamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C861F8C124356582D10FCB7 /* ColorRamps.swift */; };
+		5220482D1E51A2A6A7DF09AB /* OkloPoolUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686ADDE85843F70A49DF4680 /* OkloPoolUITests.swift */; };
+		5275C8A82755299C1D41A4BB /* FieldCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C192506B04F039E44686E572 /* FieldCatalog.swift */; };
+		534047A268520D493CE0FBD8 /* OkloAppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0D4A582287E8088CF46DF1 /* OkloAppModelTests.swift */; };
+		674823A0AEFF28B42743C6F4 /* SliceContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D8617E7E03BF91148001236 /* SliceContainerView.swift */; };
+		686A050BCC06410E4635CFCC /* PhaseControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167AD96FB4D6163172D5700B /* PhaseControlView.swift */; };
+		6F1E4DC3AD8FDAB6988470FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86CF2B1820D6E58B497F3691 /* Assets.xcassets */; };
+		76B292F834905F01A47F4654 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC97E84F7091E6D4D11E0D53 /* ContentView.swift */; };
+		7914F74CD2E9EE306186EFD6 /* OkloCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3294C4DE6D304BBD34185F25 /* OkloCore */; };
+		81E1EFC1B6CF3DE4546FF283 /* OkloPoolApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030329DB920A4F446FD5363C /* OkloPoolApp.swift */; };
+		865D809943C35ECA0F84D6FF /* PlanSliceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63763F7D2CEB8C2698C50E31 /* PlanSliceView.swift */; };
+		8CD79C0C8FD6B97F28C7931A /* SectionSliceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8677D6617CB95221CCD580F /* SectionSliceView.swift */; };
+		8F0EA7A37845F45CADEE0596 /* FieldPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BBBCB5ABF1BEB5627EB2C9C /* FieldPickerView.swift */; };
+		9B72CB0F011524AD4BB14864 /* OkloAppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214561FED53B8EF052BB7A0 /* OkloAppModel.swift */; };
+		A0BA2391DAC0225B2C633AE1 /* OkloCore in Frameworks */ = {isa = PBXBuildFile; productRef = C01B4C9BBE996947BAD3DD58 /* OkloCore */; };
+		C0044EA6F26BE4B0EEA4811F /* VolumeRaymarcher.metal in Sources */ = {isa = PBXBuildFile; fileRef = 5248546F3B0C84B098D8DB16 /* VolumeRaymarcher.metal */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9FEE7AC0BE3BF4C2A67686E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D918A262B60984CADFFC980D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 56B514C1707BD696530C47BE;
+			remoteInfo = OkloPool;
+		};
+		EF99979ADD6C3DD53F929175 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D918A262B60984CADFFC980D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 56B514C1707BD696530C47BE;
+			remoteInfo = OkloPool;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		030329DB920A4F446FD5363C /* OkloPoolApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OkloPoolApp.swift; sourceTree = "<group>"; };
+		11239EC9B40F09AD567DB20A /* OkloPoolTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OkloPoolTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		115AF5F2E795D02B4981FCDB /* OkloPoolUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OkloPoolUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12E37764F7843BA079F1AAD8 /* PrescribedCurves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrescribedCurves.swift; sourceTree = "<group>"; };
+		167AD96FB4D6163172D5700B /* PhaseControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseControlView.swift; sourceTree = "<group>"; };
+		51E35405E317AEABDF2AE1F0 /* OkloPool.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OkloPool.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5248546F3B0C84B098D8DB16 /* VolumeRaymarcher.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VolumeRaymarcher.metal; sourceTree = "<group>"; };
+		63763F7D2CEB8C2698C50E31 /* PlanSliceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSliceView.swift; sourceTree = "<group>"; };
+		64102F03EA5598577CE32E9F /* OkloCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = OkloCoreKit; path = OkloCoreKit; sourceTree = SOURCE_ROOT; };
+		686ADDE85843F70A49DF4680 /* OkloPoolUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OkloPoolUITests.swift; sourceTree = "<group>"; };
+		6BBBCB5ABF1BEB5627EB2C9C /* FieldPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldPickerView.swift; sourceTree = "<group>"; };
+		7331591844830C2C6B4F454B /* VolumeRaymarcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeRaymarcherView.swift; sourceTree = "<group>"; };
+		86CF2B1820D6E58B497F3691 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8C861F8C124356582D10FCB7 /* ColorRamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorRamps.swift; sourceTree = "<group>"; };
+		8D5CA77231B277BA0312E70C /* ScenarioControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioControlsView.swift; sourceTree = "<group>"; };
+		8D8617E7E03BF91148001236 /* SliceContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliceContainerView.swift; sourceTree = "<group>"; };
+		B4A58448202CD69E27927FF4 /* StripChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripChartView.swift; sourceTree = "<group>"; };
+		C192506B04F039E44686E572 /* FieldCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldCatalog.swift; sourceTree = "<group>"; };
+		C647D254E79C5EAA2A0F9C7F /* ProvenanceSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvenanceSheetView.swift; sourceTree = "<group>"; };
+		C8677D6617CB95221CCD580F /* SectionSliceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionSliceView.swift; sourceTree = "<group>"; };
+		E214561FED53B8EF052BB7A0 /* OkloAppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OkloAppModel.swift; sourceTree = "<group>"; };
+		EC97E84F7091E6D4D11E0D53 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FD0D4A582287E8088CF46DF1 /* OkloAppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OkloAppModelTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		79348828350DE81725151565 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0BA2391DAC0225B2C633AE1 /* OkloCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F47918BBF392C0C0AEE7FFE3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7914F74CD2E9EE306186EFD6 /* OkloCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05675DFE6006CA98475545DD /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				5248546F3B0C84B098D8DB16 /* VolumeRaymarcher.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
+		142E6D761AA4227BCE837FA7 /* Charts */ = {
+			isa = PBXGroup;
+			children = (
+				B4A58448202CD69E27927FF4 /* StripChartView.swift */,
+			);
+			path = Charts;
+			sourceTree = "<group>";
+		};
+		2D1D1684D57BC8006BC9799D /* Controls */ = {
+			isa = PBXGroup;
+			children = (
+				6BBBCB5ABF1BEB5627EB2C9C /* FieldPickerView.swift */,
+				167AD96FB4D6163172D5700B /* PhaseControlView.swift */,
+				8D5CA77231B277BA0312E70C /* ScenarioControlsView.swift */,
+			);
+			path = Controls;
+			sourceTree = "<group>";
+		};
+		40862100A24F56BC79DD03BE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8C861F8C124356582D10FCB7 /* ColorRamps.swift */,
+				C192506B04F039E44686E572 /* FieldCatalog.swift */,
+				E214561FED53B8EF052BB7A0 /* OkloAppModel.swift */,
+				12E37764F7843BA079F1AAD8 /* PrescribedCurves.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		5CB46A28BDAFC122EFD69A3C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				EC97E84F7091E6D4D11E0D53 /* ContentView.swift */,
+				142E6D761AA4227BCE837FA7 /* Charts */,
+				2D1D1684D57BC8006BC9799D /* Controls */,
+				F9A42D480C36F74D9324A87E /* Provenance */,
+				DE76C9824E20B3E5BC5DCFC1 /* Stage */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		605A3EEDE6A4AAEE3A8C506A = {
+			isa = PBXGroup;
+			children = (
+				83A6EF51BCC92D00921F7D5D /* OkloPool */,
+				CC00E0A7A008E131F47BF1CA /* OkloPoolTests */,
+				D68AD06B65FABAC0EF59718F /* OkloPoolUITests */,
+				D558D022D6B0F2C4D36355CE /* Packages */,
+				CCEEC9650F17E6DA53716CBD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6EAC5D1C90AA2C13B8C1CF22 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				86CF2B1820D6E58B497F3691 /* Assets.xcassets */,
+				030329DB920A4F446FD5363C /* OkloPoolApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		83A6EF51BCC92D00921F7D5D /* OkloPool */ = {
+			isa = PBXGroup;
+			children = (
+				6EAC5D1C90AA2C13B8C1CF22 /* App */,
+				40862100A24F56BC79DD03BE /* Models */,
+				05675DFE6006CA98475545DD /* Shaders */,
+				5CB46A28BDAFC122EFD69A3C /* Views */,
+			);
+			path = OkloPool;
+			sourceTree = "<group>";
+		};
+		CC00E0A7A008E131F47BF1CA /* OkloPoolTests */ = {
+			isa = PBXGroup;
+			children = (
+				FD0D4A582287E8088CF46DF1 /* OkloAppModelTests.swift */,
+			);
+			path = OkloPoolTests;
+			sourceTree = "<group>";
+		};
+		CCEEC9650F17E6DA53716CBD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				51E35405E317AEABDF2AE1F0 /* OkloPool.app */,
+				11239EC9B40F09AD567DB20A /* OkloPoolTests.xctest */,
+				115AF5F2E795D02B4981FCDB /* OkloPoolUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D558D022D6B0F2C4D36355CE /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				64102F03EA5598577CE32E9F /* OkloCoreKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		D68AD06B65FABAC0EF59718F /* OkloPoolUITests */ = {
+			isa = PBXGroup;
+			children = (
+				686ADDE85843F70A49DF4680 /* OkloPoolUITests.swift */,
+			);
+			path = OkloPoolUITests;
+			sourceTree = "<group>";
+		};
+		DE76C9824E20B3E5BC5DCFC1 /* Stage */ = {
+			isa = PBXGroup;
+			children = (
+				63763F7D2CEB8C2698C50E31 /* PlanSliceView.swift */,
+				C8677D6617CB95221CCD580F /* SectionSliceView.swift */,
+				8D8617E7E03BF91148001236 /* SliceContainerView.swift */,
+				7331591844830C2C6B4F454B /* VolumeRaymarcherView.swift */,
+			);
+			path = Stage;
+			sourceTree = "<group>";
+		};
+		F9A42D480C36F74D9324A87E /* Provenance */ = {
+			isa = PBXGroup;
+			children = (
+				C647D254E79C5EAA2A0F9C7F /* ProvenanceSheetView.swift */,
+			);
+			path = Provenance;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2CAE76C6A43DF518B0A93E31 /* OkloPoolTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B3A133345B5DC40482C4054 /* Build configuration list for PBXNativeTarget "OkloPoolTests" */;
+			buildPhases = (
+				AD7386FF2EE012759D19446C /* Sources */,
+				79348828350DE81725151565 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D1570D7110A4C286A4F775A /* PBXTargetDependency */,
+			);
+			name = OkloPoolTests;
+			packageProductDependencies = (
+				C01B4C9BBE996947BAD3DD58 /* OkloCore */,
+			);
+			productName = OkloPoolTests;
+			productReference = 11239EC9B40F09AD567DB20A /* OkloPoolTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		36BB011232B42D18210FC880 /* OkloPoolUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B366C13C0410DDB00E557E5D /* Build configuration list for PBXNativeTarget "OkloPoolUITests" */;
+			buildPhases = (
+				65E2A7907EE9DCD2EC6FA45D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2097FF688ECF9CD4EB979B4 /* PBXTargetDependency */,
+			);
+			name = OkloPoolUITests;
+			packageProductDependencies = (
+			);
+			productName = OkloPoolUITests;
+			productReference = 115AF5F2E795D02B4981FCDB /* OkloPoolUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		56B514C1707BD696530C47BE /* OkloPool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 764A1E06365002373D0D4485 /* Build configuration list for PBXNativeTarget "OkloPool" */;
+			buildPhases = (
+				A4D4C5DE9340558C41409EA5 /* Sources */,
+				A173FE26E78484BB39D2162E /* Resources */,
+				F47918BBF392C0C0AEE7FFE3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OkloPool;
+			packageProductDependencies = (
+				3294C4DE6D304BBD34185F25 /* OkloCore */,
+			);
+			productName = OkloPool;
+			productReference = 51E35405E317AEABDF2AE1F0 /* OkloPool.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D918A262B60984CADFFC980D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					36BB011232B42D18210FC880 = {
+						TestTargetID = 56B514C1707BD696530C47BE;
+					};
+				};
+			};
+			buildConfigurationList = A5137ECD1D8E141990D1C532 /* Build configuration list for PBXProject "OkloPool" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 605A3EEDE6A4AAEE3A8C506A;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F3A9B5C7F7C30EBC4AFA65A8 /* XCLocalSwiftPackageReference "OkloCoreKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CCEEC9650F17E6DA53716CBD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				56B514C1707BD696530C47BE /* OkloPool */,
+				2CAE76C6A43DF518B0A93E31 /* OkloPoolTests */,
+				36BB011232B42D18210FC880 /* OkloPoolUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A173FE26E78484BB39D2162E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F1E4DC3AD8FDAB6988470FC /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		65E2A7907EE9DCD2EC6FA45D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5220482D1E51A2A6A7DF09AB /* OkloPoolUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4D4C5DE9340558C41409EA5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				498CF2B792EA3A6241C7E2AE /* ColorRamps.swift in Sources */,
+				76B292F834905F01A47F4654 /* ContentView.swift in Sources */,
+				5275C8A82755299C1D41A4BB /* FieldCatalog.swift in Sources */,
+				8F0EA7A37845F45CADEE0596 /* FieldPickerView.swift in Sources */,
+				9B72CB0F011524AD4BB14864 /* OkloAppModel.swift in Sources */,
+				81E1EFC1B6CF3DE4546FF283 /* OkloPoolApp.swift in Sources */,
+				686A050BCC06410E4635CFCC /* PhaseControlView.swift in Sources */,
+				865D809943C35ECA0F84D6FF /* PlanSliceView.swift in Sources */,
+				298650BCEA879C4D1EEC091C /* PrescribedCurves.swift in Sources */,
+				4367895337BC835843C337D6 /* ProvenanceSheetView.swift in Sources */,
+				0579D016B470CD832E22CCF1 /* ScenarioControlsView.swift in Sources */,
+				8CD79C0C8FD6B97F28C7931A /* SectionSliceView.swift in Sources */,
+				674823A0AEFF28B42743C6F4 /* SliceContainerView.swift in Sources */,
+				3FF44B60CCE4A89406214DAE /* StripChartView.swift in Sources */,
+				C0044EA6F26BE4B0EEA4811F /* VolumeRaymarcher.metal in Sources */,
+				1FD92B1E266A7171D59093CC /* VolumeRaymarcherView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD7386FF2EE012759D19446C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				534047A268520D493CE0FBD8 /* OkloAppModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4D1570D7110A4C286A4F775A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 56B514C1707BD696530C47BE /* OkloPool */;
+			targetProxy = 9FEE7AC0BE3BF4C2A67686E1 /* PBXContainerItemProxy */;
+		};
+		F2097FF688ECF9CD4EB979B4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 56B514C1707BD696530C47BE /* OkloPool */;
+			targetProxy = EF99979ADD6C3DD53F929175 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2705837274629EC92293EB0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Oklo Pool";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool;
+				PRODUCT_NAME = OkloPool;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4A9EAD9A902C9620A64B0BF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OkloPool.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OkloPool";
+			};
+			name = Debug;
+		};
+		655C6F4CE83EF651BC986F55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9FE0E53C8EA74565196FE9B8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Oklo Pool";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool;
+				PRODUCT_NAME = OkloPool;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A9C0D4B53741B9DBCC3C9405 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BC00B2EC07B00B0C20D07C2E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OkloPool;
+			};
+			name = Debug;
+		};
+		C9707C20D083A66B8E036C7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OkloPool.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OkloPool";
+			};
+			name = Release;
+		};
+		D1E2EC45FD4AA5CB20EDEF81 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.oklo.pool.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OkloPool;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B3A133345B5DC40482C4054 /* Build configuration list for PBXNativeTarget "OkloPoolTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A9EAD9A902C9620A64B0BF2 /* Debug */,
+				C9707C20D083A66B8E036C7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		764A1E06365002373D0D4485 /* Build configuration list for PBXNativeTarget "OkloPool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2705837274629EC92293EB0B /* Debug */,
+				9FE0E53C8EA74565196FE9B8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A5137ECD1D8E141990D1C532 /* Build configuration list for PBXProject "OkloPool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9C0D4B53741B9DBCC3C9405 /* Debug */,
+				655C6F4CE83EF651BC986F55 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B366C13C0410DDB00E557E5D /* Build configuration list for PBXNativeTarget "OkloPoolUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC00B2EC07B00B0C20D07C2E /* Debug */,
+				D1E2EC45FD4AA5CB20EDEF81 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F3A9B5C7F7C30EBC4AFA65A8 /* XCLocalSwiftPackageReference "OkloCoreKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OkloCoreKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3294C4DE6D304BBD34185F25 /* OkloCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OkloCore;
+		};
+		C01B4C9BBE996947BAD3DD58 /* OkloCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OkloCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = D918A262B60984CADFFC980D /* Project object */;
+}
