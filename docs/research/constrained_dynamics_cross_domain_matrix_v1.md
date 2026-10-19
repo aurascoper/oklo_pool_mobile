@@ -147,7 +147,7 @@ The quasispecies concept describes a mutation-selection distribution of related 
 
 - **Construct:** the effect of cell shape, volume, adhesion, motility, damage-linked terms, and potentially a costly protective trait on model dynamics.
 - **State variables:** lattice labels/cell identity, Hamiltonian terms, delta-H for candidate moves, the effective CPM temperature parameter, declared trait variables, and separate growth/death observables if the model contains them.
-- **Governing relation:** a common CPM rule accepts a move with P = min(1, exp(-delta-H/T_CPM)) for a positive effective temperature parameter, subject to the model's exact convention. The Hamiltonian governs move acceptance; it is not automatically biological fitness, Gibbs free energy, ATP expenditure, or reproductive success.
+- **Governing relation:** a common CPM rule accepts a move with P = min(1, exp(-ΔH / T_CPM)) for a positive effective temperature parameter, subject to the model's exact convention. The Hamiltonian governs move acceptance; it is not automatically biological fitness, Gibbs free energy, ATP expenditure, or reproductive success.
 - **Constraints:** permitted lattice moves, the declared Hamiltonian, topology and volume constraints, parameter bounds, and the random-number/update contract.
 - **Observable:** move acceptance and morphology for a pure CPM; survival, reproduction, and net growth only if separately implemented. A claimed trait optimum requires a specified objective and an independent sweep or derivation.
 - **Failure criterion:** a predeclared numerical or morphological contract fails, or a predicted internal optimum is absent under the exact model and acceptance rule. Derive the objective before calling the optimum a biological optimum.
