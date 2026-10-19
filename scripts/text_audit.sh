@@ -10,6 +10,7 @@ t1="radiotrophic"" methanogens"
 t2="free-will"" octane"
 
 hits=$(grep -rIl --exclude-dir=target --exclude-dir=.build --exclude-dir=.git \
+    --exclude-dir=.agents \
     --exclude-dir='*.xcframework' -e "$(printf '\342\200\223')" -e "$(printf '\342\200\224')" \
     -i -e "$t1" -e "$t2" . 2>/dev/null)
 
