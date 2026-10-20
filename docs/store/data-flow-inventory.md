@@ -1,8 +1,8 @@
 # Dependency and data-flow inventory
 
 Review date: 2026-10-19
-Scope: app sources on `ios/v1-app` at `29f7573` and Android implementation on `android/v1-app` at `088e668`.
-Status: source and package inspection completed for this draft; runtime network checks remain blocked.
+Scope: app sources on `ios/v1-app` at `29f7573` and Android implementation on `android/v1-app` at `11f9561`.
+Status: source inspection and resolved production dependency graph captured; runtime network checks remain blocked.
 
 ## User inputs and data path
 
@@ -21,7 +21,7 @@ No account, upload, cloud sync, or remote model endpoint is declared in the revi
 | Android | AndroidX Activity, Lifecycle, Compose UI/Foundation/Material3; Kotlin coroutines; local Rust JNI library | No analytics or advertising SDK is declared. The app manifest does not request `INTERNET`, location, camera, contacts, media, or storage permissions. |
 | Tests only | Swift XCTest; Android JUnit, AndroidX test, Espresso, Compose UI test | Not packaged as production app features. |
 
-The final transitive dependency graph has not been captured. Before publication, inspect the final signed package and complete dependency graph for both platforms.
+The resolved iOS Swift package has no external package dependencies. The complete Android `releaseRuntimeClasspath` graph was captured on 2026-10-19 with JDK 17 and Gradle 8.11.1; see [`android-release-runtime-dependencies.txt`](android-release-runtime-dependencies.txt), SHA-256 `c816dc9fef79ba0977aa1b111cf125e8b4e77fcfd1b4752a2ae2d33b752df190`. It contains AndroidX, Kotlin standard library and coroutines, and Guava `listenablefuture`; no analytics, advertising, attribution, crash-reporting, or app networking library is present in that resolved production graph. This is package inventory evidence, not runtime behavior evidence. Final signed-package and any store-required SDK-manifest review remain.
 
 ## Permissions and storage
 
@@ -37,7 +37,7 @@ Static inspection found no app API endpoint, networking library, analytics SDK, 
 ## Evidence and verification gaps
 
 - Android APK manifest and package architecture inspection: `receipts/android_build_2026-10-19.md`.
-- Android instrumentation test APK compiled, but no Android emulator test ran because the emulator required 7372.80 MB for userdata while 2052.19 MB was available.
+- Android instrumentation test APK compiled, including all-field selection, four view modes, and stop-on-background checks, but tests were not run because no usable Android emulator could be started.
 - iOS generic device and simulator builds and `build-for-testing` succeeded. The simulator UI tests did not execute because CoreSimulator lists no usable iOS runtime.
 - Physical-device tests were not run.
 - Store declarations remain drafts. The store account owner must review the signed release build and enter the disclosures.

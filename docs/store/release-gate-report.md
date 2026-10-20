@@ -36,6 +36,7 @@ ANDROID_NDK_HOME=/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358 
 - Instrumentation APK SHA-256: `2b46e34d2995956ab02d4585e76a744849594ff6a6124b75bdf7a14b20184dc3`.
 - Release AAB SHA-256: `6af2123768b8c1a3672e7219f625c9a48890d26de710a37bfb4c736e05b01159`.
 - Both native ABIs are packaged and 16 KB ELF aligned.
+- The full resolved Android release runtime graph is captured in `docs/store/android-release-runtime-dependencies.txt`; it shows AndroidX, Kotlin, and Guava support libraries, with no app networking, analytics, ads, attribution, or crash-reporting SDK.
 - The AAB is unsigned. It is not ready for Play upload.
 - Emulator startup was blocked: userdata needed 7372.80 MB; 2052.19 MB was available.
 
@@ -63,7 +64,7 @@ xcodebuild -project ios/OkloPool.xcodeproj -scheme OkloPool \
 
 ## Privacy evidence and limits
 
-Static source and direct dependency review found no declared app network client, account flow, analytics SDK, ad SDK, or user-data permission. Android's merged manifest contains the AndroidX-generated signature-only dynamic receiver permission and no `INTERNET` permission. iOS does not declare a data-access usage description. These are source-level findings. Runtime network transmission and third-party runtime behavior remain **UNVERIFIED**. See the data-flow inventory and privacy drafts.
+Static source and resolved dependency review found no declared app network client, account flow, analytics SDK, ad SDK, or user-data permission. The Android release graph is captured; the iOS Swift package graph has no external dependencies. Android's merged manifest contains the AndroidX-generated signature-only dynamic receiver permission and no `INTERNET` permission. iOS does not declare a data-access usage description. These are package and source findings. Runtime network transmission and operating-system behavior remain **UNVERIFIED**. See the data-flow inventory and privacy drafts.
 
 The Play build targets API 36. Google Play currently requires API 36 or higher for new apps and updates starting 2026-08-31. The Data safety form remains an account-owner task even if final testing supports a no-data answer. Apple's privacy disclosures and any applicable privacy manifest must be based on the final signed app and SDK review.
 
@@ -72,7 +73,7 @@ The Play build targets API 36. Google Play currently requires API 36 or higher f
 - iOS simulator runtime unavailable to CoreSimulator; no UI/lifecycle execution or screenshots.
 - Android emulator cannot allocate the required userdata storage; no instrumentation or ABI runtime execution.
 - No physical-device smoke tests.
-- Runtime network tests and full transitive dependency/package review remain.
+- Runtime network tests and final signed-package/privacy-manifest review remain.
 - Android AAB is unsigned; no Apple distribution signing identity or provisioning was used.
 - App Privacy and Data safety declarations are not complete.
 - Privacy policy requires verified data practices, publisher approval, support contact, and public HTTPS hosting.

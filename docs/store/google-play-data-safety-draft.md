@@ -7,7 +7,7 @@ Status: **UNVERIFIED. Do not submit this draft.** Google Play requires the Data 
 - Source and direct dependencies do not declare an account flow, analytics SDK, ad SDK, or app network client.
 - Android app manifest requests no `INTERNET` permission or user-data permission.
 - Merged manifest contains one AndroidX-generated signature-only dynamic receiver permission.
-- Runtime network behavior and the full transitive dependency graph have not been checked.
+- The resolved `releaseRuntimeClasspath` dependency graph is captured in [`android-release-runtime-dependencies.txt`](android-release-runtime-dependencies.txt). No app networking, analytics, advertising, attribution, or crash-reporting SDK is present in that graph. Runtime network behavior remains untested, and the final signed package has not been reviewed.
 
 ## Form responses to determine after runtime verification
 
