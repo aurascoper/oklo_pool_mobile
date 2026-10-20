@@ -13,6 +13,7 @@ use conformance_cf2::{compare_compartments, compare_continuous};
 use oklo_core::{fill_field, Field, SimConfig};
 use std::fs::File;
 use std::io::Write;
+use std::process::Command;
 
 fn to_core_field(field: RefField) -> Field {
     match field {
@@ -25,12 +26,33 @@ fn to_core_field(field: RefField) -> Field {
     }
 }
 
+fn git_head_sha() -> String {
+    let out = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .expect("git rev-parse HEAD");
+    String::from_utf8_lossy(&out.stdout).trim().to_string()
+}
+
+fn git_worktree_clean() -> bool {
+    let out = Command::new("git")
+        .args(["status", "--porcelain", "--", ":!receipts"])
+        .output()
+        .expect("git status --porcelain");
+    out.stdout.is_empty()
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating CF-2 conformance matrix and receipts...");
+    let tested_sha = git_head_sha();
+    let clean = git_worktree_clean();
 
     let mut hash_manifest_lines = Vec::new();
     hash_manifest_lines.push("CF-2 reference run: sha256 of canonical field arrays (little-endian float32, X fastest, 32^3 = 32768 floats = 131072 bytes)".to_string());
-    hash_manifest_lines.push("git_head: 041d1bab092553798dec6f7b84df1edfbe417ab4".to_string());
+    hash_manifest_lines.push(format!("git_head: {}", tested_sha));
+    hash_manifest_lines.push(format!("tested_source_commit: {}", tested_sha));
+    hash_manifest_lines.push(format!("worktree_clean_at_test: {}", clean));
+    hash_manifest_lines.push("main_base_commit: 041d1bab092553798dec6f7b84df1edfbe417ab4".to_string());
     hash_manifest_lines.push("receipt: receipts/cf2_conformance_2026-10-19.txt".to_string());
     hash_manifest_lines.push("".to_string());
 
@@ -142,8 +164,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let json_matrix = format!(
         r#"{{
   "name": "cf2_conformance_matrix",
-  "generated_utc": "2026-10-19T03:00:00Z",
-  "git_head": "041d1bab092553798dec6f7b84df1edfbe417ab4",
+  "generated_utc": "2026-10-20T03:50:00Z",
+  "git_head": "{tested_sha}",
+  "tested_source_commit": "{tested_sha}",
+  "worktree_clean_at_test": {clean},
+  "main_base_commit": "041d1bab092553798dec6f7b84df1edfbe417ab4",
   "branch": "conformance/cf2-suite",
   "grid": {{ "nx": 32, "ny": 32, "nz": 32, "total_voxels": 32768 }},
   "tolerances": {{
@@ -153,16 +178,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   "summary": {{
     "total_cases": 20,
     "total_field_volumes": 120,
-    "target_1_host_rust": "PASS",
-    "target_2_ios_package": "PASS",
-    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, 120/120 volumes bitwise equal)",
-    "target_4_android_emulator": "PASS (arm64-v8a API 36 emulator, 120/120 volumes bitwise equal; x86_64 build-verified, host-arch runtime blocked)"
+    "target_1_host_rust": "PASS (tested_source_commit {tested_sha})",
+    "target_2_ios_package": "PASS (tested_source_commit {tested_sha})",
+    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 2db67d4ce3526bb2968954fecdba6ade7a991b02, 120/120 volumes bitwise equal)",
+    "target_4_android_emulator": "PASS on arm64-v8a API 36 emulator (tested_source_commit 30bbe03bdffe80d09a5242508d4b5fab19289c04, 120/120 volumes bitwise equal); x86_64 JNI build-verified, runtime not tested (host-arch blocked)"
   }},
   "cases": [
 {cases}
   ]
 }}
 "#,
+        tested_sha = tested_sha,
+        clean = clean,
         cases = json_cases.join(",\n")
     );
 
