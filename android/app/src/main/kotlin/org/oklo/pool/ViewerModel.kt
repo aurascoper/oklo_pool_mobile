@@ -24,7 +24,29 @@ data class FixtureField(val id: Int, val title: String, val unit: String) {
     }
 }
 
-data class FieldStats(val phase: Double, val min: Float, val mean: Float, val max: Float)
+data class FieldStats(
+    val phase: Double,
+    val min: Float,
+    val mean: Float,
+    val max: Float,
+    val zone3Share: Float,
+    val zone4Share: Float
+) {
+    companion object {
+        fun summarize(phase: Double, fieldId: Int, values: FloatArray): FieldStats {
+            require(values.isNotEmpty())
+            val voxelCount = values.size.toFloat()
+            return FieldStats(
+                phase,
+                values.minOrNull() ?: 0f,
+                values.average().toFloat(),
+                values.maxOrNull() ?: 0f,
+                if (fieldId == 5) values.count { it.toInt() == 3 } / voxelCount else 0f,
+                if (fieldId == 5) values.count { it.toInt() == 4 } / voxelCount else 0f
+            )
+        }
+    }
+}
 
 object ViewerMath {
     fun nextPhase(phase: Double, dtSeconds: Double, periodSeconds: Double = 10_800.0): Double {
@@ -72,11 +94,10 @@ class ViewerModel : ViewModel() {
             val values = FloatArray(OkloSim.VOXELS)
             (0..59).map { frame ->
                 val p = frame / 60.0
-                val stats = OkloSim.create(p, boundary, nullCase).use { sim ->
+                OkloSim.create(p, boundary, nullCase).use { sim ->
                     sim.copyField(id, values)
-                    FieldStats(p, values.minOrNull() ?: 0f, values.average().toFloat(), values.maxOrNull() ?: 0f)
+                    FieldStats.summarize(p, id, values)
                 }
-                stats
             }
         }
 }

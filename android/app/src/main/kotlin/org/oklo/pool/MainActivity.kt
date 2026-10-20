@@ -32,6 +32,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -132,9 +133,14 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
             }
 
             if (mode == DisplayMode.Chart) {
-                PrescribedChart(model.phase, model.pulseBoundary, model.nullScenario, chartStats)
-                Text("Current field range: ${"%.4g".format(low)} to ${"%.4g".format(high)} ${field.unit}")
-                Text("Current field mean: ${"%.5g".format(mean)}")
+                PrescribedChart(field, model.phase, model.pulseBoundary, model.nullScenario, chartStats)
+                if (model.fieldId == 5) {
+                    val selected = chartStats.minByOrNull { abs(it.phase - model.phase) }
+                    Text("Nearest frame zone 3 share: ${"%.1f".format((selected?.zone3Share ?: 0f) * 100f)}%; zone 4 share: ${"%.1f".format((selected?.zone4Share ?: 0f) * 100f)}%")
+                } else {
+                    Text("Current field range: ${"%.4g".format(low)} to ${"%.4g".format(high)} ${field.unit}")
+                    Text("Current field mean: ${"%.5g".format(mean)}")
+                }
             } else {
                 Text(
                     when (mode) {
@@ -264,34 +270,80 @@ private fun valueColor(value: Float, minValue: Float, span: Float, field: Int): 
 }
 
 @Composable
-private fun PrescribedChart(phase: Double, boundary: Double, nullScenario: Boolean, fieldStats: List<FieldStats>) {
-    Canvas(Modifier.fillMaxWidth().height(200.dp).background(Color(0xFF101820)).semantics {
+private fun PrescribedChart(field: FixtureField, phase: Double, boundary: Double, nullScenario: Boolean, fieldStats: List<FieldStats>) {
+    Text(if (field.id == 5) "${field.title}: zone 3 and zone 4 shares" else "${field.title}: mean and min/max envelope (${field.unit})", fontWeight = FontWeight.SemiBold)
+    Canvas(Modifier.fillMaxWidth().height(170.dp).background(Color(0xFF101820)).semantics {
+        contentDescription = if (field.id == 5) "Compartments zone 3 and zone 4 shares over cycle phase" else "${field.title} minimum, mean, and maximum over cycle phase"
+    }) {
+        val left = 30f
+        val right = size.width - 12f
+        val top = 12f
+        val bottom = size.height - 18f
+        drawLine(Color.LightGray, Offset(left, bottom), Offset(right, bottom), 2f)
+        drawLine(Color.LightGray, Offset(left, top), Offset(left, bottom), 2f)
+        if (fieldStats.isNotEmpty()) {
+            val xAt: (FieldStats) -> Float = { left + (right - left) * it.phase.toFloat() }
+            if (field.id == 5) {
+                fun zonePath(color: Color, selector: (FieldStats) -> Float) {
+                    val path = Path()
+                    fieldStats.forEachIndexed { index, item ->
+                        val y = bottom - (bottom - top) * selector(item).coerceIn(0f, 1f)
+                        if (index == 0) path.moveTo(xAt(item), y) else path.lineTo(xAt(item), y)
+                    }
+                    drawPath(path, color, style = Stroke(2f))
+                }
+                zonePath(Color(0xFF64B5F6)) { it.zone3Share }
+                zonePath(Color(0xFFFFB74D)) { it.zone4Share }
+            } else {
+                val statLow = fieldStats.minOf { it.min }
+                val statHigh = fieldStats.maxOf { it.max }
+                val statSpan = max(1e-12f, statHigh - statLow)
+                fun statY(value: Float): Float = bottom - (bottom - top) * ((value - statLow) / statSpan).coerceIn(0f, 1f)
+                val envelope = Path()
+                fieldStats.forEachIndexed { index, item ->
+                    val point = Offset(xAt(item), statY(item.max))
+                    if (index == 0) envelope.moveTo(point.x, point.y) else envelope.lineTo(point.x, point.y)
+                }
+                fieldStats.asReversed().forEach { item -> envelope.lineTo(xAt(item), statY(item.min)) }
+                envelope.close()
+                drawPath(envelope, Color(0xFF81C784).copy(alpha = .2f))
+                fun statPath(color: Color, selector: (FieldStats) -> Float) {
+                    val path = Path()
+                    fieldStats.forEachIndexed { index, item ->
+                        val x = xAt(item)
+                        val y = statY(selector(item))
+                        if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                    }
+                    drawPath(path, color, style = Stroke(2f))
+                }
+                statPath(Color(0xFFFFF176)) { it.min }
+                statPath(Color(0xFF81C784)) { it.mean }
+                statPath(Color(0xFFE57373)) { it.max }
+            }
+        }
+        val x = left + (right - left) * phase.toFloat()
+        drawLine(Color.White, Offset(x, top), Offset(x, bottom), 2f)
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (field.id == 5) {
+            Text("Zone 3", color = Color(0xFF64B5F6))
+            Text("Zone 4", color = Color(0xFFFFB74D))
+        } else {
+            Text("Min", color = Color(0xFFFFF176))
+            Text("Mean", color = Color(0xFF81C784))
+            Text("Max", color = Color(0xFFE57373))
+        }
+    }
+    Text("Prescribed driver curves", fontWeight = FontWeight.SemiBold)
+    Canvas(Modifier.fillMaxWidth().height(145.dp).background(Color(0xFF101820)).semantics {
         contentDescription = "Prescribed pulse and desiccation curves over cycle phase"
     }) {
         val left = 30f
         val right = size.width - 12f
         val top = 12f
-        val bottom = size.height - 24f
+        val bottom = size.height - 18f
         drawLine(Color.LightGray, Offset(left, bottom), Offset(right, bottom), 2f)
         drawLine(Color.LightGray, Offset(left, top), Offset(left, bottom), 2f)
-        if (fieldStats.isNotEmpty()) {
-            val statLow = fieldStats.minOf { it.min }
-            val statHigh = fieldStats.maxOf { it.max }
-            val statSpan = max(1e-12f, statHigh - statLow)
-            fun statY(value: Float): Float = bottom - (bottom - top) * ((value - statLow) / statSpan).coerceIn(0f, 1f)
-            fun statPath(color: Color, selector: (FieldStats) -> Float) {
-                val path = Path()
-                fieldStats.forEachIndexed { index, item ->
-                    val x = left + (right - left) * item.phase.toFloat()
-                    val y = statY(selector(item))
-                    if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                drawPath(path, color, style = Stroke(2f))
-            }
-            statPath(Color(0xFFFFF176)) { it.min }
-            statPath(Color(0xFF81C784)) { it.mean }
-            statPath(Color(0xFFE57373)) { it.max }
-        }
         fun drawCurve(color: Color, fn: (Double) -> Double) {
             val path = Path()
             for (index in 0..120) {
@@ -310,8 +362,5 @@ private fun PrescribedChart(phase: Double, boundary: Double, nullScenario: Boole
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("P(p)", color = Color(0xFFFF7043))
         Text("D(p)", color = Color(0xFF64B5F6))
-        Text("min", color = Color(0xFFFFF176), style = MaterialTheme.typography.bodySmall)
-        Text("mean", color = Color(0xFF81C784), style = MaterialTheme.typography.bodySmall)
-        Text("max", color = Color(0xFFE57373), style = MaterialTheme.typography.bodySmall)
     }
 }
