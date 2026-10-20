@@ -2,6 +2,7 @@
 members = [
     "crates/oklo_core",
     "crates/oklo_web",
+    "crates/oklo_core_jni",
     "tests/conformance_cf2",
 ]
 resolver = "2"
