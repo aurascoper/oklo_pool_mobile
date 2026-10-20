@@ -17,7 +17,7 @@ class DisclosureAndPrivacyPolicyTest {
             1 to ("Hydration" to "Prescribed saturation index; not a multiphase porous flow solve."),
             2 to ("H2 Concentration" to "Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve."),
             3 to ("235U/238U Ratio" to "Prescribed isotopic depletion curve; not a 3D neutron transport solve."),
-            4 to ("Polymer Accumulation" to "Prescribed synthetic index; not an empirical prebiotic assay."),
+            4 to ("Polymer accumulation index" to "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations."),
             5 to ("Compartments" to "Prescribed geometric bounding cells; not a physical membrane simulation.")
         )
 

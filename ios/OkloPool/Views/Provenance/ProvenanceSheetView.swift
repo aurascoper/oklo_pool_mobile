@@ -18,7 +18,7 @@ public struct ProvenanceSheetView: View {
         case .u235Ratio:
             return "Prescribed isotopic depletion curve; not a 3D neutron transport solve."
         case .polymerYield:
-            return "Prescribed synthetic index; not an empirical prebiotic assay."
+            return "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations."
         case .compartments:
             return "Prescribed geometric bounding cells; not a physical membrane simulation."
         }
