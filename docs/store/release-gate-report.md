@@ -34,7 +34,6 @@ ANDROID_NDK_HOME=/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358 
 - Continuous fields chart mean and min/max envelope separately from prescribed drivers; the compartment chart plots zone 3 and zone 4 shares.
 - Debug APK SHA-256: `92224fc11ca7c58077ea6eade630e141ab360b49d9cbf8bbb8b51b6bf7ebdf3d`.
 - Instrumentation APK SHA-256: `2b46e34d2995956ab02d4585e76a744849594ff6a6124b75bdf7a14b20184dc3`.
-- Expanded UI instrumentation checks compile for all six fields, four view modes, and stop-on-background behavior; they have not been executed.
 - Release AAB SHA-256: `6af2123768b8c1a3672e7219f625c9a48890d26de710a37bfb4c736e05b01159`.
 - Both native ABIs are packaged and 16 KB ELF aligned.
 - The AAB is unsigned. It is not ready for Play upload.
