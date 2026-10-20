@@ -1,0 +1,192 @@
+Test Suite 'All tests' started at 2026-10-19 23:18:25.707.
+Test Suite 'OkloPoolUITests.xctest' started at 2026-10-19 23:18:25.710.
+Test Suite 'OkloPoolUITests' started at 2026-10-19 23:18:25.711.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testAppLaunchAndMainComponents]' started.
+    t =     0.01s Start Test at 2026-10-19 23:18:25.717
+    t =     0.61s Set Up
+    t =     0.64s Open org.oklo.pool
+    t =     0.65s     Launch org.oklo.pool
+2026-10-19 23:18:27.204 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-19 23:18:27.204 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[94676]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.m85B2l/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10635c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.m85B2l/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106b14310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     4.42s         Setting up automation session
+    t =    12.90s         Wait for org.oklo.pool to idle
+    t =    17.60s Checking existence of `"Oklo Pool" NavigationBar`
+    t =    18.39s Checking existence of `"Reset controls to default values" Button`
+    t =    18.49s Checking existence of `"Open Provenance and Limitations" Button`
+    t =    18.59s Tear Down
+Test Case '-[OkloPoolUITests.OkloPoolUITests testAppLaunchAndMainComponents]' passed (18.906 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testProvenanceSheetPresentationAndDismiss]' started.
+    t =     0.00s Start Test at 2026-10-19 23:18:44.625
+    t =     0.05s Set Up
+    t =     0.05s Open org.oklo.pool
+    t =     0.06s     Launch org.oklo.pool
+    t =     0.06s         Terminate org.oklo.pool:94974
+2026-10-19 23:18:45.763 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-19 23:18:45.763 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.38s         Setting up automation session
+    t =     7.98s         Wait for org.oklo.pool to idle
+    t =    10.65s Waiting 3.0s for "Open Provenance and Limitations" Button to exist
+    t =    11.67s     Checking `Expect predicate `existsNoRetry == 1` for object "Open Provenance and Limitations" Button`
+    t =    11.67s         Checking existence of `"Open Provenance and Limitations" Button`
+    t =    12.07s Tap "Open Provenance and Limitations" Button
+    t =    12.07s     Wait for org.oklo.pool to idle
+    t =    12.08s     Find the "Open Provenance and Limitations" Button
+    t =    12.18s     Check for interrupting elements affecting "info.circle" Button
+    t =    12.34s     Synthesize event
+    t =    12.93s     Wait for org.oklo.pool to idle
+    t =    13.99s Waiting 3.0s for "Educational Scenario Explorer" StaticText to exist
+    t =    15.03s     Checking `Expect predicate `existsNoRetry == 1` for object "Educational Scenario Explorer" StaticText`
+    t =    15.03s         Checking existence of `"Educational Scenario Explorer" StaticText`
+    t =    15.22s Find the Target Application 'org.oklo.pool'
+    t =    15.56s Added attachment named 'iPhone 17 Provenance'
+    t =    15.56s Waiting 3.0s for "Done" Button to exist
+    t =    16.59s     Checking `Expect predicate `existsNoRetry == 1` for object "Done" Button`
+    t =    16.59s         Checking existence of `"Done" Button`
+    t =    16.72s Tap "Done" Button
+    t =    16.72s     Wait for org.oklo.pool to idle
+    t =    16.73s     Find the "Done" Button
+    t =    16.88s     Check for interrupting elements affecting "Done" Button
+    t =    17.00s     Synthesize event
+    t =    17.32s     Wait for org.oklo.pool to idle
+    t =    17.80s Tear Down
+Test Case '-[OkloPoolUITests.OkloPoolUITests testProvenanceSheetPresentationAndDismiss]' passed (18.153 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testTransportPlayPause]' started.
+    t =     0.00s Start Test at 2026-10-19 23:19:02.777
+    t =     0.04s Set Up
+    t =     0.04s Open org.oklo.pool
+    t =     0.04s     Launch org.oklo.pool
+    t =     0.04s         Terminate org.oklo.pool:95197
+2026-10-19 23:19:03.909 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-19 23:19:03.909 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.35s         Setting up automation session
+    t =     9.75s         Wait for org.oklo.pool to idle
+    t =    12.89s Waiting 3.0s for "Start cycle playback" Button to exist
+    t =    13.93s     Checking `Expect predicate `existsNoRetry == 1` for object "Start cycle playback" Button`
+    t =    13.93s         Checking existence of `"Start cycle playback" Button`
+    t =    14.21s Tap "Start cycle playback" Button
+    t =    14.21s     Wait for org.oklo.pool to idle
+    t =    14.22s     Find the "Start cycle playback" Button
+    t =    14.28s     Check for interrupting elements affecting "Start cycle playback" Button
+    t =    14.33s     Synthesize event
+    t =    14.43s         Scroll element to visible
+    t =    14.44s         Find the "Start cycle playback" Button
+    t =    14.52s         Computed hit point {142, 702.83333333333337} after scrolling to visible
+    t =    14.81s     Wait for org.oklo.pool to idle
+    t =    14.81s Waiting 3.0s for "Pause cycle playback" Button to exist
+    t =    15.85s     Checking `Expect predicate `existsNoRetry == 1` for object "Pause cycle playback" Button`
+    t =    15.85s         Checking existence of `"Pause cycle playback" Button`
+    t =    15.92s Tap "Pause cycle playback" Button
+    t =    15.92s     Wait for org.oklo.pool to idle
+    t =    15.92s     Find the "Pause cycle playback" Button
+    t =    15.99s     Check for interrupting elements affecting "Pause cycle playback" Button
+    t =    16.14s     Synthesize event
+    t =    16.45s     Wait for org.oklo.pool to idle
+    t =    16.46s Tear Down
+Test Case '-[OkloPoolUITests.OkloPoolUITests testTransportPlayPause]' passed (16.715 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testViewModeSwitch]' started.
+    t =     0.00s Start Test at 2026-10-19 23:19:19.493
+    t =     0.03s Set Up
+    t =     0.03s Open org.oklo.pool
+    t =     0.04s     Launch org.oklo.pool
+    t =     0.04s         Terminate org.oklo.pool:95308
+2026-10-19 23:19:20.583 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-19 23:19:20.584 xcodebuild[93241:803660] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     6.80s         Wait for org.oklo.pool to idle
+    t =     9.22s Waiting 3.0s for "3D Volume" Button to exist
+    t =    10.24s     Checking `Expect predicate `existsNoRetry == 1` for object "3D Volume" Button`
+    t =    10.24s         Checking existence of `"3D Volume" Button`
+    t =    10.48s Find the Target Application 'org.oklo.pool'
+    t =    10.66s Added attachment named 'iPhone 17 Slices'
+    t =    10.66s Tap "3D Volume" Button
+    t =    10.66s     Wait for org.oklo.pool to idle
+    t =    10.67s     Find the "3D Volume" Button
+    t =    10.73s     Check for interrupting elements affecting "3D Volume" Button
+    t =    10.78s     Synthesize event
+    t =    11.14s     Wait for org.oklo.pool to idle
+    t =    13.77s Find the Target Application 'org.oklo.pool'
+    t =    13.96s Added attachment named 'iPhone 17 3D Volume'
+    t =    13.96s Waiting 3.0s for "Slices" Button to exist
+    t =    14.99s     Checking `Expect predicate `existsNoRetry == 1` for object "Slices" Button`
+    t =    14.99s         Checking existence of `"Slices" Button`
+    t =    15.06s Tap "Slices" Button
+    t =    15.06s     Wait for org.oklo.pool to idle
+    t =    15.06s     Find the "Slices" Button
+    t =    15.12s     Check for interrupting elements affecting "Slices" Button
+    t =    15.17s     Synthesize event
+    t =    15.47s     Wait for org.oklo.pool to idle
+    t =    19.09s Swipe up Target Application 'org.oklo.pool'
+    t =    19.10s     Wait for org.oklo.pool to idle
+    t =    19.10s     Find the Target Application 'org.oklo.pool'
+    t =    19.15s     Check for interrupting elements affecting "Oklo Pool" Application
+    t =    19.20s     Synthesize event
+    t =    19.62s     Wait for org.oklo.pool to idle
+    t =    21.73s Swipe up Target Application 'org.oklo.pool'
+    t =    21.73s     Wait for org.oklo.pool to idle
+    t =    21.74s     Find the Target Application 'org.oklo.pool'
+    t =    21.79s     Check for interrupting elements affecting "Oklo Pool" Application
+    t =    21.85s     Synthesize event
+    t =    22.28s     Wait for org.oklo.pool to idle
+    t =    24.38s Waiting 3.0s for "Field Selection" StaticText to exist
+    t =    25.41s     Checking `Expect predicate `existsNoRetry == 1` for object "Field Selection" StaticText`
+    t =    25.41s         Checking existence of `"Field Selection" StaticText`
+    t =    25.50s Waiting 3.0s for "Prescribed Field Strip Chart" StaticText to exist
+    t =    26.53s     Checking `Expect predicate `existsNoRetry == 1` for object "Prescribed Field Strip Chart" StaticText`
+    t =    26.53s         Checking existence of `"Prescribed Field Strip Chart" StaticText`
+    t =    26.60s Find the Target Application 'org.oklo.pool'
+    t =    26.79s Added attachment named 'iPhone 17 Fields and Chart'
+    t =    26.79s Tear Down
+Test Case '-[OkloPoolUITests.OkloPoolUITests testViewModeSwitch]' passed (27.108 seconds).
+Test Suite 'OkloPoolUITests' passed at 2026-10-19 23:19:46.601.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 80.881 (80.890) seconds
+Test Suite 'OkloPoolUITests.xctest' passed at 2026-10-19 23:19:46.604.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 80.881 (80.894) seconds
+Test Suite 'All tests' passed at 2026-10-19 23:19:46.605.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 80.881 (80.897) seconds
+Charts: Custom UnitPoint values are not supported in AxisValueLabel's anchor property. Please use leading, topLeading, center, etc.
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-10-19 23:19:51.936029-0500 OkloPool[95747:818860] [API] cannot add handler to 0 from 0 - dropping
+2026-10-19 23:19:51.960283-0500 OkloPool[95747:818860] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-19 23:19:51.963116-0500 OkloPool[95747:818860] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'All tests' started at 2026-10-19 23:19:53.464.
+Test Suite 'OkloPoolTests.xctest' started at 2026-10-19 23:19:53.464.
+Test Suite 'OkloAppModelTests' started at 2026-10-19 23:19:53.464.
+Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' passed (0.076 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testFieldSelectionAndBounds]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testFieldSelectionAndBounds]' passed (0.055 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testInitialModelState]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testInitialModelState]' passed (1.184 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testMemoryCleanupAndDeinit]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testMemoryCleanupAndDeinit]' passed (0.218 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testNullScenarioInvariance]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testNullScenarioInvariance]' passed (0.064 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPhaseNavigationAndWrapping]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPhaseNavigationAndWrapping]' passed (0.063 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPlaybackLifecycle]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPlaybackLifecycle]' passed (0.019 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPolymerFieldOntologyAmendmentMetadata]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPolymerFieldOntologyAmendmentMetadata]' passed (0.001 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPulseBoundarySensitivity]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPulseBoundarySensitivity]' passed (0.034 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testRaymarcherUniformsMemoryLayout]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testRaymarcherUniformsMemoryLayout]' passed (0.001 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testSliceClamping]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testSliceClamping]' passed (0.026 seconds).
+Test Suite 'OkloAppModelTests' passed at 2026-10-19 23:19:55.211.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 1.741 (1.747) seconds
+Test Suite 'OkloPoolTests.xctest' passed at 2026-10-19 23:19:55.212.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 1.741 (1.748) seconds
+Test Suite 'All tests' passed at 2026-10-19 23:19:55.212.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 1.741 (1.749) seconds
+2026-10-19 23:19:58.239 xcodebuild[93241:803660] [MT] IDETestOperationsObserverDebug: 145.222 elapsed -- Testing started completed.
+2026-10-19 23:19:58.239 xcodebuild[93241:803660] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-19 23:19:58.239 xcodebuild[93241:803660] [MT] IDETestOperationsObserverDebug: 145.222 sec, +145.222 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/oklo-ios-optiona.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
