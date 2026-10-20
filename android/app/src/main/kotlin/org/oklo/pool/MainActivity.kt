@@ -259,8 +259,8 @@ private fun FieldCanvas(
             DisplayMode.Volume -> {
                 val cell = min(size.width, size.height) / 46f
                 for (k in 30 downTo 0 step 2) for (y in 0 until 32) for (x in 0 until 32) {
-                    val px = size.width / 2f - 16 * cell + (x - y) * cell * .55f
-                    val py = size.height * .73f - (x + y) * cell * .25f - k * cell * .32f
+                    val px = size.width / 2f + (x - y) * cell * .55f
+                    val py = size.height * .78f - (x + y) * cell * .25f - k * cell * .32f
                     val index = k * 1024 + y * 32 + x
                     drawRect(valueColor(data.getOrElse(index) { 0f }, minValue, span, fieldId), Offset(px, py), Size(cell * .62f, cell * .48f))
                 }

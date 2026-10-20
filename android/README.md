@@ -34,14 +34,22 @@ The native bridge uses integer handles backed by a synchronized registry. `OkloS
 
 ## Runtime checks
 
-Instrumented tests are in `app/src/androidTest`. Run them on API 36 arm64 and x86_64 emulators:
+Instrumented tests are in `app/src/androidTest`. Run them on an API 36 emulator:
 
 ```sh
 ./gradlew connectedDebugAndroidTest
 ```
 
-Capture store screenshots only from the running application. Runtime, accessibility, lifecycle, and physical-device checks remain separate evidence from build success.
+Or install the built APKs directly and run via `adb`:
+
+```sh
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+On the API 36 `arm64-v8a` emulator (`oklo-api36`), all 11 instrumented tests (6 native JNI bridge tests including the 20-case CF-2 matrix and 5 Compose UI smoke tests) passed; see `../receipts/android_build_2026-10-19.md` and `../receipts/android_emulator_test_2026-10-19.txt`.
 
 ## Data and limitations
 
-The app does not request data access or network permissions. The merged manifest contains one AndroidX-generated signature-only permission for non-exported dynamic receivers. Inputs and rendering are implemented locally. Every displayed value comes from fixed analytic fixture functions. Labels preserve the revision 0 units, including fields whose original unit labels lack a derivation. Phase controls navigate prescribed values and do not model time-dependent physics. Network behavior has not yet been checked at runtime. See `../docs/PROVENANCE.md` for the full limitations record.
+The app does not request data access or network permissions. The merged manifest contains one AndroidX-generated signature-only permission for non-exported dynamic receivers, and runtime inspection on API 36 confirmed zero network permissions and zero open sockets. Inputs and rendering are implemented locally. Every displayed value comes from fixed analytic fixture functions. Labels preserve the revision 0 units, including fields whose original unit labels lack a derivation. Phase controls navigate prescribed values and do not model time-dependent physics. See `../docs/PROVENANCE.md` for the full limitations record.

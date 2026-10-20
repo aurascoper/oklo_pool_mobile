@@ -1,4 +1,4 @@
-# Android v1 build receipt
+# Android v1 build and runtime receipt
 
 Run date: 2026-10-19, America/Chicago
 Branch: `android/v1-app`
@@ -41,33 +41,58 @@ Command used from `android/`:
 JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home \
 ANDROID_HOME=/opt/homebrew/share/android-commandlinetools \
 ANDROID_NDK_HOME=/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358 \
-./gradlew testDebugUnitTest assembleAndroidTest assembleDebug bundleRelease
+./gradlew testDebugUnitTest assembleDebug assembleAndroidTest bundleRelease
 ```
 
-Result: `BUILD SUCCESSFUL`. Seven unit tests passed, zero failed. The instrumentation APK compiled successfully. Tests cover phase advancement and wraparound, negative step rejection, pulse boundary selection, null-scenario phase invariance, continuous-field summaries, and categorical zone-share summaries.
+Result: `BUILD SUCCESSFUL`. Seven unit tests passed, zero failed. The instrumentation APK compiled and packaged cleanly. Unit tests cover phase advancement and wraparound, negative step rejection, pulse boundary selection, null-scenario phase invariance, continuous-field summaries, and categorical zone-share summaries.
 
-The latest Android chart revision separates prescribed pulse/desiccation drivers from field values so the curves use independent axes. Continuous fields show a mean trace and min/max envelope; the categorical compartment field shows zone 3 and zone 4 voxel shares rather than a categorical mean. Two unit tests cover the share calculation and ensure continuous fields report no categorical shares.
+The Android chart separates prescribed pulse/desiccation drivers from field values so the curves use independent axes. Continuous fields show a mean trace and min/max envelope; the categorical compartment field shows zone 3 and zone 4 voxel shares rather than a categorical mean.
 
 Artifacts:
 
-- Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `f8f30ad48cdbae3513f6bbae5a54411d7a7a2239b566414294cabb4ae4ddb7ee`
-- Instrumentation APK: `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`, SHA-256 `3e72a224e545568b756b76d30123659bb2c35205c9bd4627d1fead5b9014fd40`
-- Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`, SHA-256 `bb4f6fd761a4dbd825460e78d4d346dff53d0e390cae76a2b33ee316145b60a3`
+- Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `00a62e9445eed1cf52fcafb64193aca1fbf0d0cc6f81de92ddf3193f35db08d2`
+- Instrumentation APK: `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`, SHA-256 `440d57d4777406eec8c5c637bb99bed782c46ddad422b05eb1b0597d862aa53e`
+- Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`, SHA-256 `2eb46e9e0c0215bad255dc2f90cdb760584492cbaffb61e32f3e6970cc6db1b6`
 
-The APK reports package `org.oklo.pool`, version `1.0.0`, min API 26, target API 36, and native ABIs `arm64-v8a` and `x86_64`. The merged manifest contains only the AndroidX-generated signature-only permission `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; it does not request `INTERNET` or user data access. This is a source and manifest inspection, not a runtime network test.
+The APK reports package `org.oklo.pool`, version `1.0.0`, min API 26, target API 36, and native ABIs `arm64-v8a` and `x86_64`. The merged manifest contains only the AndroidX-generated signature-only permission `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; it does not request `INTERNET` or user data access.
 
-### Expanded instrumentation compile
+The release AAB is unsigned. Build success does not make it suitable for store upload without release signing keys.
 
-`ViewerSmokeTest` now compiles checks for all six fields, plan/section/volume/chart labels, playback stopping when the activity backgrounds, pulse-boundary selection, and the null-scenario toggle. The pulse and null controls expose labelled selection state through Compose semantics. Command: `./gradlew assembleAndroidTest` from `android/` with JDK 17 and Android SDK 36. Result: `BUILD SUCCESSFUL`; instrumentation was not executed. The full `testDebugUnitTest assembleDebug bundleRelease` command also succeeded after the accessibility changes, with seven unit tests passing and zero failures.
+## Emulator runtime verification (`arm64-v8a`, API 36)
 
-The release AAB is unsigned. Build success does not make it suitable for store upload.
+Target: Android Emulator `oklo-api36` (`system-images;android-36;google_apis;arm64-v8a`, Android 16 / API 36, `1080x2400` at 420 dpi).
+Command used:
 
-## Runtime status
+```sh
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner
+```
 
-Instrumentation tests, emulator UI verification, screenshots, and native runtime loading remain `BLOCKED`. The API 36 arm64 Google APIs image installed, but the host had 2052.19 MB free when the emulator checked for its required 7372.80 MB userdata image. A manual AVD and smaller partition setting did not bypass this emulator storage requirement. No device test passed, and no store screenshot was captured.
+Result: `PASS` (`OK (11 tests)`, 0 failures, 46.945 s).
+Verbatim log: `receipts/android_emulator_test_2026-10-19.txt` (SHA-256 `627bfea9dd43f2488add185f7984ca75d29c384dfe8a2ae4900ff68c7d9d1e0c`).
 
-Physical-device testing is `NOT RUN`; no device and signing setup were available in this session.
+Passing test methods:
+
+1. `org.oklo.pool.ViewerSmokeTest#allSixFieldsCanBeSelected` - `PASS`
+2. `org.oklo.pool.ViewerSmokeTest#provenanceSheetOpensAndDisplaysLimitations` - `PASS`
+3. `org.oklo.pool.ViewerSmokeTest#pulseAndNullControlsHaveAccessibleLabelsAndUpdate` - `PASS`
+4. `org.oklo.pool.ViewerSmokeTest#planSectionVolumeAndChartModesRenderLabels` - `PASS`
+5. `org.oklo.pool.ViewerSmokeTest#playbackStopsWhenActivityLeavesForeground` - `PASS`
+6. `org.oklo.pool.bridge.NativeBridgeTest#abiVersionAndSixFieldsLoad` - `PASS`
+7. `org.oklo.pool.bridge.NativeBridgeTest#shortDestinationIsRejected` - `PASS`
+8. `org.oklo.pool.bridge.NativeBridgeTest#closeIsIdempotentAtWrapperBoundary` - `PASS`
+9. `org.oklo.pool.bridge.NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference` - `PASS` (all 20 CF-2 cases and 120 3D field volumes matched reference SHA-256 digests bit-for-bit over JNI on `arm64-v8a`)
+10. `org.oklo.pool.bridge.NativeBridgeTest#invalidConfigIsRejected` - `PASS`
+11. `org.oklo.pool.bridge.NativeBridgeTest#steppingWrapsAndRejectsNegativeTime` - `PASS`
+
+Runtime network check:
+
+- While `org.oklo.pool` was running in the foreground (`PID 4165`), `adb shell dumpsys package org.oklo.pool` confirmed only `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is declared or granted (no `android.permission.INTERNET`), and `adb shell ss -tupn` confirmed zero active TCP/UDP sockets (`ACTIVE_INET_SOCKETS: 0`).
+- Five `1080x2400` PNG screenshots were captured from the running emulator across Plan, Section, Volume, Chart, and Scope/Provenance views.
+- Android `x86_64` ABI is compiled and packaged (`liboklo_core_jni.so` SHA-256 `7ed74f69a8f6dd0e60aadf9b37dae136e26331229d6dc955081e0592fb0c71f2`), while `x86_64` emulator runtime execution is `BLOCKED` by the Apple Silicon (`arm64`) host architecture.
+- Physical-device testing is `NOT RUN`; no physical Android device and release signing setup were connected in this session.
 
 ## Limitations
 
-These results establish buildability, unit-test outcomes, and compilation of instrumentation coverage only. They do not establish successful installation, Android runtime behavior, ABI runtime conformance, accessibility quality in a running app, lifecycle correctness, absence of runtime network traffic, store compliance, or scientific validity. Values remain the prescribed revision 0 fixture functions documented in `docs/PROVENANCE.md`.
+These results establish buildability, unit-test outcomes, `arm64-v8a` API 36 emulator installation, JNI 20-case CF-2 conformance, Compose UI smoke tests, lifecycle background-pause behavior, and runtime absence of network permissions/sockets. They do not replace physical-device testing or release signing. Values remain the prescribed revision 0 fixture functions documented in `docs/PROVENANCE.md`.
