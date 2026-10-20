@@ -1,7 +1,7 @@
 # Dependency and data-flow inventory
 
 Review date: 2026-10-19
-Scope: iOS app sources on `ios/v1-app` at `3b0390351fda773a5b3fb379cef44fc8f94ff7ba` and Android app sources on `android/v1-app` at `30bbe03bdffe80d09a5242508d4b5fab19289c04`.
+Scope: iOS app sources on `ios/v1-app` at tested source commit `2db67d4ce3526bb2968954fecdba6ade7a991b02` (receipt commit `4742bb57dab2ee175777c5991cca8c05a4f43080`) and Android app sources on `android/v1-app` at tested source commit `30bbe03bdffe80d09a5242508d4b5fab19289c04` (receipt commit `7edcd0ed58f233630ddf579d96dff859beeeb6c8`).
 Status: source inspection, resolved production dependency graph, and simulator/emulator runtime socket checks completed; physical-device signed release package verification remains an account-owner step.
 
 ## User inputs and data path

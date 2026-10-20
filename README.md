@@ -1,12 +1,32 @@
 # oklo_pool_mobile
 
-This is milestone M0 of a mobile viewer for the Oklo GUI conformance fixture. It holds a dependency-free Rust library, oklo_core, that reproduces revision 0 of the fixture's six fields from the equations in CONFORMANCE_FIXTURE_SPEC.md section 3. A hand-written C header exposes it, and a Swift package (ios/OkloCoreKit) links it on iOS and macOS. Android has a written JNI contract in docs/BRIDGING.md but no build, because no Android SDK or NDK is installed on this machine.
+`oklo_pool_mobile` is a cross-platform mobile and desktop viewer for the revision 0, six-field Oklo GUI conformance fixture. It holds a dependency-free Rust library (`crates/oklo_core`) that reproduces revision 0 of the fixture's six fields from the equations in `CONFORMANCE_FIXTURE_SPEC.md` section 3, a C ABI header (`crates/oklo_core/include/oklo_core.h`), a Swift package (`ios/OkloCoreKit`), a native iOS SwiftUI + Metal application (`ios/OkloPool`), a Rust JNI bridge (`crates/oklo_core_jni`), a native Android Kotlin/Compose application (`android/`) targeting API 36, an independent 20-case CF-2 conformance suite (`tests/conformance_cf2` and `scripts/cf2_reference.py`), and evidence-backed store release and privacy materials (`docs/store/`).
 
-The fields are prescribed analytic functions of grid position and cycle phase. They are not a physical simulation, not a calibrated model, and not evidence that a prebiotic pool operated at Oklo. docs/PROVENANCE.md gives each field's definition record and the text for the app's assumptions and provenance drawer.
+The fields are prescribed analytic functions of grid position and cycle phase. They are not a physical simulation, not a calibrated model, and not evidence that a prebiotic pool operated at Oklo. `docs/PROVENANCE.md` gives each field's definition record and the text for the app's assumptions and provenance drawer.
 
-The source of truth is the frozen fixture in ~/.gemini/antigravity/scratch/oklo_gui_scratch, with CONFORMANCE_FIXTURE_SPEC.md at sha256 587745ede6c6997a298f8f0a4e01127823de1b7c606383cfa49b87db0cc60d0c. This repository reads that directory and never writes to it.
+The source of truth is the frozen fixture in `~/.gemini/antigravity/scratch/oklo_gui_scratch`, with `CONFORMANCE_FIXTURE_SPEC.md` at sha256 `587745ede6c6997a298f8f0a4e01127823de1b7c606383cfa49b87db0cc60d0c`. This repository reads that directory and never writes to it.
 
-## Status on 2026-10-17
+## Cross-platform v1 mobile release status (2026-10-19)
+
+Four review branches implement and verify the cross-platform v1 viewer around the frozen revision 0 fixture:
+
+1. **CF-2 independent 20-case conformance (`conformance/cf2-suite`, [PR #4](https://github.com/aurascoper/oklo_pool_mobile/pull/4)):**
+   - Independent reference generator (`tests/conformance_cf2` and `scripts/cf2_reference.py`) derived directly from `CONFORMANCE_FIXTURE_SPEC.md` section 3 across 20 pinned cases (5 phases x 2 scenarios x 2 pulse boundaries = 120 3D field volumes).
+   - **PASS** across all four runnable targets: Host Rust (`aarch64-apple-darwin`), `OkloCoreKit` Swift package (`aarch64-apple-darwin`), iOS 27.0 Simulator (`iPhone 17` `arm64`), and Android 16 / API 36 Emulator (`oklo-api36` `arm64-v8a`), matching the reference SHA-256 digests bit-for-bit (`0` mismatches). Android `x86_64` JNI is build-verified and 16 KB ELF aligned; `x86_64` runtime execution is not tested (blocked by the Apple Silicon `arm64` host architecture).
+   - Receipts: `receipts/cf2_conformance_2026-10-19.txt`, `receipts/cf2_matrix_2026-10-19.json`, `receipts/cf2_reference_outputs_sha256_2026-10-19.txt` (tested source commit `f81b76725f11c47a1413031f1ffaebe3b362b373`).
+2. **Native iOS application (`ios/v1-app`, [PR #5](https://github.com/aurascoper/oklo_pool_mobile/pull/5)):**
+   - Complete SwiftUI + Metal application (`ios/OkloPool.xcodeproj`) rendering all six revision 0 fields, 2D Plan/Section slices, 3D Metal volume raymarcher, strip chart, phase transport, pulse boundary (`0.17` vs `0.1667`), null scenario, and in-app provenance sheet.
+   - Generic iOS device and simulator builds succeed; **14 of 14 simulator tests pass** (10 unit tests including the 20-case CF-2 matrix + 4 UI tests) on `iPhone 17` (iOS 27.0 `arm64`); runtime `lsof` inspection confirmed zero open `IPv4`/`IPv6` sockets (`ZERO_INET_SOCKETS`).
+   - Receipts: `receipts/ios_simulator_test_2026-10-19.md`, `receipts/ios_simulator_test_2026-10-19.json`, `receipts/ios_simulator_test_2026-10-19.txt` (tested source commit `2db67d4ce3526bb2968954fecdba6ade7a991b02`).
+3. **Native Android application and JNI bridge (`android/v1-app`, [PR #6](https://github.com/aurascoper/oklo_pool_mobile/pull/6)):**
+   - Complete Kotlin/Compose application (`android/`) and Rust JNI bridge (`crates/oklo_core_jni`) targeting API 36 (`compileSdk=36`, `targetSdk=36`, `minSdk=26`) with 16 KB ELF `PT_LOAD` alignment verified on both `arm64-v8a` and `x86_64`.
+   - **7 of 7 JVM unit tests pass** and **11 of 11 API 36 `arm64-v8a` emulator instrumented tests pass** (`NativeBridgeTest` including the 20-case CF-2 matrix + `ViewerSmokeTest`); debug APK and unsigned release AAB build; runtime inspection confirmed no `android.permission.INTERNET` permission and zero open sockets (`ACTIVE_INET_SOCKETS: 0`).
+   - Receipts: `receipts/android_build_2026-10-19.md`, `receipts/android_emulator_test_2026-10-19.txt` (tested source commit `30bbe03bdffe80d09a5242508d4b5fab19289c04`).
+4. **Store release materials and privacy audit (`release/v1-materials`, [PR #7](https://github.com/aurascoper/oklo_pool_mobile/pull/7)):**
+   - Privacy policy (`docs/store/privacy-policy.md`, `docs/store/privacy-policy.html`), dependency and data-flow inventory (`docs/store/data-flow-inventory.md`), Apple App Privacy and Google Play Data safety drafts, store listing draft, app icons, 9 authentic simulator/emulator PNG screenshots (`docs/store/screenshots/`), and the release gate report (`docs/store/release-gate-report.md`).
+   - Overall release gate remains **NOT STORE-SUBMISSION-READY** until external account-owner prerequisites are completed: physical-device smoke tests on provisioned hardware, production Apple/Google distribution code signing, public HTTPS hosting of the privacy policy, and store console submission.
+
+## Historical M0 status on 2026-10-17
 
 The record is receipts/m0_conformance_2026-10-17.txt. At the one case stored on disk (phase 0.15, active scenario, 32 x 32 x 32, pulse boundary 0.17), all six Rust fields are byte-identical to the MRC files that export_oklo_mrc.py wrote, in debug and release builds, on the first run of the code as written. Swift reads the same values through the C ABI on the macOS slice and matches them bit for bit. The iOS device and simulator slices build, but they have not been run, because no simulator runtime is installed. This is agreement with one implementation at one case. It is not the CF-2 check, which needs an independent reference generator and twenty cases.
 
@@ -15,9 +35,14 @@ oklo_sim_step follows the contract adopted on 2026-10-17 (advance_phase in crate
 ## Build and test
 
 ```sh
-cargo test --offline -- --nocapture          # checks (a) to (d) against the fixture MRC files
+cargo test --offline -- --nocapture          # M0 and core checks against the fixture MRC files
+cargo test --release -p conformance_cf2      # 20-case CF-2 independent reference conformance suite
 scripts/build_xcframework.sh                 # ios-arm64, ios-arm64-simulator, macos-arm64
 (cd ios/OkloCoreKit && swift test)           # Swift -> C ABI -> Rust, macOS slice
+xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool \
+  -destination 'platform=iOS Simulator,name=iPhone 17' CODE_SIGNING_ALLOWED=NO
+scripts/build_android_native.sh              # arm64-v8a and x86_64 JNI libraries (16 KB page-aligned)
+(cd android && ./gradlew testDebugUnitTest assembleDebug assembleAndroidTest bundleRelease)
 scripts/text_audit.sh                        # no en or em dashes, no quarantined terms
 ```
 
@@ -83,6 +108,6 @@ Adopted from Hunter on 2026-10-17.
 
 The pulse boundary is a required configuration value with no default. The tests use 0.17 when comparing with the stored files because the spec records that the exporter which wrote them uses 0.17. The 0.1667 run is a sensitivity diagnostic showing that the comparison can detect finding R0-1. It is not a calibration result and does not endorse either value.
 
-## Not authorized in M0
+## Governance and scope boundaries
 
-No new physics: the finite-difference transport solvers, RNA polymerization kinetics, replicator dynamics and ARC puzzle layer in the original mobile prompt each need their own pre-registered specification first. Also not authorized: parameter fitting, installing the Android SDK or NDK or an iOS simulator runtime, choosing between 0.1667 and 0.17, making this repository public (it is a private GitHub repository by Hunter's decision), and any App Store or Google Play submission. Google Play currently requires new apps and updates to target Android 16 (API level 36), so the M0 Android contract targets that level.
+No new physics is added by the mobile release branches: the finite-difference transport solvers beyond frozen Darcy v1/A1-A4 and frozen Uranium v1/A1, RNA polymerization kinetics, replicator dynamics, and ARC puzzle layer in the original mobile prompt each need their own pre-registered specification first. Parameter fitting, choosing between `0.1667` and `0.17`, and making this repository public remain unauthorized without explicit approval. While the iOS Simulator and Android SDK/NDK/Emulator prerequisites were approved on 2026-10-19 for v1 build and runtime verification, live App Store or Google Play submission remains gated on account-owner physical-device testing, release code signing, public HTTPS privacy-policy hosting, and explicit user authorization. Google Play requires new apps and updates to target Android 16 (API level 36), which the Android app targets (`compileSdk=36`, `targetSdk=36`).
