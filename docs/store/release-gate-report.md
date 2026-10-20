@@ -12,9 +12,9 @@ Recommendation: **NOT STORE-SUBMISSION-READY**
 | PR C Android | [`android/v1-app` at `cb05954da703b0cc7fafd09ea50294b4dac657f`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 7/7 unit tests; APK, instrumentation APK, and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
 | PR D release materials | [`release/v1-materials`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | This document and supporting drafts; targets `ios/v1-app`. | Open; prepared; requires PR B and Android PR C evidence. |
 
-All four requested pull requests are open and GitHub currently reports each as mergeable. PR D is based on PR B and targets `ios/v1-app`; after PR B and PR C are approved and merged, reconcile PR D against `main`. No branch is merged into `main`.
+All four requested pull requests are open. PRs A, B, and C report a clean merge state. PR D is based on PR B and targets `ios/v1-app`; after PR B and PR C are approved and merged, reconcile PR D against `main`. No branch is merged into `main`.
 
-GitHub status was rechecked on 2026-10-19. All four requested pull requests remain open and report a clean merge state; no review decisions or commit status checks are recorded.
+GitHub status was rechecked on 2026-10-19. All four requested pull requests remain open; no review decisions or commit status checks are recorded. PR D compares four commits ahead and zero behind its base. GitHub's mergeability field is currently recalculating after the latest documentation update.
 
 ## Build evidence
 
