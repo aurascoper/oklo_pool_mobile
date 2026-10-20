@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oklo 4D Spatiotemporal Geochemistry Explorer (spacetime_geochemistry_v0)</title>
+  <style>
+    /* Planetary Explorer v2 compatible dark palette & offline system typography */
+    /* Strictly zero em-dashes and zero en-dashes */
+    :root {
+      --bg-primary: #0b0f14;
+      --bg-secondary: #121820;
+      --bg-tertiary: #1a222d;
+      --surface-card: #151d27;
+      --surface-hover: #1e2937;
+      --fg-primary: #e6edf3;
+      --fg-secondary: #9da7b3;
+      --fg-muted: #6e7681;
+      --border-color: #2a3746;
+      --border-focus: #388bfd;
+
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.16);
+      --crimson: #ef4444;
+      --crimson-soft: rgba(239, 68, 68, 0.16);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.18);
+      --indigo: #4f46e5;
+      --indigo-soft: rgba(79, 70, 229, 0.22);
+      --cyan: #38bdf8;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--fg-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.4;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Provenance & Epistemic Header */
+    .top-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .header-row-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--fg-primary);
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge-synth {
+      background: var(--indigo-soft);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .badge-schematic {
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .badge-verified {
+      background: var(--emerald-soft);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .badge-interpolated {
+      background: var(--amber-soft);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.65);
+    }
+
+    .disclaimer-bar {
+      background: rgba(79, 70, 229, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      color: #c7d2fe;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .disclaimer-bar.interp-active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--amber);
+      color: #fde68a;
+    }
+
+    /* Main 3-Column Grid */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 560px 1fr 410px;
+      gap: 10px;
+      padding: 10px 16px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .panel-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--fg-primary);
+    }
+
+    .panel-subtitle {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-secondary);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background: #080b10;
+      border: 1px solid #1f2937;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .projection-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      background: var(--bg-secondary);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .control-group label {
+      font-size: 10.5px;
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--emerald);
+      cursor: pointer;
+    }
+
+    .btn {
+      background: var(--bg-tertiary);
+      color: var(--fg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+    }
+
+    .btn-primary {
+      background: #1f6feb;
+      border-color: #388bfd;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .btn-active {
+      background: var(--emerald-soft);
+      border-color: var(--emerald);
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    /* Center Column: Slices + Diff */
+    .slices-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .slice-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .slice-box-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--fg-secondary);
+    }
+
+    .diff-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .diff-box.highlight-diff {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Right Column: Provenance & Receipt Table */
+    .meta-table {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 11.5px;
+      overflow-y: auto;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 3px 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      border: 1px solid rgba(42, 55, 70, 0.6);
+      gap: 8px;
+    }
+
+    .meta-key {
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .meta-val {
+      color: var(--fg-primary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .sha-box {
+      background: #080b10;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #34d399;
+      word-break: break-all;
+      line-height: 1.35;
+    }
+
+    .sha-box.unverified {
+      color: #fbbf24;
+      border-color: var(--amber);
+    }
+
+    .ledger-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .ledger-cell {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 5px 7px;
+    }
+
+    .ledger-cell .lbl {
+      font-size: 10px;
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .ledger-cell .val {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--fg-primary);
+    }
+
+    .event-banner {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 3px solid var(--emerald);
+      padding: 6px 8px;
+      font-size: 11px;
+      color: var(--fg-primary);
+      border-radius: 2px;
+    }
+
+    .pruned-banner {
+      background: var(--crimson-soft);
+      border-left: 3px solid var(--crimson);
+      padding: 6px 8px;
+      font-size: 11px;
+      color: #fca5a5;
+      border-radius: 2px;
+    }
+
+    /* Bottom Dock: Timeline Scrubber & Selected-Point Time Series */
+    .bottom-dock {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: grid;
+      grid-template-columns: 1fr 820px;
+      gap: 14px;
+      height: 225px;
+      flex-shrink: 0;
+    }
+
+    .timeline-controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .scrubber-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-card);
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+    }
+
+    .state-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dual-and-probe-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .sub-control-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .sub-control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    select {
+      background: var(--bg-tertiary);
+      color: var(--fg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .interp-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 11.5px;
+    }
+
+    .interp-toggle-row label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--fg-primary);
+      font-weight: 600;
+    }
+
+    .legend-inline {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .swatch-solid-green {
+      width: 18px;
+      height: 3px;
+      background: var(--emerald);
+      display: inline-block;
+    }
+
+    .swatch-dashed-red {
+      width: 18px;
+      height: 0;
+      border-top: 3px dashed var(--crimson);
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Epistemic & Provenance Header -->
+  <header class="top-header">
+    <div class="header-row-main">
+      <div class="brand-title">
+        <h1>OKLO 4D SPATIOTEMPORAL GEOCHEMISTRY EXPLORER</h1>
+        <span class="badge badge-synth" id="badge-evidence-class">EVIDENCE CLASS: NUMERICALLY_VERIFIED_SYNTHETIC_MODEL</span>
+        <span class="badge badge-schematic" id="badge-geometry">GEOMETRY: SCHEMATIC 16m CUBE (+k UP)</span>
+        <span class="badge badge-schematic" id="badge-4d-axis">4D AXIS: w = t (s)</span>
+      </div>
+      <div class="badge-row">
+        <span class="badge badge-verified" id="badge-state-derivation">DERIVATION: PRESCRIBED_ANALYTICALLY</span>
+        <span class="badge badge-verified" id="badge-criterial-status">CRITERIAL: VERIFIED_ACCEPTED</span>
+        <button class="btn" id="btn-export-png" title="Export 1920x1080 High-Resolution PNG">Export 1920x1080 PNG</button>
+      </div>
+    </div>
+    <div class="disclaimer-bar" id="top-disclaimer-bar">
+      <span id="disclaimer-text">
+        <strong>STAGE 0/1 SYNTHETIC PROOF:</strong> Analytical 3D Gaussian advection-diffusion-decay tracer on [0, 16 m]^3; NOT a calibrated geological, hydrothermal, or radiation-transport simulation.
+      </span>
+      <span style="font-family: var(--font-mono); font-size: 11px;" id="active-time-readout">
+        STATE 0 / 4 | t = 0.0 s
+      </span>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Spatiotemporal Workspace -->
+  <main class="workspace-grid">
+    <!-- Left Column: 4D Spatiotemporal Volume & Trajectory Projection -->
+    <section class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title">1. 4D Spatiotemporal Projection (+k Vertical Up, w = t)</span>
+        <span class="panel-subtitle" id="proj-com-readout">z_cm(t) = 4.53 m</span>
+      </div>
+      <div class="canvas-wrap" style="flex: 1;">
+        <canvas id="canvas-4d-projection" width="538" height="390"></canvas>
+      </div>
+      <div class="projection-controls">
+        <div class="control-group">
+          <label><span>4D X-t Plane</span><span id="lbl-angle-xt">0.32 rad</span></label>
+          <input type="range" id="slider-angle-xt" min="-1.2" max="1.2" step="0.02" value="0.32" />
+        </div>
+        <div class="control-group">
+          <label><span>4D Z-t (+k-t)</span><span id="lbl-angle-zt">0.22 rad</span></label>
+          <input type="range" id="slider-angle-zt" min="-1.2" max="1.2" step="0.02" value="0.22" />
+        </div>
+        <div class="control-group">
+          <label><span>3D Camera Yaw</span><span id="lbl-yaw">-0.62 rad</span></label>
+          <input type="range" id="slider-yaw" min="-3.14" max="3.14" step="0.04" value="-0.62" />
+        </div>
+        <button class="btn" id="btn-reset-camera">Reset 4D View</button>
+      </div>
+    </section>
+
+    <!-- Center Column: Orthogonal Cross-Section Slices & Dual-Time Comparison -->
+    <section class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title">2. Orthogonal Slice Inspector &amp; Dual-Time Comparison (t_A vs t_B)</span>
+        <span class="panel-subtitle" id="slice-probe-readout">Probe (8, 8, 5) = 8.587 mol/m^3</span>
+      </div>
+      <div class="slices-top-row">
+        <div class="slice-box">
+          <div class="slice-box-header">
+            <span id="lbl-slice-xy">Plan Slice X-Y (k = 5, z = 5.5 m)</span>
+            <span>mol_m3_synthetic_tracer</span>
+          </div>
+          <canvas id="canvas-slice-xy" width="265" height="225"></canvas>
+        </div>
+        <div class="slice-box">
+          <div class="slice-box-header">
+            <span id="lbl-slice-xz">Vertical Section X-k (j = 8, +k Up)</span>
+            <span>+k Vertical Up</span>
+          </div>
+          <canvas id="canvas-slice-xz" width="265" height="225"></canvas>
+        </div>
+      </div>
+      <div class="diff-box" id="diff-card">
+        <div class="slice-box-header">
+          <span id="lbl-diff-title" style="color: var(--cyan); font-weight: 700;">
+            Dual-Time Difference dF(x; t_A=0s, t_B=750s) = F(t_B) - F(t_A) [Section X-k at j=8]
+          </span>
+          <span id="lbl-diff-norms">||dF||_2 = 57.69 | dz_cm = +4.835 m</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="canvas-slice-diff" width="560" height="175"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Provenance, Cryptographic Receipt & Conservation Ledger -->
+    <section class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title">3. State Provenance &amp; Receipt Binding</span>
+        <span class="panel-subtitle" id="meta-schema-ver">spacetime_4d_v0</span>
+      </div>
+
+      <div class="meta-table">
+        <div class="meta-row">
+          <span class="meta-key">model_id / version</span>
+          <span class="meta-val" id="meta-model-id">spacetime_geochemistry_v0 (0.1.0)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">run_id</span>
+          <span class="meta-val" id="meta-run-id">synth_adv_diff_decay_16x16x16_5state_v0</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">source_commit (base)</span>
+          <span class="meta-val" id="meta-source-commit">636b7d7bb41999b80278d90046da893ee1044f20</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">coordinate_system</span>
+          <span class="meta-val" id="meta-coord-sys">cartesian_local_16m_cube (+k up)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">field_name / units</span>
+          <span class="meta-val" id="meta-field-units">synthetic_tracer_concentration (mol_m3_synthetic_tracer)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">state_index / time</span>
+          <span class="meta-val" id="meta-state-time">0 (t = 0.0 s)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">state_derivation</span>
+          <span class="meta-val" id="meta-state-derivation">prescribed_analytically (simulated=true)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">run_receipt</span>
+          <span class="meta-val" id="meta-run-receipt">receipts/spacetime_geochemistry_v0_2026-10-20.md#state_0</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size: 10.5px; font-family: var(--font-mono); color: var(--fg-secondary); margin-bottom: 3px;">
+          Active Frame Float32LE SHA-256 Digest (Verified Live on Selection):
+        </div>
+        <div class="sha-box" id="meta-sha256-box">
+          906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e
+        </div>
+      </div>
+
+      <div class="ledger-grid">
+        <div class="ledger-cell">
+          <div class="lbl">Retained Inventory (mol)</div>
+          <div class="val" id="ledger-retained">878.803</div>
+        </div>
+        <div class="ledger-cell">
+          <div class="lbl">Cumulative Decayed (mol)</div>
+          <div class="val" id="ledger-decayed">0.000</div>
+        </div>
+        <div class="ledger-cell">
+          <div class="lbl">Center of Mass (x, y, z) m</div>
+          <div class="val" id="ledger-com">(8.00, 8.00, 4.53)</div>
+        </div>
+        <div class="ledger-cell">
+          <div class="lbl">Mass Balance Residual</div>
+          <div class="val" id="ledger-residual" style="color: var(--emerald);">0.00e+00 (CLOSED)</div>
+        </div>
+      </div>
+
+      <div class="event-banner" id="meta-event-banner">
+        <strong>Active Event Marker:</strong> t0_injection_pulse: Initial 3D Gaussian tracer pulse centered at z = 4.50 m (+k upward axis).
+      </div>
+
+      <div class="pruned-banner" id="meta-pruned-banner">
+        <strong>Criterial-Pruned Control (Red Dashed):</strong> uncompensated_mass_leak_control rejected (relative mass-balance residual 0.38 &gt; gate 1.0e-4).
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Dock: Timeline Scrubber & Selected-Voxel Time Series -->
+  <footer class="bottom-dock">
+    <div class="timeline-controls">
+      <div class="scrubber-bar">
+        <button class="btn btn-primary" id="btn-play-pause">Play</button>
+        <button class="btn" id="btn-step-prev" title="Previous Discrete State">Step -1</button>
+        <button class="btn" id="btn-step-next" title="Next Discrete State">Step +1</button>
+        <input type="range" id="slider-timeline" min="0" max="4" step="1" value="0" style="flex: 1;" />
+        <div class="state-buttons">
+          <button class="btn btn-active" data-state-btn="0">t0 (0s)</button>
+          <button class="btn" data-state-btn="1">t1 (250s)</button>
+          <button class="btn" data-state-btn="2">t2 (500s)</button>
+          <button class="btn" data-state-btn="3">t3 (750s)</button>
+          <button class="btn" data-state-btn="4">t4 (1000s)</button>
+        </div>
+      </div>
+
+      <div class="dual-and-probe-row">
+        <div class="sub-control-card">
+          <div class="sub-control-row">
+            <span><strong>Dual-Time Comparison:</strong></span>
+            <span>
+              t_A:
+              <select id="select-ta">
+                <option value="0" selected>State 0 (0.0 s)</option>
+                <option value="1">State 1 (250.0 s)</option>
+                <option value="2">State 2 (500.0 s)</option>
+                <option value="3">State 3 (750.0 s)</option>
+                <option value="4">State 4 (1000.0 s)</option>
+              </select>
+              vs t_B:
+              <select id="select-tb">
+                <option value="0">State 0 (0.0 s)</option>
+                <option value="1">State 1 (250.0 s)</option>
+                <option value="2">State 2 (500.0 s)</option>
+                <option value="3" selected>State 3 (750.0 s)</option>
+                <option value="4">State 4 (1000.0 s)</option>
+              </select>
+            </span>
+          </div>
+          <div class="sub-control-row" style="color: var(--fg-secondary);">
+            <span>Max Increase: <strong id="diff-max-inc" style="color: #fb923c;">+3.55</strong></span>
+            <span>Max Depletion: <strong id="diff-max-dec" style="color: #38bdf8;">-8.57</strong></span>
+          </div>
+        </div>
+
+        <div class="sub-control-card">
+          <div class="sub-control-row">
+            <span><strong>Voxel Probe &amp; Slice (i, j, k):</strong></span>
+            <span>
+              <button class="btn" id="btn-probe-lower" style="padding: 2px 6px; font-size: 10px;">(8,8,5) Lower</button>
+              <button class="btn" id="btn-probe-upper" style="padding: 2px 6px; font-size: 10px;">(8,8,11) Upper</button>
+            </span>
+          </div>
+          <div class="sub-control-row">
+            <label>i:<input type="range" id="slider-probe-i" min="0" max="15" step="1" value="8" style="width: 65px;" /></label>
+            <label>j:<input type="range" id="slider-probe-j" min="0" max="15" step="1" value="8" style="width: 65px;" /></label>
+            <label>k(+up):<input type="range" id="slider-probe-k" min="0" max="15" step="1" value="5" style="width: 65px;" /></label>
+            <span id="lbl-probe-ijk">(8, 8, 5)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="interp-toggle-row">
+        <label>
+          <input type="checkbox" id="chk-display-interp" />
+          Allow Display Interpolation (Visual Only: Labels intermediate frames "interpolated_for_display" with run_receipt = null)
+        </label>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--fg-secondary);" id="lbl-policy-mode">
+          Policy: fail_closed_no_invented_states | Discrete Verified Mode
+        </span>
+      </div>
+    </div>
+
+    <!-- Selected-Voxel Time-Series Plot -->
+    <div class="panel-card" style="padding: 8px 10px;">
+      <div class="panel-header" style="padding-bottom: 4px;">
+        <span class="panel-title" id="timeseries-title">4. Selected-Voxel Time Series F(8, 8, 5, t)</span>
+        <div class="legend-inline">
+          <span class="legend-item"><span class="swatch-solid-green"></span> Verified Accepted (Green)</span>
+          <span class="legend-item"><span class="swatch-dashed-red"></span> Criterial-Pruned Control (Red Dashed)</span>
+        </div>
+      </div>
+      <div class="canvas-wrap" style="flex: 1;">
+        <canvas id="canvas-timeseries" width="796" height="158"></canvas>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/spacetime_4d.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var S4D = window.Spacetime4D;
+      var bundle = S4D.buildEmbeddedSyntheticBundle();
+      S4D.verifyBundleIntegrity(bundle);
+
+      var state = {
+        currentPos: 0,
+        allowDisplayInterpolation: false,
+        playing: false,
+        playTimer: null,
+        indexA: 0,
+        indexB: 3,
+        probeI: 8,
+        probeJ: 8,
+        probeK: 5,
+        angleXT: 0.32,
+        angleZT: 0.22,
+        yaw: -0.62,
+        pitch: 0.38,
+        highlightDiff: false
+      };
+
+      // Parse URL query parameters for deterministic headless screenshot verification
+      var params = new URLSearchParams(window.location.search);
+      if (params.has("interp")) {
+        state.allowDisplayInterpolation = params.get("interp") === "1" || params.get("interp") === "true";
+      }
+      if (params.has("state")) {
+        var reqState = parseFloat(params.get("state"));
+        if (Number.isFinite(reqState)) {
+          state.currentPos = reqState;
+        }
+      }
+      if (params.has("ta")) {
+        var reqTa = parseInt(params.get("ta"), 10);
+        if (Number.isInteger(reqTa)) state.indexA = reqTa;
+      }
+      if (params.has("tb")) {
+        var reqTb = parseInt(params.get("tb"), 10);
+        if (Number.isInteger(reqTb)) state.indexB = reqTb;
+      }
+      if (params.has("k")) {
+        var reqK = parseInt(params.get("k"), 10);
+        if (Number.isInteger(reqK) && reqK >= 0 && reqK <= 15) state.probeK = reqK;
+      }
+      if (params.get("highlight") === "diff") {
+        state.highlightDiff = true;
+      }
+
+      // DOM elements
+      var elTimeline = document.getElementById("slider-timeline");
+      var elChkInterp = document.getElementById("chk-display-interp");
+      var elSelectTa = document.getElementById("select-ta");
+      var elSelectTb = document.getElementById("select-tb");
+      var elSliderI = document.getElementById("slider-probe-i");
+      var elSliderJ = document.getElementById("slider-probe-j");
+      var elSliderK = document.getElementById("slider-probe-k");
+      var elSliderXT = document.getElementById("slider-angle-xt");
+      var elSliderZT = document.getElementById("slider-angle-zt");
+      var elSliderYaw = document.getElementById("slider-yaw");
+
+      // Color helpers
+      function viridisColor(t) {
+        var c = Math.max(0.0, Math.min(1.0, t));
+        var r = Math.round(255 * Math.min(1.0, Math.max(0.0, 0.15 + 0.85 * Math.pow(c, 1.3))));
+        var g = Math.round(255 * Math.min(1.0, Math.max(0.0, 0.08 + 0.88 * Math.pow(c, 0.85))));
+        var b = Math.round(255 * Math.min(1.0, Math.max(0.0, 0.35 + 0.55 * Math.sin(c * Math.PI) - 0.25 * c)));
+        return [r, g, b];
+      }
+
+      function divergingColor(val, maxAbs) {
+        if (maxAbs <= 1e-9) return [20, 26, 36];
+        var norm = Math.max(-1.0, Math.min(1.0, val / maxAbs));
+        if (norm >= 0) {
+          var p = norm;
+          return [
+            Math.round(20 + 230 * p),
+            Math.round(26 + 115 * p),
+            Math.round(36 + 20 * p)
+          ];
+        } else {
+          var n = -norm;
+          return [
+            Math.round(20 + 36 * n),
+            Math.round(26 + 163 * n),
+            Math.round(36 + 212 * n)
+          ];
+        }
+      }
+
+      function render4DProjection(activeSelection) {
+        var canvas = document.getElementById("canvas-4d-projection");
+        var ctx = canvas.getContext("2d");
+        var w = canvas.width;
+        var h = canvas.height;
+        ctx.fillStyle = "#080b10";
+        ctx.fillRect(0, 0, w, h);
+
+        var cx = w * 0.5;
+        var cy = h * 0.54;
+        var scale = 128.0;
+        var tNormActive = activeSelection.simulation_time / 1000.0;
+        var projCfg = {
+          angleXT: state.angleXT,
+          angleZT: state.angleZT,
+          yaw: state.yaw,
+          pitch: state.pitch
+        };
+
+        function toCanvas(x, y, z, tN) {
+          var p = S4D.project4DSpatiotemporalPoint(x, y, z, tN, projCfg);
+          return {
+            x: cx + p.screenX * scale,
+            y: cy - p.screenY * scale,
+            depth: p.depth,
+            scale4D: p.scale4D
+          };
+        }
+
+        // Draw outer t=0 and t=1 hypercube 3D frames connected along 4th dimension w = t
+        var corners = [
+          [0, 0, 0], [16, 0, 0], [16, 16, 0], [0, 16, 0],
+          [0, 0, 16], [16, 0, 16], [16, 16, 16], [0, 16, 16]
+        ];
+        var edges = [
+          [0, 1], [1, 2], [2, 3], [3, 0],
+          [4, 5], [5, 6], [6, 7], [7, 4],
+          [0, 4], [1, 5], [2, 6], [3, 7]
+        ];
+
+        // Ghost frame at t=0 and t=1000s + connecting w=t struts
+        var ptsT0 = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], 0.0); });
+        var ptsT1 = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], 1.0); });
+        var ptsActive = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], tNormActive); });
+
+        // 4D w=t connecting struts
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.22)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        for (var cIdx = 0; cIdx < 8; cIdx++) {
+          ctx.beginPath();
+          ctx.moveTo(ptsT0[cIdx].x, ptsT0[cIdx].y);
+          ctx.lineTo(ptsT1[cIdx].x, ptsT1[cIdx].y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Active time 3D cube wireframe
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.48)";
+        ctx.lineWidth = 1.3;
+        for (var e = 0; e < edges.length; e++) {
+          var a = ptsActive[edges[e][0]];
+          var b = ptsActive[edges[e][1]];
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+
+        // Highlight +k vertical up axis arrow
+        var originPt = toCanvas(0, 0, 0, tNormActive);
+        var kUpPt = toCanvas(0, 0, 17.5, tNormActive);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(originPt.x, originPt.y);
+        ctx.lineTo(kUpPt.x, kUpPt.y);
+        ctx.stroke();
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 11px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("+k (z up, 16m)", kUpPt.x + 5, kUpPt.y + 3);
+
+        // Render active 3D scalar field iso-voxels (sorted back-to-front)
+        var voxelsToDraw = [];
+        var f32 = activeSelection.float32Values;
+        for (var k = 0; k < 16; k++) {
+          for (var j = 0; j < 16; j++) {
+            for (var i = 0; i < 16; i++) {
+              var val = f32[i + 16 * (j + 16 * k)];
+              if (val > 0.35) {
+                var p = toCanvas(i + 0.5, j + 0.5, k + 0.5, tNormActive);
+                voxelsToDraw.push({
+                  x: p.x,
+                  y: p.y,
+                  depth: p.depth,
+                  val: val
+                });
+              }
+            }
+          }
+        }
+        voxelsToDraw.sort(function (u, v) { return u.depth - v.depth; });
+
+        for (var vIdx = 0; vIdx < voxelsToDraw.length; vIdx++) {
+          var vx = voxelsToDraw[vIdx];
+          var normV = Math.min(1.0, vx.val / 9.26);
+          var rgb = viridisColor(normV);
+          var alpha = 0.14 + 0.55 * normV;
+          var radius = 2.2 + 4.5 * normV;
+          ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + alpha.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(vx.x, vx.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw Criterial-Pruned Negative Control Trajectory in Dashed Crimson Red (#ef4444)
+        var prunedBranch = bundle.criterial_pruned_branches[0];
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (var pIdx = 0; pIdx < prunedBranch.time_points.length; pIdx++) {
+          var tp = prunedBranch.time_points[pIdx];
+          var pCoord = toCanvas(
+            tp.center_of_mass_m[0],
+            tp.center_of_mass_m[1],
+            tp.center_of_mass_m[2],
+            tp.simulation_time / 1000.0
+          );
+          if (pIdx === 0) ctx.moveTo(pCoord.x, pCoord.y);
+          else ctx.lineTo(pCoord.x, pCoord.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        for (var pNode = 0; pNode < prunedBranch.time_points.length; pNode++) {
+          var tpN = prunedBranch.time_points[pNode];
+          var ptN = toCanvas(
+            tpN.center_of_mass_m[0],
+            tpN.center_of_mass_m[1],
+            tpN.center_of_mass_m[2],
+            tpN.simulation_time / 1000.0
+          );
+          ctx.strokeStyle = "#ef4444";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(ptN.x - 4, ptN.y - 4);
+          ctx.lineTo(ptN.x + 4, ptN.y + 4);
+          ctx.moveTo(ptN.x + 4, ptN.y - 4);
+          ctx.lineTo(ptN.x - 4, ptN.y + 4);
+          ctx.stroke();
+        }
+
+        // Draw Verified Accepted 4D Center-of-Mass Trajectory in Solid Emerald Green (#10b981)
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        for (var sIdx = 0; sIdx < bundle.states.length; sIdx++) {
+          var st = bundle.states[sIdx];
+          var stPt = toCanvas(
+            st.center_of_mass_m[0],
+            st.center_of_mass_m[1],
+            st.center_of_mass_m[2],
+            st.simulation_time / 1000.0
+          );
+          if (sIdx === 0) ctx.moveTo(stPt.x, stPt.y);
+          else ctx.lineTo(stPt.x, stPt.y);
+        }
+        ctx.stroke();
+
+        for (var mIdx = 0; mIdx < bundle.states.length; mIdx++) {
+          var stM = bundle.states[mIdx];
+          var mPt = toCanvas(
+            stM.center_of_mass_m[0],
+            stM.center_of_mass_m[1],
+            stM.center_of_mass_m[2],
+            stM.simulation_time / 1000.0
+          );
+          ctx.fillStyle = "#10b981";
+          ctx.beginPath();
+          ctx.arc(mPt.x, mPt.y, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#d1fae5";
+          ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+          ctx.fillText("t" + mIdx, mPt.x + 6, mPt.y - 4);
+        }
+
+        // Active center-of-mass beacon
+        var activeCom = activeSelection.center_of_mass_m;
+        var activePt = toCanvas(activeCom[0], activeCom[1], activeCom[2], tNormActive);
+        ctx.strokeStyle = activeSelection.is_simulated_state ? "#34d399" : "#fbbf24";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(activePt.x, activePt.y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // HUD Overlay inside 4D canvas
+        ctx.fillStyle = "rgba(11, 15, 20, 0.82)";
+        ctx.fillRect(8, 8, 285, 56);
+        ctx.strokeStyle = "#2a3746";
+        ctx.strokeRect(8, 8, 285, 56);
+        ctx.fillStyle = "#e6edf3";
+        ctx.font = "bold 11px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("4D Hyperplane: (x, y, +k, w=t)", 16, 24);
+        ctx.fillStyle = "#10b981";
+        ctx.font = "10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("Solid Green: Verified Accepted Trajectory", 16, 40);
+        ctx.fillStyle = "#ef4444";
+        ctx.fillText("Dashed Red : Criterial-Pruned Mass-Leak Control", 16, 55);
+      }
+
+      function renderSlice2D(canvasId, sliceObj, maxScale, probeX, probeY, invertY) {
+        var canvas = document.getElementById(canvasId);
+        var ctx = canvas.getContext("2d");
+        var w = canvas.width;
+        var h = canvas.height;
+        ctx.fillStyle = "#080b10";
+        ctx.fillRect(0, 0, w, h);
+
+        var padL = 28;
+        var padR = 14;
+        var padT = 10;
+        var padB = 22;
+        var plotW = w - padL - padR;
+        var plotH = h - padT - padB;
+        var cellW = plotW / sliceObj.width;
+        var cellH = plotH / sliceObj.height;
+
+        for (var row = 0; row < sliceObj.height; row++) {
+          var drawRow = invertY ? (sliceObj.height - 1 - row) : row;
+          for (var col = 0; col < sliceObj.width; col++) {
+            var val = sliceObj.data[col + sliceObj.width * row];
+            var rgb = viridisColor(val / maxScale);
+            ctx.fillStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+            ctx.fillRect(
+              padL + col * cellW,
+              padT + drawRow * cellH,
+              Math.ceil(cellW),
+              Math.ceil(cellH)
+            );
+          }
+        }
+
+        // Crosshair for probe voxel
+        var pRow = invertY ? (sliceObj.height - 1 - probeY) : probeY;
+        var cx = padL + (probeX + 0.5) * cellW;
+        var cy = padT + (pRow + 0.5) * cellH;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Axes labels
+        ctx.strokeStyle = "#334155";
+        ctx.strokeRect(padL, padT, plotW, plotH);
+        ctx.fillStyle = "#9da7b3";
+        ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText(sliceObj.axis_labels[0] + " [0..16m]", padL + plotW * 0.32, h - 6);
+        ctx.save();
+        ctx.translate(12, padT + plotH * 0.65);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(sliceObj.axis_labels[1], 0, 0);
+        ctx.restore();
+      }
+
+      function renderDualTimeDiff(diffObj) {
+        var canvas = document.getElementById("canvas-slice-diff");
+        var ctx = canvas.getContext("2d");
+        var w = canvas.width;
+        var h = canvas.height;
+        ctx.fillStyle = "#080b10";
+        ctx.fillRect(0, 0, w, h);
+
+        var sliceXZ = S4D.extractOrthogonalSlice(
+          diffObj.diffFloat32Values,
+          [16, 16, 16],
+          "XZ",
+          state.probeJ
+        );
+
+        var padL = 34;
+        var padR = 165;
+        var padT = 10;
+        var padB = 22;
+        var plotW = w - padL - padR;
+        var plotH = h - padT - padB;
+        var cellW = plotW / 16;
+        var cellH = plotH / 16;
+        var maxAbs = Math.max(diffObj.linf_norm, 0.01);
+
+        for (var k = 0; k < 16; k++) {
+          var drawRow = 15 - k; // +k upward
+          for (var i = 0; i < 16; i++) {
+            var dVal = sliceXZ.data[i + 16 * k];
+            var rgb = divergingColor(dVal, maxAbs);
+            ctx.fillStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+            ctx.fillRect(
+              padL + i * cellW,
+              padT + drawRow * cellH,
+              Math.ceil(cellW),
+              Math.ceil(cellH)
+            );
+          }
+        }
+
+        ctx.strokeStyle = "#334155";
+        ctx.strokeRect(padL, padT, plotW, plotH);
+
+        // Draw center-of-mass shift vector from t_A to t_B
+        var comA = bundle.states[diffObj.index_a].center_of_mass_m;
+        var comB = bundle.states[diffObj.index_b].center_of_mass_m;
+        var xA = padL + (comA[0] / 16.0) * plotW;
+        var yA = padT + ((16.0 - comA[2]) / 16.0) * plotH;
+        var xB = padL + (comB[0] / 16.0) * plotW;
+        var yB = padT + ((16.0 - comB[2]) / 16.0) * plotH;
+
+        ctx.strokeStyle = "#fde047";
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(xA, yA);
+        ctx.lineTo(xB, yB);
+        ctx.stroke();
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(xA, yA, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fb923c";
+        ctx.beginPath();
+        ctx.arc(xB, yB, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Legend & Quantitative Summary on Right Side of Diff Canvas
+        var infoX = padL + plotW + 12;
+        ctx.fillStyle = "#e6edf3";
+        ctx.font = "bold 10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("Dual-Time Shift Summary", infoX, 24);
+        ctx.fillStyle = "#9da7b3";
+        ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("t_A = " + diffObj.time_a.toFixed(0) + " s (State " + diffObj.index_a + ")", infoX, 42);
+        ctx.fillText("t_B = " + diffObj.time_b.toFixed(0) + " s (State " + diffObj.index_b + ")", infoX, 56);
+        ctx.fillStyle = "#34d399";
+        ctx.fillText("dz_cm = " + (diffObj.center_of_mass_shift_m[2] >= 0 ? "+" : "") + diffObj.center_of_mass_shift_m[2].toFixed(3) + " m (+k)", infoX, 74);
+        ctx.fillStyle = "#fb923c";
+        ctx.fillText("Orange: +dF (Accumulation)", infoX, 94);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText("Blue  : -dF (Depletion)", infoX, 108);
+        ctx.fillStyle = "#fde047";
+        ctx.fillText("Yellow: CoM Shift Vector", infoX, 122);
+
+        ctx.fillStyle = "#9da7b3";
+        ctx.fillText("x [0..16 m]", padL + plotW * 0.36, h - 6);
+        ctx.save();
+        ctx.translate(12, padT + plotH * 0.65);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText("+k (z up)", 0, 0);
+        ctx.restore();
+      }
+
+      function renderTimeSeriesChart(activeSelection) {
+        var canvas = document.getElementById("canvas-timeseries");
+        var ctx = canvas.getContext("2d");
+        var w = canvas.width;
+        var h = canvas.height;
+        ctx.fillStyle = "#080b10";
+        ctx.fillRect(0, 0, w, h);
+
+        var ts = S4D.extractVoxelTimeSeries(bundle, state.probeI, state.probeJ, state.probeK);
+        var verified = ts.verified_series;
+        var pruned = ts.criterial_pruned_series[0].series;
+
+        var maxVal = 0.5;
+        for (var idx = 0; idx < verified.length; idx++) {
+          if (verified[idx].value > maxVal) maxVal = verified[idx].value;
+          if (pruned[idx].value > maxVal) maxVal = pruned[idx].value;
+        }
+        maxVal *= 1.15;
+
+        var padL = 52;
+        var padR = 24;
+        var padT = 14;
+        var padB = 26;
+        var plotW = w - padL - padR;
+        var plotH = h - padT - padB;
+
+        function timeToX(tS) {
+          return padL + (tS / 1000.0) * plotW;
+        }
+        function valToY(v) {
+          return padT + plotH - (v / maxVal) * plotH;
+        }
+
+        // Grid lines
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 1;
+        for (var g = 0; g <= 4; g++) {
+          var gx = timeToX(g * 250.0);
+          ctx.beginPath();
+          ctx.moveTo(gx, padT);
+          ctx.lineTo(gx, padT + plotH);
+          ctx.stroke();
+          ctx.fillStyle = "#9da7b3";
+          ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+          ctx.fillText((g * 250) + "s", gx - 12, h - 8);
+        }
+
+        // Y-axis ticks
+        ctx.fillStyle = "#9da7b3";
+        ctx.fillText(maxVal.toFixed(2), 6, padT + 8);
+        ctx.fillText((maxVal * 0.5).toFixed(2), 6, padT + plotH * 0.5 + 4);
+        ctx.fillText("0.00", 14, padT + plotH);
+
+        // Dual-time markers t_A and t_B
+        var xTa = timeToX(bundle.states[state.indexA].simulation_time);
+        var xTb = timeToX(bundle.states[state.indexB].simulation_time);
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(xTa, padT);
+        ctx.lineTo(xTa, padT + plotH);
+        ctx.moveTo(xTb, padT);
+        ctx.lineTo(xTb, padT + plotH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 1. Criterial-Pruned Negative Control Series (Dashed Crimson Red #ef4444)
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (var p = 0; p < pruned.length; p++) {
+          var px = timeToX(pruned[p].simulation_time);
+          var py = valToY(pruned[p].value);
+          if (p === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 2. Verified Accepted Series (Solid Emerald Green #10b981)
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (var s = 0; s < verified.length; s++) {
+          var vx = timeToX(verified[s].simulation_time);
+          var vy = valToY(verified[s].value);
+          if (s === 0) ctx.moveTo(vx, vy);
+          else ctx.lineTo(vx, vy);
+        }
+        ctx.stroke();
+
+        for (var m = 0; m < verified.length; m++) {
+          var mx = timeToX(verified[m].simulation_time);
+          var my = valToY(verified[m].value);
+          ctx.fillStyle = "#10b981";
+          ctx.beginPath();
+          ctx.arc(mx, my, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Active time cursor
+        var actX = timeToX(activeSelection.simulation_time);
+        var probeFlatIdx = S4D.voxelIndex(state.probeI, state.probeJ, state.probeK, 16, 16);
+        var actVal = activeSelection.float32Values[probeFlatIdx];
+        var actY = valToY(actVal);
+
+        ctx.strokeStyle = activeSelection.is_simulated_state ? "#34d399" : "#fbbf24";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(actX, padT);
+        ctx.lineTo(actX, padT + plotH);
+        ctx.stroke();
+
+        ctx.fillStyle = activeSelection.is_simulated_state ? "#34d399" : "#fbbf24";
+        ctx.beginPath();
+        ctx.arc(actX, actY, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function updateUI() {
+        var activeSelection = S4D.selectTimeState(bundle, state.currentPos, {
+          allowDisplayInterpolation: state.allowDisplayInterpolation
+        });
+
+        // Header & Provenance Badges
+        var badgeDeriv = document.getElementById("badge-state-derivation");
+        var badgeCrit = document.getElementById("badge-criterial-status");
+        var topBar = document.getElementById("top-disclaimer-bar");
+        var disclaimerText = document.getElementById("disclaimer-text");
+        var shaBox = document.getElementById("meta-sha256-box");
+
+        if (activeSelection.is_simulated_state) {
+          badgeDeriv.className = "badge badge-verified";
+          badgeDeriv.textContent = "DERIVATION: " + activeSelection.state_derivation.toUpperCase();
+          badgeCrit.className = "badge badge-verified";
+          badgeCrit.textContent = "CRITERIAL: VERIFIED_ACCEPTED";
+          topBar.className = "disclaimer-bar";
+          disclaimerText.innerHTML =
+            "<strong>STAGE 0/1 SYNTHETIC PROOF:</strong> Analytical 3D Gaussian advection-diffusion-decay tracer on [0, 16 m]^3; NOT a calibrated geological, hydrothermal, or radiation-transport simulation.";
+          shaBox.className = "sha-box";
+          shaBox.textContent = activeSelection.sha256_f32_le;
+        } else {
+          badgeDeriv.className = "badge badge-interpolated";
+          badgeDeriv.textContent = "DERIVATION: INTERPOLATED_FOR_DISPLAY";
+          badgeCrit.className = "badge badge-interpolated";
+          badgeCrit.textContent = "CRITERIAL: UNVERIFIED_DISPLAY_BLEND";
+          topBar.className = "disclaimer-bar interp-active";
+          disclaimerText.innerHTML =
+            "<strong>DISPLAY INTERPOLATION WARNING:</strong> " + activeSelection.display_warning;
+          shaBox.className = "sha-box unverified";
+          shaBox.textContent = "unverified_display_interpolation (run_receipt = null)";
+        }
+
+        document.getElementById("active-time-readout").textContent =
+          "STATE " + activeSelection.state_index + " / 4 | t = " + activeSelection.simulation_time.toFixed(1) + " " + activeSelection.time_units;
+
+        document.getElementById("proj-com-readout").textContent =
+          "z_cm(t) = " + activeSelection.center_of_mass_m[2].toFixed(3) + " m (+k up)";
+
+        document.getElementById("meta-state-time").textContent =
+          activeSelection.state_index + " (t = " + activeSelection.simulation_time.toFixed(1) + " " + activeSelection.time_units + ")";
+        document.getElementById("meta-state-derivation").textContent =
+          activeSelection.state_derivation + " (simulated=" + activeSelection.is_simulated_state + ")";
+        document.getElementById("meta-run-receipt").textContent =
+          activeSelection.run_receipt !== null ? activeSelection.run_receipt : "null (interpolated_for_display)";
+
+        // Conservation ledger
+        document.getElementById("ledger-retained").textContent =
+          activeSelection.total_integrated_inventory_mol.toFixed(3);
+        if (activeSelection.conservation_ledger) {
+          document.getElementById("ledger-decayed").textContent =
+            activeSelection.conservation_ledger.cumulative_decayed_mass_mol.toFixed(3);
+          var res = activeSelection.conservation_ledger.relative_mass_balance_residual;
+          var elRes = document.getElementById("ledger-residual");
+          elRes.textContent = res.toExponential(2) + " (CLOSED)";
+          elRes.style.color = "#10b981";
+        } else {
+          document.getElementById("ledger-decayed").textContent = "N/A (Display Interp)";
+          var elResInterp = document.getElementById("ledger-residual");
+          elResInterp.textContent = "UNVERIFIED (INTERP)";
+          elResInterp.style.color = "#fbbf24";
+        }
+
+        var com = activeSelection.center_of_mass_m;
+        document.getElementById("ledger-com").textContent =
+          "(" + com[0].toFixed(2) + ", " + com[1].toFixed(2) + ", " + com[2].toFixed(2) + ")";
+
+        // Event marker
+        var nearestIdx = Math.round(activeSelection.state_index);
+        var evMarker = bundle.temporal_axis.event_markers[nearestIdx];
+        document.getElementById("meta-event-banner").innerHTML =
+          "<strong>Active Event Marker:</strong> " + evMarker.label;
+
+        // Probe readout
+        var probeFlat = S4D.voxelIndex(state.probeI, state.probeJ, state.probeK, 16, 16);
+        var probeVal = activeSelection.float32Values[probeFlat];
+        document.getElementById("slice-probe-readout").textContent =
+          "Probe (" + state.probeI + ", " + state.probeJ + ", " + state.probeK + ") = " + probeVal.toFixed(4) + " " + bundle.field_units;
+        document.getElementById("lbl-probe-ijk").textContent =
+          "(" + state.probeI + ", " + state.probeJ + ", " + state.probeK + ")";
+        document.getElementById("lbl-slice-xy").textContent =
+          "Plan Slice X-Y (k = " + state.probeK + ", z = " + (state.probeK + 0.5).toFixed(1) + " m)";
+        document.getElementById("lbl-slice-xz").textContent =
+          "Vertical Section X-k (j = " + state.probeJ + ", +k Up)";
+        document.getElementById("timeseries-title").textContent =
+          "4. Selected-Voxel Time Series F(" + state.probeI + ", " + state.probeJ + ", " + state.probeK + ", t)";
+
+        // State quick buttons highlight
+        var stateBtns = document.querySelectorAll("[data-state-btn]");
+        for (var b = 0; b < stateBtns.length; b++) {
+          var bIdx = parseInt(stateBtns[b].getAttribute("data-state-btn"), 10);
+          if (activeSelection.is_simulated_state && bIdx === activeSelection.state_index) {
+            stateBtns[b].className = "btn btn-active";
+          } else {
+            stateBtns[b].className = "btn";
+          }
+        }
+
+        // Render 4D Projection and Orthogonal Slices
+        render4DProjection(activeSelection);
+
+        var sliceXY = S4D.extractOrthogonalSlice(activeSelection.float32Values, [16, 16, 16], "XY", state.probeK);
+        var sliceXZ = S4D.extractOrthogonalSlice(activeSelection.float32Values, [16, 16, 16], "XZ", state.probeJ);
+        renderSlice2D("canvas-slice-xy", sliceXY, 9.26, state.probeI, state.probeJ, true);
+        renderSlice2D("canvas-slice-xz", sliceXZ, 9.26, state.probeI, state.probeK, true);
+
+        // Dual-time comparison
+        var diffObj = S4D.computeDualTimeComparison(bundle, state.indexA, state.indexB);
+        document.getElementById("lbl-diff-title").textContent =
+          "Dual-Time Difference dF(x; t_A=" + diffObj.time_a.toFixed(0) + "s, t_B=" + diffObj.time_b.toFixed(0) + "s) = F(t_B) - F(t_A) [Section X-k at j=" + state.probeJ + "]";
+        document.getElementById("lbl-diff-norms").textContent =
+          "||dF||_2 = " + diffObj.l2_norm.toFixed(2) + " | dz_cm = " + (diffObj.center_of_mass_shift_m[2] >= 0 ? "+" : "") + diffObj.center_of_mass_shift_m[2].toFixed(3) + " m";
+        document.getElementById("diff-max-inc").textContent = "+" + diffObj.max_diff.toFixed(3);
+        document.getElementById("diff-max-dec").textContent = diffObj.min_diff.toFixed(3);
+
+        var diffCard = document.getElementById("diff-card");
+        diffCard.className = state.highlightDiff ? "diff-box highlight-diff" : "diff-box";
+        renderDualTimeDiff(diffObj);
+
+        // Render Selected-Voxel Time Series
+        renderTimeSeriesChart(activeSelection);
+      }
+
+      // Wire controls
+      elTimeline.step = state.allowDisplayInterpolation ? "0.25" : "1";
+      elTimeline.value = String(state.currentPos);
+      elChkInterp.checked = state.allowDisplayInterpolation;
+      elSelectTa.value = String(state.indexA);
+      elSelectTb.value = String(state.indexB);
+      elSliderI.value = String(state.probeI);
+      elSliderJ.value = String(state.probeJ);
+      elSliderK.value = String(state.probeK);
+
+      elTimeline.addEventListener("input", function () {
+        state.currentPos = parseFloat(elTimeline.value);
+        updateUI();
+      });
+
+      elChkInterp.addEventListener("change", function () {
+        state.allowDisplayInterpolation = elChkInterp.checked;
+        elTimeline.step = state.allowDisplayInterpolation ? "0.25" : "1";
+        if (!state.allowDisplayInterpolation) {
+          state.currentPos = Math.round(state.currentPos);
+          elTimeline.value = String(state.currentPos);
+        }
+        document.getElementById("lbl-policy-mode").textContent = state.allowDisplayInterpolation
+          ? "Policy: explicit_display_only_when_toggled | Display Interpolation Active"
+          : "Policy: fail_closed_no_invented_states | Discrete Verified Mode";
+        updateUI();
+      });
+
+      var stateBtns = document.querySelectorAll("[data-state-btn]");
+      for (var i = 0; i < stateBtns.length; i++) {
+        stateBtns[i].addEventListener("click", function (ev) {
+          var idx = parseInt(ev.currentTarget.getAttribute("data-state-btn"), 10);
+          state.currentPos = idx;
+          elTimeline.value = String(idx);
+          updateUI();
+        });
+      }
+
+      document.getElementById("btn-step-prev").addEventListener("click", function () {
+        state.currentPos = Math.max(0, Math.floor(state.currentPos) - 1);
+        elTimeline.value = String(state.currentPos);
+        updateUI();
+      });
+
+      document.getElementById("btn-step-next").addEventListener("click", function () {
+        state.currentPos = Math.min(4, Math.floor(state.currentPos) + 1);
+        elTimeline.value = String(state.currentPos);
+        updateUI();
+      });
+
+      document.getElementById("btn-play-pause").addEventListener("click", function () {
+        var btn = document.getElementById("btn-play-pause");
+        if (state.playing) {
+          state.playing = false;
+          clearInterval(state.playTimer);
+          btn.textContent = "Play";
+        } else {
+          state.playing = true;
+          btn.textContent = "Pause";
+          state.playTimer = setInterval(function () {
+            var step = state.allowDisplayInterpolation ? 0.25 : 1.0;
+            var next = state.currentPos + step;
+            if (next > 4.0) next = 0.0;
+            state.currentPos = next;
+            elTimeline.value = String(next);
+            updateUI();
+          }, 600);
+        }
+      });
+
+      elSelectTa.addEventListener("change", function () {
+        state.indexA = parseInt(elSelectTa.value, 10);
+        updateUI();
+      });
+
+      elSelectTb.addEventListener("change", function () {
+        state.indexB = parseInt(elSelectTb.value, 10);
+        updateUI();
+      });
+
+      elSliderI.addEventListener("input", function () {
+        state.probeI = parseInt(elSliderI.value, 10);
+        updateUI();
+      });
+      elSliderJ.addEventListener("input", function () {
+        state.probeJ = parseInt(elSliderJ.value, 10);
+        updateUI();
+      });
+      elSliderK.addEventListener("input", function () {
+        state.probeK = parseInt(elSliderK.value, 10);
+        updateUI();
+      });
+
+      document.getElementById("btn-probe-lower").addEventListener("click", function () {
+        state.probeI = 8;
+        state.probeJ = 8;
+        state.probeK = 5;
+        elSliderI.value = "8";
+        elSliderJ.value = "8";
+        elSliderK.value = "5";
+        updateUI();
+      });
+
+      document.getElementById("btn-probe-upper").addEventListener("click", function () {
+        state.probeI = 8;
+        state.probeJ = 8;
+        state.probeK = 11;
+        elSliderI.value = "8";
+        elSliderJ.value = "8";
+        elSliderK.value = "11";
+        updateUI();
+      });
+
+      elSliderXT.addEventListener("input", function () {
+        state.angleXT = parseFloat(elSliderXT.value);
+        document.getElementById("lbl-angle-xt").textContent = state.angleXT.toFixed(2) + " rad";
+        updateUI();
+      });
+      elSliderZT.addEventListener("input", function () {
+        state.angleZT = parseFloat(elSliderZT.value);
+        document.getElementById("lbl-angle-zt").textContent = state.angleZT.toFixed(2) + " rad";
+        updateUI();
+      });
+      elSliderYaw.addEventListener("input", function () {
+        state.yaw = parseFloat(elSliderYaw.value);
+        document.getElementById("lbl-yaw").textContent = state.yaw.toFixed(2) + " rad";
+        updateUI();
+      });
+
+      document.getElementById("btn-reset-camera").addEventListener("click", function () {
+        state.angleXT = 0.32;
+        state.angleZT = 0.22;
+        state.yaw = -0.62;
+        elSliderXT.value = "0.32";
+        elSliderZT.value = "0.22";
+        elSliderYaw.value = "-0.62";
+        document.getElementById("lbl-angle-xt").textContent = "0.32 rad";
+        document.getElementById("lbl-angle-zt").textContent = "0.22 rad";
+        document.getElementById("lbl-yaw").textContent = "-0.62 rad";
+        updateUI();
+      });
+
+      document.getElementById("btn-export-png").addEventListener("click", function () {
+        var outCanvas = document.createElement("canvas");
+        outCanvas.width = 1920;
+        outCanvas.height = 1080;
+        var octx = outCanvas.getContext("2d");
+        octx.fillStyle = "#0b0f14";
+        octx.fillRect(0, 0, 1920, 1080);
+        octx.fillStyle = "#e6edf3";
+        octx.font = "bold 24px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+        octx.fillText("OKLO 4D SPATIOTEMPORAL GEOCHEMISTRY EXPLORER (spacetime_geochemistry_v0)", 40, 48);
+        octx.font = "16px ui-monospace, SFMono-Regular, Menlo, monospace";
+        octx.fillStyle = "#10b981";
+        octx.fillText("Stage 0/1 Verified Synthetic 4D Tracer Proof | State: " + state.currentPos + " | Coordinate System: cartesian_local_16m_cube (+k up, w=t)", 40, 80);
+        octx.drawImage(document.getElementById("canvas-4d-projection"), 40, 110, 860, 620);
+        octx.drawImage(document.getElementById("canvas-slice-xy"), 930, 110, 460, 390);
+        octx.drawImage(document.getElementById("canvas-slice-xz"), 1420, 110, 460, 390);
+        octx.drawImage(document.getElementById("canvas-slice-diff"), 930, 520, 950, 290);
+        octx.drawImage(document.getElementById("canvas-timeseries"), 40, 760, 1840, 280);
+        var link = document.createElement("a");
+        link.download = "spacetime_geochemistry_v0_1920x1080.png";
+        link.href = outCanvas.toDataURL("image/png");
+        link.click();
+      });
+
+      updateUI();
+    })();
+  </script>
+</body>
+</html>

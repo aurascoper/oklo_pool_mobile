@@ -1,0 +1,457 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurascoper.github.io/oklo_pool_mobile/schemas/spacetime_4d_v0.json",
+  "title": "SpacetimeFieldBundleV0",
+  "description": "Stage 0 4D Spatiotemporal Data Contract governing time-indexed 3D scalar fields, spatial coordinate frames, monotonic time ordering, per-frame SHA-256 receipts, missing-frame fail-closed policy, display interpolation tagging, and criterial separation.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "model_id",
+    "model_version",
+    "specification_version",
+    "evidence_class",
+    "source_repository",
+    "source_commit",
+    "run_id",
+    "run_receipt",
+    "parameter_set_id",
+    "field_name",
+    "field_units",
+    "uncertainty",
+    "known_limitations",
+    "scientific_status_disclaimer",
+    "spatial_frame",
+    "temporal_axis",
+    "governing_parameters",
+    "v2_compatibility",
+    "states",
+    "criterial_pruned_branches"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "spacetime_4d_v0"
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_]+$"
+    },
+    "model_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_]+$"
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "specification_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_class": {
+      "type": "string",
+      "enum": [
+        "geographic_observation_or_locator",
+        "sourced_geological_record",
+        "prescribed_analytic_field",
+        "numerically_verified_synthetic_model",
+        "hypothesis_or_unvalidated_model",
+        "empirically_calibrated_model"
+      ]
+    },
+    "source_repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_receipt": {
+      "type": ["string", "null"]
+    },
+    "parameter_set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "field_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "field_units": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "known_limitations": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scientific_status_disclaimer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "spatial_frame": {
+      "type": "object",
+      "required": [
+        "coordinate_system",
+        "geometry_provenance",
+        "dimensions_voxels",
+        "voxel_order",
+        "domain_bounds_m",
+        "up_axis"
+      ],
+      "properties": {
+        "coordinate_system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_provenance": {
+          "type": "string",
+          "enum": ["schematic", "surveyed_or_sourced"]
+        },
+        "dimensions_voxels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "voxel_order": {
+          "type": "string",
+          "const": "x_fastest_then_y_then_k_up"
+        },
+        "domain_bounds_m": {
+          "type": "object",
+          "required": ["x", "y", "z_up"],
+          "properties": {
+            "x": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "y": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "z_up": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        "up_axis": {
+          "type": "string",
+          "const": "+k"
+        }
+      },
+      "additionalProperties": false
+    },
+    "temporal_axis": {
+      "type": "object",
+      "required": [
+        "fourth_dimension_symbol",
+        "time_units",
+        "state_count",
+        "temporal_resolution_s",
+        "time_bounds",
+        "strict_monotonic_ordering",
+        "missing_frame_policy",
+        "interpolation_policy",
+        "initial_condition_summary",
+        "event_markers"
+      ],
+      "properties": {
+        "fourth_dimension_symbol": {
+          "type": "string",
+          "const": "t"
+        },
+        "time_units": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "temporal_resolution_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "time_bounds": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "strict_monotonic_ordering": {
+          "type": "boolean",
+          "const": true
+        },
+        "missing_frame_policy": {
+          "type": "string",
+          "const": "fail_closed_no_invented_states"
+        },
+        "interpolation_policy": {
+          "type": "string",
+          "enum": [
+            "none_discrete_states_only",
+            "explicit_display_only_when_toggled"
+          ]
+        },
+        "initial_condition_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_markers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["state_index", "simulation_time", "label", "event_type"],
+            "properties": {
+              "state_index": { "type": "integer", "minimum": 0 },
+              "simulation_time": { "type": "number" },
+              "label": { "type": "string", "minLength": 1 },
+              "event_type": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "governing_parameters": {
+      "type": "object",
+      "required": [
+        "equation_summary",
+        "initial_peak_concentration_mol_m3",
+        "initial_sigma_m",
+        "diffusion_coefficient_m2_s",
+        "decay_rate_s_inv",
+        "advection_velocity_m_s",
+        "initial_center_m"
+      ],
+      "properties": {
+        "equation_summary": { "type": "string", "minLength": 1 },
+        "initial_peak_concentration_mol_m3": { "type": "number" },
+        "initial_sigma_m": { "type": "number" },
+        "diffusion_coefficient_m2_s": { "type": "number" },
+        "decay_rate_s_inv": { "type": "number" },
+        "advection_velocity_m_s": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "initial_center_m": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "v2_compatibility": {
+      "type": "object",
+      "required": ["schema_target", "epistemic_record"],
+      "properties": {
+        "schema_target": {
+          "type": "string",
+          "const": "https://aurascoper.github.io/oklo_pool_mobile/schemas/epistemic_record_v1.json"
+        },
+        "epistemic_record": {
+          "type": "object",
+          "required": [
+            "model_id",
+            "model_version",
+            "evidence_class",
+            "source_repository",
+            "source_commit",
+            "specification_version",
+            "run_receipt",
+            "parameter_set_id",
+            "units",
+            "coordinate_system",
+            "uncertainty",
+            "known_limitations"
+          ],
+          "properties": {
+            "model_id": { "type": "string" },
+            "model_version": { "type": "string" },
+            "evidence_class": { "type": "string" },
+            "source_repository": { "type": "string" },
+            "source_commit": { "type": "string" },
+            "specification_version": { "type": "string" },
+            "run_receipt": { "type": ["string", "null"] },
+            "parameter_set_id": { "type": "string" },
+            "units": { "type": "string" },
+            "coordinate_system": { "type": "string" },
+            "uncertainty": { "type": "string" },
+            "known_limitations": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "states": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "state_index",
+          "simulation_time",
+          "time_units",
+          "state_derivation",
+          "criterial_status",
+          "is_simulated_state",
+          "run_receipt",
+          "voxel_count",
+          "sha256_f32_le",
+          "min_value",
+          "max_value",
+          "mean_value",
+          "total_integrated_inventory_mol",
+          "center_of_mass_m",
+          "conservation_ledger",
+          "values"
+        ],
+        "properties": {
+          "state_index": { "type": "integer", "minimum": 0 },
+          "simulation_time": { "type": "number" },
+          "time_units": { "type": "string", "minLength": 1 },
+          "state_derivation": {
+            "type": "string",
+            "enum": [
+              "computed",
+              "measured",
+              "prescribed_analytically",
+              "interpolated_for_display"
+            ]
+          },
+          "criterial_status": {
+            "type": "string",
+            "enum": ["verified_accepted", "criterial_pruned"]
+          },
+          "is_simulated_state": { "type": "boolean" },
+          "run_receipt": { "type": ["string", "null"] },
+          "voxel_count": { "type": "integer", "minimum": 1 },
+          "sha256_f32_le": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "min_value": { "type": "number" },
+          "max_value": { "type": "number" },
+          "mean_value": { "type": "number" },
+          "total_integrated_inventory_mol": { "type": "number" },
+          "center_of_mass_m": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "conservation_ledger": {
+            "type": "object",
+            "required": [
+              "initial_mass_mol",
+              "retained_mass_mol",
+              "cumulative_decayed_mass_mol",
+              "boundary_leak_mass_mol",
+              "relative_mass_balance_residual"
+            ],
+            "properties": {
+              "initial_mass_mol": { "type": "number" },
+              "retained_mass_mol": { "type": "number" },
+              "cumulative_decayed_mass_mol": { "type": "number" },
+              "boundary_leak_mass_mol": { "type": "number" },
+              "relative_mass_balance_residual": { "type": "number" }
+            },
+            "additionalProperties": false
+          },
+          "values": {
+            "type": "array",
+            "items": { "type": "number" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "criterial_pruned_branches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "branch_id",
+          "label",
+          "criterial_status",
+          "prune_reason",
+          "max_relative_mass_balance_residual",
+          "criterial_threshold_exceeded",
+          "time_points"
+        ],
+        "properties": {
+          "branch_id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "criterial_status": {
+            "type": "string",
+            "const": "criterial_pruned"
+          },
+          "prune_reason": { "type": "string", "minLength": 1 },
+          "max_relative_mass_balance_residual": { "type": "number" },
+          "criterial_threshold_exceeded": { "type": "number" },
+          "time_points": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": [
+                "state_index",
+                "simulation_time",
+                "center_of_mass_m",
+                "probe_voxel_8_8_5_value",
+                "probe_voxel_8_8_11_value",
+                "relative_mass_balance_residual"
+              ],
+              "properties": {
+                "state_index": { "type": "integer", "minimum": 0 },
+                "simulation_time": { "type": "number" },
+                "center_of_mass_m": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "probe_voxel_8_8_5_value": { "type": "number" },
+                "probe_voxel_8_8_11_value": { "type": "number" },
+                "relative_mass_balance_residual": { "type": "number" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
