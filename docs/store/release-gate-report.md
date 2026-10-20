@@ -9,7 +9,7 @@ Recommendation: **NOT STORE-SUBMISSION-READY** (All repository engineering, 20-c
 | --- | --- | --- | --- |
 | PR A conformance | [`conformance/cf2-suite` at `3a2d41e6260d4dfe53b70c83be97861740ac6930` (tested source commit `ae56062a9f96fe12988a658dd89b3427e244bc9a`)](https://github.com/aurascoper/oklo_pool_mobile/pull/4) | `receipts/cf2_conformance_2026-10-19.txt`, `receipts/cf2_matrix_2026-10-19.json`, `receipts/cf2_reference_outputs_sha256_2026-10-19.txt` | Open; **PASS across all 4 runnable targets** (Host Rust, Swift Package, iOS 27.0 Simulator, Android API 36 `arm64-v8a` Emulator; Android `x86_64` JNI build-verified, runtime not tested). |
 | PR B iOS app | [`ios/v1-app` at `49a5169328681e9145faacffcf6819d5572b0d9d` (tested source commit `8235b1a36e870dd0c0347501129802f546587acd`)](https://github.com/aurascoper/oklo_pool_mobile/pull/5) | `receipts/ios_simulator_test_2026-10-19.md`, `.json`, `.txt` | Open; **PASS** (generic device + simulator builds pass; 5/5 Swift package tests pass; **15/15 simulator unit + UI tests pass** on `iPhone 17` iOS 27.0 `arm64` including Option A ontology test; `ZERO_INET_SOCKETS`). |
-| PR C Android app | [`android/v1-app` at `f0b0b268f1b89a0c17c90b316fbf08aee6850f16` (tested source commit `a4673ec173a8da5c6ddf254edf9c576dbe500449`)](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`, `receipts/android_emulator_test_2026-10-19.txt` | Open; **PASS** (7/7 unit tests pass; debug APK, androidTest APK, and unsigned release AAB build; **11/11 API 36 `arm64-v8a` emulator instrumented tests pass** including Option A verification; `x86_64` build-verified, runtime not tested; `ACTIVE_INET_SOCKETS: 0`). |
+| PR C Android app | [`android/v1-app` at `1dfde72db1f121ddb488c1daf041a7a5a0593ca2` (tested source commit `e46930c8ba9fd8eac59670798a46646a571fcd77`)](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`, `receipts/android_emulator_test_2026-10-19.txt` | Open; **PASS** (8/8 unit tests pass; debug APK, androidTest APK, and unsigned release AAB build; **12/12 API 36 `arm64-v8a` emulator instrumented tests pass** including Option A and 60-frame phase scrubber verification; `x86_64` build-verified, runtime not tested; `ACTIVE_INET_SOCKETS: 0`). |
 | PR D release materials | [`release/v1-materials`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | `README.md`, `docs/specs/FIELD_ONTOLOGY_AMENDMENT_A1.md`, `docs/store/*`, `docs/store/screenshots/*.png`, `receipts/ios_build_2026-10-19.md` | Open; merged with `ios/v1-app` (`49a5169`); includes updated project landing page (`README.md`), `FIELD_ONTOLOGY_AMENDMENT_A1.md`, 9 authentic simulator/emulator screenshots, privacy policy (MD + HTML), store drafts, and this report. |
 
 All four pull requests remain open and unmerged in accordance with project governance rules.
@@ -22,20 +22,20 @@ All four pull requests remain open and unmerged in accordance with project gover
 | `OkloCoreKit` Swift Package | `aarch64-apple-darwin` | `(cd ios/OkloCoreKit && swift test)` | **PASS** (5/5 tests, 6 fields bit-identical) | `receipts/cf2_conformance_2026-10-19.txt` (`conformance/cf2-suite`) |
 | iOS App & Unit/UI Simulator Suite (`iPhone 17`, iOS 27.0 `24A5297g`) | `aarch64-apple-ios-sim` | `xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'platform=iOS Simulator,id=646CF1C6-8720-4906-B73B-FD46ACAA8EF0'` | **PASS** (**15/15 tests**: 11 unit tests including 20-case CF-2 matrix and Option A ontology test + 4 UI tests) | `receipts/ios_simulator_test_2026-10-19.txt` (SHA-256 `7897563507a351d1bb9b42660932749439d1c93b0e4090a6464d01128609884d`) |
 | iOS Generic Device Build | `aarch64-apple-ios` | `xcodebuild -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build` | **PASS** (`BUILD SUCCEEDED`) | `receipts/ios_build_2026-10-19.md` |
-| Android JVM Unit Suite | `aarch64` host JVM 17 | `./gradlew testDebugUnitTest` | **PASS** (**7/7 tests**) | `receipts/android_build_2026-10-19.md` (`android/v1-app`) |
-| Android API 36 Emulator Instrumentation Suite (`oklo-api36`, Android 16) | `arm64-v8a` | `adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner` | **PASS** (**11/11 tests**: 6 JNI bridge tests including 20-case CF-2 matrix + 5 Compose UI smoke tests verifying Option A) | `receipts/android_emulator_test_2026-10-19.txt` on `android/v1-app` (SHA-256 `6f2c4c76af2add5cb8c6e393b46c3a7bd86b1e9e644185ab10fd797e3f4d4571`) |
+| Android JVM Unit Suite | `aarch64` host JVM 17 | `./gradlew testDebugUnitTest` | **PASS** (**8/8 tests**) | `receipts/android_build_2026-10-19.md` (`android/v1-app`) |
+| Android API 36 Emulator Instrumentation Suite (`oklo-api36`, Android 16) | `arm64-v8a` | `adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner` | **PASS** (**12/12 tests**: 6 JNI bridge tests including 20-case CF-2 matrix + 6 Compose UI smoke tests verifying Option A and the 60-frame phase scrubber) | `receipts/android_emulator_test_2026-10-19.txt` on `android/v1-app` (SHA-256 `91145b897d82391bc35785b615b195f19146c83585f772d905a9400ebc79e48f`) |
 | Android `x86_64` ABI | `x86_64` | `cargo ndk -t arm64-v8a -t x86_64 ...` + `./gradlew assembleDebug bundleRelease` | **BUILD-VERIFIED, RUNTIME NOT TESTED** (`liboklo_core_jni.so` built and 16 KB ELF aligned; `x86_64` emulator execution blocked on Apple Silicon `arm64` host) | `receipts/android_build_2026-10-19.md` (`android/v1-app`) |
 | Physical iOS and Android devices | `arm64` / `arm64-v8a` | Physical device installation and smoke test | **NOT RUN** (no physical hardware or signing certificates attached) | Documented below |
 
 ## Build artifacts and SHA-256 digests
 
-### Android (`android/v1-app` at `a4673ec`)
+### Android (`android/v1-app` at `e46930c`)
 
 - `arm64-v8a/liboklo_core_jni.so` (16 KB ELF `PT_LOAD` aligned): `802c4aa33251cdda30a2a81ce672ecd611899a9ba8cf9dbc48ebef8b3b397092`
 - `x86_64/liboklo_core_jni.so` (16 KB ELF `PT_LOAD` aligned): `7ed74f69a8f6dd0e60aadf9b37dae136e26331229d6dc955081e0592fb0c71f2`
-- `android/app/build/outputs/apk/debug/app-debug.apk`: `fb61ab2b4bf19f7ca68084d35f0c21cf9d64621ce6609af31c2e043107100220`
-- `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`: `e29be7cfaab94c6265ebadf3c283bb3e0fc6f135005d9f2576e74ac75590c35f`
-- `android/app/build/outputs/bundle/release/app-release.aab` (unsigned): `1db6f02a4de373f32dc4c37da8ba4c82b08e89cade6b452398e0cebe056b201a`
+- `android/app/build/outputs/apk/debug/app-debug.apk`: `eda97a9b11a8a0fc6321fe207b80cacaea2fb489f79c90a81be49d31652d5b58`
+- `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`: `6970390feea1a38dc426abdfdb92d624419c0589a4b1d17dc88c6cdcb35c6c05`
+- `android/app/build/outputs/bundle/release/app-release.aab` (unsigned): `f36f8f44bab4133a13701e945dc6aa13ec940ab92b9dfb9fd039c3b1b81a5dbe`
 
 ### iOS (`ios/v1-app` at `8235b1a` / `release/v1-materials`)
 
@@ -52,7 +52,7 @@ All four pull requests remain open and unmerged in accordance with project gover
    - iOS `Info.plist` declares no sensitive resource usage descriptions.
 3. **Runtime socket verification:**
    - iOS Simulator (`iPhone 17`, iOS 27.0, `PID 47404`): `lsof -n -P -i -a -p 47404` -> `ZERO_INET_SOCKETS`.
-   - Android API 36 Emulator (`oklo-api36`, `PID 2193` / `UID 10213`): `adb shell dumpsys package org.oklo.pool` confirmed no `INTERNET` permission and `/proc/net/{tcp,tcp6,udp,udp6}` confirmed `ACTIVE_INET_SOCKETS: 0`.
+   - Android API 36 Emulator (`oklo-api36`, `PID 4103` / `UID 10213`): `adb shell dumpsys package org.oklo.pool` confirmed no `INTERNET` permission and `/proc/net/{tcp,tcp6,udp,udp6}` confirmed `ACTIVE_INET_SOCKETS: 0`.
 
 ## Remaining external prerequisites before store submission
 
