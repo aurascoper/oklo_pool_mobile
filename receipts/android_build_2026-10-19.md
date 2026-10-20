@@ -50,15 +50,15 @@ The latest Android chart revision separates prescribed pulse/desiccation drivers
 
 Artifacts:
 
-- Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `92224fc11ca7c58077ea6eade630e141ab360b49d9cbf8bbb8b51b6bf7ebdf3d`
-- Instrumentation APK: `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`, SHA-256 `2b46e34d2995956ab02d4585e76a744849594ff6a6124b75bdf7a14b20184dc3`
-- Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`, SHA-256 `6af2123768b8c1a3672e7219f625c9a48890d26de710a37bfb4c736e05b01159`
+- Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `f8f30ad48cdbae3513f6bbae5a54411d7a7a2239b566414294cabb4ae4ddb7ee`
+- Instrumentation APK: `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`, SHA-256 `3e72a224e545568b756b76d30123659bb2c35205c9bd4627d1fead5b9014fd40`
+- Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`, SHA-256 `bb4f6fd761a4dbd825460e78d4d346dff53d0e390cae76a2b33ee316145b60a3`
 
 The APK reports package `org.oklo.pool`, version `1.0.0`, min API 26, target API 36, and native ABIs `arm64-v8a` and `x86_64`. The merged manifest contains only the AndroidX-generated signature-only permission `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; it does not request `INTERNET` or user data access. This is a source and manifest inspection, not a runtime network test.
 
 ### Expanded instrumentation compile
 
-After the chart update, `ViewerSmokeTest` was expanded to select all six fields, verify the plan, section, volume, and chart labels, and check that playback stops when the activity leaves the foreground. Command: `./gradlew --refresh-dependencies assembleAndroidTest` from `android/` with JDK 17 and Android SDK 36. Result: `BUILD SUCCESSFUL`; the expanded instrumentation tests compile but were not executed. Latest instrumentation APK SHA-256: `2b46e34d2995956ab02d4585e76a744849594ff6a6124b75bdf7a14b20184dc3`.
+`ViewerSmokeTest` now compiles checks for all six fields, plan/section/volume/chart labels, playback stopping when the activity backgrounds, pulse-boundary selection, and the null-scenario toggle. The pulse and null controls expose labelled selection state through Compose semantics. Command: `./gradlew assembleAndroidTest` from `android/` with JDK 17 and Android SDK 36. Result: `BUILD SUCCESSFUL`; instrumentation was not executed. The full `testDebugUnitTest assembleDebug bundleRelease` command also succeeded after the accessibility changes, with seven unit tests passing and zero failures.
 
 The release AAB is unsigned. Build success does not make it suitable for store upload.
 
@@ -70,4 +70,4 @@ Physical-device testing is `NOT RUN`; no device and signing setup were available
 
 ## Limitations
 
-These results establish buildability and unit-test outcomes only. They do not establish successful installation, Android runtime behavior, ABI runtime conformance, accessibility quality, lifecycle correctness, absence of runtime network traffic, store compliance, or scientific validity. Values remain the prescribed revision 0 fixture functions documented in `docs/PROVENANCE.md`.
+These results establish buildability, unit-test outcomes, and compilation of instrumentation coverage only. They do not establish successful installation, Android runtime behavior, ABI runtime conformance, accessibility quality in a running app, lifecycle correctness, absence of runtime network traffic, store compliance, or scientific validity. Values remain the prescribed revision 0 fixture functions documented in `docs/PROVENANCE.md`.

@@ -5,10 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -177,16 +179,27 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 listOf(0.17, 0.1667).forEach { boundary ->
                     Row(
-                        Modifier.clickable { model.setBoundary(boundary) }.padding(end = 16.dp),
+                        Modifier.selectable(
+                            selected = model.pulseBoundary == boundary,
+                            role = Role.RadioButton,
+                            onClick = { model.setBoundary(boundary) }
+                        ).padding(end = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = model.pulseBoundary == boundary, onClick = { model.setBoundary(boundary) })
+                        RadioButton(selected = model.pulseBoundary == boundary, onClick = null)
                         Text(boundary.toString())
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = model.nullScenario, onCheckedChange = model::setNull)
+            Row(
+                Modifier.toggleable(
+                    value = model.nullScenario,
+                    role = Role.Checkbox,
+                    onValueChange = model::setNull
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = model.nullScenario, onCheckedChange = null)
                 Text("Null scenario (pulse and drying disabled)")
             }
             Text(

@@ -1,6 +1,9 @@
 package org.oklo.pool
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -56,5 +59,14 @@ class ViewerSmokeTest {
         compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
 
         compose.onNodeWithText("Play").assertIsDisplayed()
+    }
+
+    @Test fun pulseAndNullControlsHaveAccessibleLabelsAndUpdate() {
+        compose.onNodeWithText("0.17").assertIsSelected()
+        compose.onNodeWithText("0.1667").performClick().assertIsSelected()
+
+        val nullScenario = compose.onNodeWithText("Null scenario (pulse and drying disabled)")
+        nullScenario.assertIsOff()
+        nullScenario.performClick().assertIsOn()
     }
 }
