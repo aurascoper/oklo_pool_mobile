@@ -156,19 +156,21 @@ INSTRUMENTATION_STATUS: test=steppingWrapsAndRejectsNegativeTime
 INSTRUMENTATION_STATUS_CODE: 0
 INSTRUMENTATION_RESULT: stream=
 
-Time: 46.945
+Time: 50.298
 
 OK (11 tests)
 
 
 INSTRUMENTATION_CODE: -1
 
---- Runtime Network and Permission Check ---
-PID: 4165 ()
-    declared permissions:
-      org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature
+=== Runtime Network & Permission Verification ===
+=== Running Process ===
+PID: 2193  UID: 10213
+=== Requested Permissions ===
     requested permissions:
       org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
     install permissions:
       org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+    User 0: ceDataInode=264244 deDataInode=264247 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+=== Active INET Sockets for UID 10213 ===
 ACTIVE_INET_SOCKETS: 0
