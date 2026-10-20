@@ -9,12 +9,12 @@ Recommendation: **NOT STORE-SUBMISSION-READY**
 | --- | --- | --- | --- |
 | PR A conformance | [`conformance/cf2-suite` at `b4ec76ac79e21f6d198234f8c280d094fc7e803f`](https://github.com/aurascoper/oklo_pool_mobile/pull/4) | 20 cases, 120 field volumes; host Rust and Swift package pass. See conformance receipt on that branch. | Open; gate PASS; simulator and emulator targets blocked. |
 | PR B iOS | [`ios/v1-app` at `29f75739bddd4a42f24924eb1a2fac7f92736097`](https://github.com/aurascoper/oklo_pool_mobile/pull/5) | XCFramework generated locally; generic device, generic simulator, and simulator test bundles build; Swift package 5/5. | Open; build PASS; simulator tests and device smoke test blocked. |
-| PR C Android | [`android/v1-app` at `088e668fe42339f74154125a177ebaf7cce436df`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 5/5 unit tests; APK and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
+| PR C Android | [`android/v1-app` at `cb05954da703b0cc7fafd09ea50294b4dac657f`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 7/7 unit tests; APK, instrumentation APK, and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
 | PR D release materials | [`release/v1-materials`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | This document and supporting drafts; targets `ios/v1-app`. | Open; prepared; requires PR B and Android PR C evidence. |
 
 All four requested pull requests are open. PR D is based on PR B and targets `ios/v1-app`; after PR B and PR C are approved and merged, reconcile PR D against `main`. No branch is merged into `main`.
 
-GitHub status was checked after opening the pull requests. No status checks are configured and no review decisions are recorded. PRs A, B, and C report a clean merge state; PR D reports an unknown merge state while based on `ios/v1-app`.
+GitHub status was rechecked on 2026-10-19. All four requested pull requests remain open; no review decisions or commit status checks are recorded. PRs A, B, and C report a clean merge state; PR D reports an unknown merge state while based on `ios/v1-app`.
 
 ## Build evidence
 
@@ -29,10 +29,12 @@ ANDROID_NDK_HOME=/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358 
 ./gradlew testDebugUnitTest assembleAndroidTest assembleDebug bundleRelease
 ```
 
-- Five unit tests passed.
+- Seven unit tests passed.
 - Instrumentation test APK compiled; it was not run.
-- Debug APK SHA-256: `95e5537da6db4821915ab23e31172a654cf3d9b547c9ee075cddb1ae41dd771f`.
-- Release AAB SHA-256: `fd7b3c5bc712fbad5bf9a2fb211438df29a6eb68a82451246aa5efe54a9d57c1`.
+- Continuous fields chart mean and min/max envelope separately from prescribed drivers; the compartment chart plots zone 3 and zone 4 shares.
+- Debug APK SHA-256: `92224fc11ca7c58077ea6eade630e141ab360b49d9cbf8bbb8b51b6bf7ebdf3d`.
+- Instrumentation APK SHA-256: `443fea9353a3dce98f25cccc7be51533cc5c39944ba27e8f2fee0682143dcde9`.
+- Release AAB SHA-256: `6af2123768b8c1a3672e7219f625c9a48890d26de710a37bfb4c736e05b01159`.
 - Both native ABIs are packaged and 16 KB ELF aligned.
 - The AAB is unsigned. It is not ready for Play upload.
 - Emulator startup was blocked: userdata needed 7372.80 MB; 2052.19 MB was available.
