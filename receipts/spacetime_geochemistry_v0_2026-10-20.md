@@ -5,9 +5,9 @@
 - **Requirement:** R10 (`spacetime_geochemistry_v0` - Stage 0 4D Data Contract and Stage 1 Synthetic Temporal Renderer Proof)
 - **Branch:** `spacetime-geochemistry/v0-slice`
 - **Baseline Commit (`main`):** `636b7d7bb41999b80278d90046da893ee1044f20`
-- **Tested Source Commit:** `91c66e2ab7590fa01465d16a2bd3b7b996b32498`
+- **Tested Source Commit:** `36311753fbd818868f542755ceda844078732741`
 - **Worktree Clean at Test:** `true` (`worktree_clean_at_test: true`)
-- **Commit Provenance Separation:** All Stage 0/1 validators, Node.js semantic tests, Rust conformance checks, text audits, and `1920x1080` headless browser screenshots were executed against the clean `tested_source_commit` (`91c66e2ab7590fa01465d16a2bd3b7b996b32498`). This receipt and the companion JSON receipt are committed in the immediately following `receipt_head` commit without modifying any tested source or data files. `tested_source_commit` and `receipt_head` are distinct and never treated as interchangeable.
+- **Commit Provenance Separation:** All Stage 0/1 validators, Node.js semantic tests, Rust conformance checks, text audits, and `1920x1080` headless browser screenshots were executed against the clean `tested_source_commit` (`36311753fbd818868f542755ceda844078732741`). This receipt and the companion JSON receipt are committed in the immediately following `receipt_head` commit without modifying any tested source or data files. `tested_source_commit` and `receipt_head` are distinct and never treated as interchangeable.
 - **Scientific Status Disclaimer:** Passing viewer and data-contract tests establishes rendering and data-contract correctness only, not geological validity, radiation transport accuracy, or empirical calibration.
 - **Overall Disposition:** `PASS`
 
@@ -26,12 +26,12 @@
 ## 2. Stage 0: 4D Spatiotemporal Data Contract Verification
 
 **Command:** `python3 scripts/validate_spacetime_4d.py`
-**Result:** `PASS` (1 primary bundle + 9/9 negative-control rejection checks passed, exit code 0)
+**Result:** `PASS` (1 primary bundle + 12/12 negative-control rejection checks passed, exit code 0)
 
 ### 2.1 Verified Discrete Time States (`data/spacetime/synthetic_tracer_pulse_4d_v0.json`)
 
 | State ID Anchor | `state_index` | `simulation_time` (`s`) | `state_derivation` | `criterial_status` | Center of Mass $(x, y, z)\text{ m}$ | Peak Value (`mol/m^3`) | `sha256_f32_le` (IEEE-754 Little-Endian Float32) |
-| :--- | :---: | :---: | :--- | :--- | :---: | :---: | :--- |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | <a id="state_0"></a>`#state_0` | 0 | `0.0` | `prescribed_analytically` | `verified_accepted` | `(8.0000, 8.0000, 4.5296)` | `9.2574` | `906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e` |
 | <a id="state_1"></a>`#state_1` | 1 | `250.0` | `prescribed_analytically` | `verified_accepted` | `(8.3749, 7.7501, 6.1304)` | `6.8159` | `279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30` |
 | <a id="state_2"></a>`#state_2` | 2 | `500.0` | `prescribed_analytically` | `verified_accepted` | `(8.7495, 7.5003, 7.7505)` | `5.0323` | `8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9` |
@@ -49,13 +49,16 @@
 7. Reject `state_derivation="interpolated_for_display"` inside stored states under `none_discrete_states_only`: `PASS`
 8. Reject unauthorized `evidence_class="empirically_calibrated_model"`: `PASS`
 9. Reject missing intermediate frame (`state_index` gap under `fail_closed_no_invented_states`): `PASS`
+10. Reject discrete stored state with `run_receipt = null`: `PASS`
+11. Reject mismatched `temporal_axis.time_bounds` vs state simulation times: `PASS`
+12. Reject inverted `spatial_frame.domain_bounds_m` (`min >= max`): `PASS`
 
 ---
 
 ## 3. Stage 1: Semantic and Frame-to-Receipt Test Suite
 
 **Command:** `node tests/test_spacetime_4d_v0.js`
-**Result:** `PASS` (`10/10` passed, `0` failed, exit code 0)
+**Result:** `PASS` (`11/11` passed, `0` failed, exit code 0)
 
 - **Test 1:** Temporal axis monotonicity, `+k` up-axis frame, and embedded bundle bit-parity -> `PASS`
 - **Test 2:** `16x16x16` voxel dimensions, finite values, non-zero variance, and ledger closure (`< 1e-12`) -> `PASS`
@@ -65,8 +68,9 @@
 - **Test 6:** Selected-voxel time series and criterial separation (`verified_accepted` vs `criterial_pruned`) -> `PASS`
 - **Test 7:** Missing or out-of-range frames and unauthorized fractional steps fail closed -> `PASS`
 - **Test 8:** Display interpolation marks frame `"interpolated_for_display"` with `run_receipt: null` -> `PASS`
-- **Test 9:** `verifyBundleIntegrity` rejects non-monotonic time, `NaN`, bad SHA-256, and calibrated claims -> `PASS`
+- **Test 9:** `verifyBundleIntegrity` rejects non-monotonic time, `NaN`, bad SHA-256, calibrated claims, null `run_receipt`, bad `time_bounds`, and bad `domain_bounds_m` -> `PASS`
 - **Test 10:** 4D projection (`+k` up, $w = t$), orthogonal slices, offline HTML, and zero em/en-dashes -> `PASS`
+- **Test 11:** Interactive DOM harness (`?interp=1&state=1.5` policy/event banners, `Step -1`/`+1`, fail-closed invalid URL params, and PNG export header) -> `PASS`
 
 ---
 
@@ -74,9 +78,10 @@
 
 | View Description | Path | Resolution | SHA-256 Digest | Status |
 | :--- | :--- | :---: | :--- | :---: |
-| State 0 ($t = 0.0\text{ s}$, lower zone $k = 5$) | `receipts/screenshots/r10_spacetime_t0.png` | `1920x1080` | `2c9d12b08598fad5a138ba075f22ded33c50f0ed5a10130d5383f2d309ea889b` | `PASS` |
-| State 3 ($t = 750.0\text{ s}$, upper zone $k = 9$) | `receipts/screenshots/r10_spacetime_t750.png` | `1920x1080` | `8db67e60d2367509763414b48947121c1bc26e282221882218f14545d46da5a1` | `PASS` |
-| Dual-Time Comparison ($t_A = 0\text{ s}$ vs $t_B = 750\text{ s}$) | `receipts/screenshots/r10_spacetime_diff_t0_t750.png` | `1920x1080` | `ad231fcc593e8fce2b2bb9006a1f02796e95c330809b97b074e8332eaeca1f9b` | `PASS` |
+| State 0 ($t = 0.0\text{ s}$, lower zone $k = 5$) | `receipts/screenshots/r10_spacetime_t0.png` | `1920x1080` | `9dd70ee32b82b5a5f762b51abfb9388ad12677b0eb203f596b39de862ae3b727` | `PASS` |
+| State 3 ($t = 750.0\text{ s}$, upper zone $k = 9$) | `receipts/screenshots/r10_spacetime_t750.png` | `1920x1080` | `eef4d394173da24951adaedfe07157930b85faae6ac5f59f7c7f85b303502a3d` | `PASS` |
+| Dual-Time Comparison ($t_A = 0\text{ s}$ vs $t_B = 750\text{ s}$) | `receipts/screenshots/r10_spacetime_diff_t0_t750.png` | `1920x1080` | `180a2b5d924be08cbf42c8eb59e0296c5b2271bb3f5527cb7de4b9d333852603` | `PASS` |
+| Display Interpolation Mode (`?interp=1&state=1.5`, $t = 375.0\text{ s}$) | `receipts/screenshots/r10_spacetime_interp_t375.png` | `1920x1080` | `1355cd5e91d66f3fb30405eabd218979e1959605ba1a153fe03c48cecd2aed40` | `PASS` |
 
 ---
 

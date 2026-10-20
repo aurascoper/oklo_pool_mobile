@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-20T22:24:00Z",
+  "timestamp": "2026-10-20T22:45:00Z",
   "requirement": "R10: spacetime_geochemistry_v0 (Stage 0 4D Data Contract and Stage 1 Synthetic Temporal Renderer Proof)",
   "branch": "spacetime-geochemistry/v0-slice",
   "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
-  "tested_source_commit": "91c66e2ab7590fa01465d16a2bd3b7b996b32498",
+  "tested_source_commit": "36311753fbd818868f542755ceda844078732741",
   "worktree_clean_at_test": true,
   "commit_provenance_policy": "tested_source_commit records the clean source commit under test; receipt_head is the follow-on commit binding this receipt and screenshots without modifying tested source files.",
   "scientific_status_disclaimer": "Passing viewer and data-contract tests establishes rendering and data-contract correctness only, not geological validity, radiation transport accuracy, or empirical calibration.",
@@ -62,32 +62,38 @@
       "view": "State 0 (t = 0.0 s, lower zone k = 5)",
       "path": "receipts/screenshots/r10_spacetime_t0.png",
       "resolution": "1920x1080",
-      "sha256": "2c9d12b08598fad5a138ba075f22ded33c50f0ed5a10130d5383f2d309ea889b"
+      "sha256": "9dd70ee32b82b5a5f762b51abfb9388ad12677b0eb203f596b39de862ae3b727"
     },
     {
       "view": "State 3 (t = 750.0 s, upper zone k = 9)",
       "path": "receipts/screenshots/r10_spacetime_t750.png",
       "resolution": "1920x1080",
-      "sha256": "8db67e60d2367509763414b48947121c1bc26e282221882218f14545d46da5a1"
+      "sha256": "eef4d394173da24951adaedfe07157930b85faae6ac5f59f7c7f85b303502a3d"
     },
     {
       "view": "Dual-Time Comparison dF(x; t_A = 0 s, t_B = 750 s)",
       "path": "receipts/screenshots/r10_spacetime_diff_t0_t750.png",
       "resolution": "1920x1080",
-      "sha256": "ad231fcc593e8fce2b2bb9006a1f02796e95c330809b97b074e8332eaeca1f9b"
+      "sha256": "180a2b5d924be08cbf42c8eb59e0296c5b2271bb3f5527cb7de4b9d333852603"
+    },
+    {
+      "view": "Display Interpolation Mode (?interp=1&state=1.5, t = 375.0 s)",
+      "path": "receipts/screenshots/r10_spacetime_interp_t375.png",
+      "resolution": "1920x1080",
+      "sha256": "1355cd5e91d66f3fb30405eabd218979e1959605ba1a153fe03c48cecd2aed40"
     }
   ],
   "verification_suites": {
     "validate_spacetime_4d_py": {
       "command": "python3 scripts/validate_spacetime_4d.py",
       "primary_bundle_valid": true,
-      "negative_controls_passed": 9,
+      "negative_controls_passed": 12,
       "negative_controls_failed": 0,
       "status": "PASS"
     },
     "test_spacetime_4d_v0_js": {
       "command": "node tests/test_spacetime_4d_v0.js",
-      "passed": 10,
+      "passed": 11,
       "failed": 0,
       "status": "PASS"
     },
