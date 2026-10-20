@@ -1,7 +1,7 @@
 # Dependency and data-flow inventory
 
 Review date: 2026-10-19
-Scope: iOS app sources on `ios/v1-app` at tested source commit `2db67d4ce3526bb2968954fecdba6ade7a991b02` (receipt commit `4742bb57dab2ee175777c5991cca8c05a4f43080`) and Android app sources on `android/v1-app` at tested source commit `30bbe03bdffe80d09a5242508d4b5fab19289c04` (receipt commit `7edcd0ed58f233630ddf579d96dff859beeeb6c8`).
+Scope: iOS app sources on `ios/v1-app` at tested source commit `8235b1a36e870dd0c0347501129802f546587acd` (receipt commit `49a5169328681e9145faacffcf6819d5572b0d9d`) and Android app sources on `android/v1-app` at tested source commit `a4673ec173a8da5c6ddf254edf9c576dbe500449` (receipt commit `f0b0b268f1b89a0c17c90b316fbf08aee6850f16`).
 Status: source inspection, resolved production dependency graph, and simulator/emulator runtime socket checks completed; physical-device signed release package verification remains an account-owner step.
 
 ## User inputs and data path
@@ -34,11 +34,11 @@ The complete Android `releaseRuntimeClasspath` graph was captured on 2026-10-19 
 
 1. **iOS Simulator (`iPhone 17`, iOS 27.0 `arm64`, PID `47404`):**
    - While `OkloPool.app` was running and after exercising all six fields, 2D/3D views, chart, and provenance sheet, `lsof -n -P -i -a -p 47404` returned zero open `IPv4` or `IPv6` sockets (`ZERO_INET_SOCKETS`). See `receipts/ios_simulator_test_2026-10-19.txt`.
-2. **Android Emulator (`oklo-api36`, Android 16 / API 36 `arm64-v8a`, PID `4165`):**
-   - While `org.oklo.pool` was running in the foreground, `adb shell dumpsys package org.oklo.pool` confirmed that only `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is declared or granted (no `android.permission.INTERNET` permission, so the Linux kernel denies `AF_INET`/`AF_INET6` socket creation for the app UID), and `adb shell ss -tupn` confirmed zero active TCP/UDP sockets (`ACTIVE_INET_SOCKETS: 0`). See `receipts/android_emulator_test_2026-10-19.txt` on `android/v1-app`.
+2. **Android Emulator (`oklo-api36`, Android 16 / API 36 `arm64-v8a`, PID `2193` / UID `10213`):**
+   - While `org.oklo.pool` was running in the foreground, `adb shell dumpsys package org.oklo.pool` confirmed that only `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is declared or granted (no `android.permission.INTERNET` permission, so the Linux kernel denies `AF_INET`/`AF_INET6` socket creation for the app UID), and `/proc/net/{tcp,tcp6,udp,udp6}` confirmed zero active TCP/UDP sockets (`ACTIVE_INET_SOCKETS: 0`). See `receipts/android_emulator_test_2026-10-19.txt` on `android/v1-app`.
 
 ## Evidence summary and remaining account-owner checks
 
-- iOS simulator build, 14/14 test pass, and runtime socket check: `receipts/ios_simulator_test_2026-10-19.md` and `receipts/ios_simulator_test_2026-10-19.txt`.
+- iOS simulator build, 15/15 test pass, and runtime socket check: `receipts/ios_simulator_test_2026-10-19.md` and `receipts/ios_simulator_test_2026-10-19.txt`.
 - Android APK/AAB build, 7/7 unit test pass, 11/11 API 36 emulator instrumentation pass, and runtime socket/permission check: `receipts/android_build_2026-10-19.md` and `receipts/android_emulator_test_2026-10-19.txt` on `android/v1-app`.
 - Physical-device smoke tests and final signed release binary inspection remain to be completed by the account owner prior to store submission.

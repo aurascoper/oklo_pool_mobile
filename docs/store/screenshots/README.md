@@ -12,8 +12,8 @@ Captured during `xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPoo
 | --- | --- | --- | --- |
 | `ios-iphone17-slices.png` | `1206x2622` | `57a717582dcf89bff61805a02762fd52f436b093b91e113699f1bfe8069a612b` | 2D Plan (`XY` at `Z = 16`) and Section (`XZ` at `Y = 16`) slices, Temperature field (`26.85 to 432.2 degrees C`), transport controls, pulse boundary `0.1700` vs `0.1667` |
 | `ios-iphone17-volume.png` | `1206x2622` | `497e5b8afea79efff9f3ac4bc7fd6d13cc4053638ae7083d26769b9df302865d` | 3D Volume raymarcher view (`32x32x32` voxel cube) with azimuth/elevation/opacity sliders and transport bar |
-| `ios-iphone17-fields-chart.png` | `1206x2622` | `c52a8944a1158e58d4d2f43724a2914bd1b6e503dfd47d3e7821d596dcafa316` | Compartments field (`zone 0 to 4`, discrete 5-zone palette) and strip chart below slices |
-| `ios-iphone17-provenance.png` | `1206x2622` | `9252b1cd4f008a4c9251d63fdc1d6ce8f7ea34a0eef6496d16675ba3b2467476` | In-app Provenance and Scientific Scope sheet disclosing prescribed revision 0 analytic functions and limitations |
+| `ios-iphone17-fields-chart.png` | `1206x2622` | `8c7ec45ae269b9d8f2554bc9069e99d58f64ca08a54f183b67b3563ed82c0f56` | Compartments field (`zone 0 to 4`, discrete 5-zone palette) and strip chart below slices |
+| `ios-iphone17-provenance.png` | `1206x2622` | `9252b1cd4f008a4c9251d63fdc1d6ce8f7ea34a0eef6496d16675ba3b2467476` | In-app Provenance and Scientific Scope sheet disclosing prescribed revision 0 analytic functions, limitations, and the Option A polymer caveat |
 
 ## Android (`oklo-api36`, Android 16 / API 36 `arm64-v8a`, `1080x2400` PNG)
 
@@ -25,4 +25,4 @@ Captured during `adb shell am instrument -w -r org.oklo.pool.test/androidx.test.
 | `android-api36-section-slice.png` | `1080x2400` | `cd59dc100693d79014638f6eaf1af9652033ccb85fc9273e9608be912ad1d9b5` | Section slice (`X by Z at Y = 16`) of Temperature field with row slider and phase controls |
 | `android-api36-volume.png` | `1080x2400` | `17b96962174f4c070f13f9179618b084c2ddb54773305473c35a3e0cac2a8659` | Centered 3D isometric volume projection (16 depth layers) of Temperature field |
 | `android-api36-chart.png` | `1080x2400` | `1b53a7121554142ceeac3e1ab5a1f39a703ed601efe4ca3b2335d2cc3460a1e7` | Dual-canvas chart: Temperature mean and min/max envelope over cycle phase plus prescribed pulse and desiccation driver curves |
-| `android-api36-provenance.png` | `1080x2400` | `61930fa8c9016c22b859e153ca8ee8f32bc3ddeb50c468fc4b570856364bdf6f` | In-app Assumptions and Provenance modal dialog detailing prescribed fixture equations and unit caveats |
+| `android-api36-provenance.png` | `1080x2400` | `ad80a1f4f8d66f21e74ea673a610fb939cfe61405b567e7345dc7f5639c38930` | In-app Assumptions and Provenance modal sheet detailing prescribed fixture equations and the Option A polymer display-ontology caveat |
