@@ -13,6 +13,10 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: OkloPool
+        excludes:
+          - "PrivacyInfo.xcprivacy"
+      - path: OkloPool/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: OkloCoreKit
         product: OkloCore

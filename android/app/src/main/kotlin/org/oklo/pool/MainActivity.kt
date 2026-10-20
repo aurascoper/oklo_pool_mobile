@@ -1,5 +1,7 @@
 package org.oklo.pool
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +25,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -98,7 +101,18 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Revision 0 prescribed fixture", style = MaterialTheme.typography.titleMedium)
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Persistent initial screen disclaimer" }
+            ) {
+                Text(
+                    text = "Revision-0 prescribed fields; not a physical simulation.",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
             result.exceptionOrNull()?.let {
                 Text("Unable to load fixture data: ${it.message ?: "native core error"}", color = MaterialTheme.colorScheme.error)
             }
@@ -160,6 +174,25 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
                 Text("Range ${"%.4g".format(low)} to ${"%.4g".format(high)} ${field.unit}   Mean ${"%.5g".format(mean)}")
             }
 
+            Surface(
+                color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.fillMaxWidth().semantics {
+                    contentDescription = "Selected field limitation: ${fieldLimitationRecords[model.fieldId].limitation}"
+                }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Limitation: ${fieldLimitationRecords[model.fieldId].limitation}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                }
+            }
+
             Text("Phase ${"%.4f".format(model.phase)}  •  ${ViewerMath.frameLabel(model.phase)}")
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { playing = !playing }, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -210,6 +243,8 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
     }
 
     if (showProvenance) {
+        var policyExpanded by remember { mutableStateOf(false) }
+        val context = LocalContext.current
         ModalBottomSheet(
             onDismissRequest = { showProvenance = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -222,7 +257,105 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
                 Text("This app is an educational scenario explorer. Every number it draws comes from a fixed formula chosen to give a plausible shape, not from measurements of Oklo and not from a physical simulation. The formulas are frozen so that the app, the original web viewer and the exported data files can be checked against each other.")
                 Text("The natural fission reactors at Oklo in Gabon operated roughly two billion years ago, long after the earliest evidence of life on Earth. The pool shown here is therefore an analog scenario for ideas about early chemistry, not a reconstruction of a place where life began. The idea that wet and dry cycles at a natural reactor could drive the joining of small molecules is a published hypothesis, not an established finding.")
                 Text("The roughly three-hour on and off cycle comes from the xenon record studied by Meshik and colleagues in 2004, and it has been reproduced in a computer model by Ibekwe and colleagues in 2020. The hydrogen map shows where radiolysis would happen, not how much hydrogen formed. Temperatures, water content and molecule amounts are illustrative indices. Units are shown as the original viewer labelled them, and several of those units have no derivation yet.")
-                Text("Polymer accumulation index (arbitrary units): Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.")
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                Text("Field-by-Field Limitations", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                fieldLimitationRecords.forEach { record ->
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(record.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Text(record.unit, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Text("Limitation:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.tertiary)
+                            Text(record.limitation, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                Text("Privacy Policy & Data Handling", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Audit Summary", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Local computation only, zero tracking, zero networking. Oklo Fixture Viewer runs entirely locally on your device using the embedded native oklo_core engine. The application contains zero tracking, zero analytics SDKs, zero advertising SDKs, zero user accounts, and requests zero system permissions. Runtime socket inspections confirm zero open network sockets.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("External Policy Link", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        TextButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://aurascoper.github.io/oklo_pool_mobile/privacy-policy.html"))
+                                context.startActivity(intent)
+                            },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("https://aurascoper.github.io/oklo_pool_mobile/privacy-policy.html", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text(
+                            "URL remains unverified until the account owner confirms live hosting.",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Bundled Offline Privacy Policy", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                            TextButton(onClick = { policyExpanded = !policyExpanded }) {
+                                Text(if (policyExpanded) "Hide" else "Read")
+                            }
+                        }
+                        if (policyExpanded) {
+                            Text(
+                                text = bundledAndroidPrivacyPolicyText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(18.dp))
             }
         }
@@ -384,3 +517,77 @@ private fun PrescribedChart(field: FixtureField, phase: Double, boundary: Double
         Text("D(p)", color = Color(0xFF64B5F6))
     }
 }
+
+data class FieldLimitationRecord(
+    val id: Int,
+    val title: String,
+    val unit: String,
+    val limitation: String
+)
+
+val fieldLimitationRecords = listOf(
+    FieldLimitationRecord(
+        0,
+        "Temperature",
+        "degrees C",
+        "Prescribed thermal profile; not coupled to hydrodynamic or convective cooling."
+    ),
+    FieldLimitationRecord(
+        1,
+        "Hydration",
+        "dimensionless",
+        "Prescribed saturation index; not a multiphase porous flow solve."
+    ),
+    FieldLimitationRecord(
+        2,
+        "H2 Concentration",
+        "index, labelled mmol/L",
+        "Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve."
+    ),
+    FieldLimitationRecord(
+        3,
+        "235U/238U Ratio",
+        "ratio",
+        "Prescribed isotopic depletion curve; not a 3D neutron transport solve."
+    ),
+    FieldLimitationRecord(
+        4,
+        "Polymer Accumulation",
+        "arbitrary units",
+        "Prescribed synthetic index; not an empirical prebiotic assay."
+    ),
+    FieldLimitationRecord(
+        5,
+        "Compartments",
+        "zone 0 to 4",
+        "Prescribed geometric bounding cells; not a physical membrane simulation."
+    )
+)
+
+const val bundledAndroidPrivacyPolicyText: String = """Oklo Fixture Viewer - Offline Privacy Policy
+
+What the app does:
+Oklo Fixture Viewer is a free scientific visualization app that presents six fields from the revision 0 Oklo natural reactor conformance fixture. Users can select a field, change the displayed cycle phase, choose a pulse boundary (0.17 or 0.1667), toggle the null scenario, and inspect 2D plan and section slices, a 3D volume view, and prescribed field charts. All displayed values are evaluated locally from fixed analytic fixture equations. Phase navigation does not run a live physical dynamics simulation.
+
+Data collection, sharing, and transmission:
+Oklo Fixture Viewer does not collect, store, transmit, or share personal data, usage analytics, diagnostics, or device identifiers:
+- The app has no user accounts, sign-in, cloud sync, analytics SDK, advertising SDK, crash-reporting service, or network client.
+- All computations and rendering run locally on the user's device using the embedded oklo_core engine.
+- On Android, the application manifest does not request the android.permission.INTERNET permission or any user-data permission.
+- On iOS, the application declares no external package dependencies, no network client, and no sensitive system permission usage descriptions.
+- Runtime verification on both iOS Simulator (iPhone 17, iOS 27.0) and Android Emulator (Android 16 / API 36) confirmed zero open network sockets during operation.
+
+Device storage and permissions:
+- The app does not persist personal information or user preferences to disk across launches.
+- On Android, allowBackup is set to false, and the merged manifest contains only the AndroidX-generated signature-only permission used internally by AndroidX for non-exported dynamic receivers.
+- On iOS, the app does not request access to location, camera, photos, contacts, microphone, tracking (IDFA), or local network resources.
+
+Distribution platforms:
+When you download or update Oklo Fixture Viewer through the Apple App Store or Google Play Store, Apple Inc. or Google LLC may collect or process installation and account information governed by their own privacy policies and terms of service. Oklo Fixture Viewer itself receives no personal data from those platforms.
+
+Children's privacy:
+Oklo Fixture Viewer does not collect personal information from anyone, including children.
+
+Changes to this policy and contact:
+If future versions of Oklo Fixture Viewer change how data is handled, this privacy policy will be updated prior to release."""
+

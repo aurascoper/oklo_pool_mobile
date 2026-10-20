@@ -373,5 +373,38 @@ final class OkloAppModelTests: XCTestCase {
         }
         XCTAssertEqual(idx, 120)
     }
+
+    func testApplePrivacyManifestValidAndPresentInBundle() throws {
+        guard let url = Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy") else {
+            XCTFail("PrivacyInfo.xcprivacy not found in OkloPool.app bundle")
+            return
+        }
+        let data = try Data(contentsOf: url)
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+        guard let dict = plist as? [String: Any] else {
+            XCTFail("PrivacyInfo.xcprivacy is not a valid dictionary plist")
+            return
+        }
+
+        XCTAssertEqual(dict["NSPrivacyTracking"] as? Bool, false)
+        XCTAssertEqual((dict["NSPrivacyCollectedDataTypes"] as? [Any])?.count, 0)
+        XCTAssertEqual((dict["NSPrivacyTrackingDomains"] as? [Any])?.count, 0)
+        XCTAssertEqual((dict["NSPrivacyAccessedAPITypes"] as? [Any])?.count, 0)
+    }
+
+    func testFieldLimitationRecordsContainAllSixFields() {
+        XCTAssertEqual(FieldCatalog.allFields.count, 6)
+        for field in OkloSim.Field.allCases {
+            let meta = FieldCatalog.metadata(for: field)
+            XCTAssertFalse(meta.displayName.isEmpty)
+            XCTAssertFalse(meta.canonicalUnit.isEmpty)
+            XCTAssertFalse(meta.literatureAnchor.isEmpty)
+            XCTAssertFalse(meta.limitationStatement.isEmpty)
+
+            // Strict verification of zero em-dashes and zero en-dashes
+            XCTAssertFalse(meta.limitationStatement.contains("\u{2013}"), "Must not contain en-dash")
+            XCTAssertFalse(meta.limitationStatement.contains("\u{2014}"), "Must not contain em-dash")
+        }
+    }
 }
 
