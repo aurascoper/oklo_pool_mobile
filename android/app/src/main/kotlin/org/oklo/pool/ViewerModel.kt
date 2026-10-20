@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.exp
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 data class FixtureField(val id: Int, val title: String, val unit: String) {
@@ -49,6 +50,32 @@ data class FieldStats(
 }
 
 object ViewerMath {
+    const val FRAME_COUNT = 60
+    const val MAX_FRAME_INDEX = FRAME_COUNT - 1
+    const val SLIDER_STEPS = MAX_FRAME_INDEX - 1
+    const val MAX_PHASE = MAX_FRAME_INDEX / 60.0
+    val SLIDER_VALUE_RANGE = 0f..(MAX_FRAME_INDEX / 60f)
+
+    fun clampPhase(phase: Double): Double = phase.coerceIn(0.0, MAX_PHASE)
+
+    fun selectablePhases(): List<Double> =
+        (0..MAX_FRAME_INDEX).map { index ->
+            val fraction = index.toDouble() / (SLIDER_STEPS + 1).toDouble()
+            clampPhase(fraction * MAX_PHASE)
+        }
+
+    fun snapSliderPhase(sliderValue: Float): Double {
+        val clamped = sliderValue.toDouble().coerceIn(0.0, MAX_PHASE)
+        val frameIndex = (clamped * FRAME_COUNT).roundToInt().coerceIn(0, MAX_FRAME_INDEX)
+        return frameIndex / 60.0
+    }
+
+    fun frameNumber(phase: Double): Int =
+        ((clampPhase(phase) * FRAME_COUNT).roundToInt().coerceIn(0, MAX_FRAME_INDEX)) + 1
+
+    fun frameLabel(phase: Double): String =
+        "Frame ${frameNumber(phase)} / $FRAME_COUNT"
+
     fun nextPhase(phase: Double, dtSeconds: Double, periodSeconds: Double = 10_800.0): Double {
         require(phase.isFinite() && phase in 0.0..1.0)
         require(dtSeconds.isFinite() && dtSeconds >= 0.0)
@@ -77,7 +104,7 @@ class ViewerModel : ViewModel() {
     var sectionRow by mutableStateOf(16)
         private set
 
-    fun seek(value: Double) { phase = value.coerceIn(0.0, 1.0) }
+    fun seek(value: Double) { phase = ViewerMath.clampPhase(value) }
     fun stepFrame() { phase = ViewerMath.nextPhase(phase, 180.0) }
     fun setBoundary(value: Double) { require(value == 0.17 || value == 0.1667); pulseBoundary = value }
     fun setNull(value: Boolean) { nullScenario = value }

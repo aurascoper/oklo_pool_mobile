@@ -1,6 +1,7 @@
 package org.oklo.pool
 
 import android.graphics.Bitmap
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -10,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.lifecycle.Lifecycle
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
@@ -97,5 +99,13 @@ class ViewerSmokeTest {
         val nullScenario = compose.onNodeWithText("Null scenario (pulse and drying disabled)")
         nullScenario.performScrollTo().assertIsOff()
         nullScenario.performScrollTo().performClick().assertIsOn()
+    }
+
+    @Test fun phaseScrubberDisplaysFrame60AtMaxAndCannotProducePhaseOne() {
+        val scrubber = compose.onNodeWithContentDescription("Cycle phase scrubber")
+        scrubber.performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { setProgress ->
+            setProgress(1.0f)
+        }
+        compose.onNodeWithText("Phase 0.9833  •  Frame 60 / 60").assertIsDisplayed()
     }
 }

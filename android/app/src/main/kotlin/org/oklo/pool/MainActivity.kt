@@ -160,7 +160,7 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
                 Text("Range ${"%.4g".format(low)} to ${"%.4g".format(high)} ${field.unit}   Mean ${"%.5g".format(mean)}")
             }
 
-            Text("Phase ${"%.4f".format(model.phase)}  •  Frame ${((model.phase * 60).toInt() % 60) + 1} / 60")
+            Text("Phase ${"%.4f".format(model.phase)}  •  ${ViewerMath.frameLabel(model.phase)}")
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { playing = !playing }, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(if (playing) "Pause" else "Play")
@@ -168,9 +168,9 @@ private fun ViewerScreen(model: ViewerModel = viewModel()) {
                 Spacer(Modifier.width(12.dp))
                 Slider(
                     value = model.phase.toFloat(),
-                    onValueChange = { model.seek(it.toDouble()) },
-                    valueRange = 0f..1f,
-                    steps = 58,
+                    onValueChange = { model.seek(ViewerMath.snapSliderPhase(it)) },
+                    valueRange = ViewerMath.SLIDER_VALUE_RANGE,
+                    steps = ViewerMath.SLIDER_STEPS,
                     modifier = Modifier.weight(1f).semantics { contentDescription = "Cycle phase scrubber" }
                 )
             }
