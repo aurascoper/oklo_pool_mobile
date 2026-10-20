@@ -1,0 +1,136 @@
+oklo_pool_mobile CF-2 cross-platform conformance receipt
+generated_utc: 2026-10-20T03:50:00Z
+git_head: ae56062a9f96fe12988a658dd89b3427e244bc9a (branch conformance/cf2-suite)
+tested_source_commit: ae56062a9f96fe12988a658dd89b3427e244bc9a
+worktree_clean_at_test: true
+main_base_commit: 041d1bab092553798dec6f7b84df1edfbe417ab4
+scope: 20 cases (5 phases x 2 scenarios x 2 pulse boundaries) across 6 fields (120 field volumes), plus seed invariance control
+policy: reference implementation derived independently from CONFORMANCE_FIXTURE_SPEC.md section 3; no parameter, equation, or threshold was modified to force agreement. Tolerances declared in advance: relative 1e-6 for continuous fields, exact match for categorical compartments.
+
+== tools
+rustc 1.97.1 (8bab26f4f 2026-07-14)
+cargo 1.97.1 (c980f4866 2026-06-30)
+Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+Xcode 27.0 (Build 27A266a)
+ProductName: macOS  ProductVersion: 27.0.1  BuildVersion: 26A434
+Architecture: arm64
+Android NDK: 28.2.13676358 (/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358)
+Android Emulator: 37.2.12.0 (AVD oklo-api36, system-images;android-36;google_apis;arm64-v8a)
+CoreSimulator Runtimes: iOS 27.0 (24A5297g) - com.apple.CoreSimulator.SimRuntime.iOS-27-0 (iPhone 17, UDID 646CF1C6-8720-4906-B73B-FD46ACAA8EF0)
+
+== fixture hashes (must equal CONFORMANCE_FIXTURE_SPEC.md section 2 / 2.1)
+a300455caa05116c099150ef552350041b23b27b1d36e81e2b8661793b0e6321  oklo_model.js
+8dac3ae9b8268a476b791f8c2293130e899d5c86c7fab09ce27345de2333544d  index.html
+402981117d96a3074ce11a5abc8729187473479e1e4c432e7d2c17f0cba02d31  export_oklo_mrc.py
+a3e65b335364f7b45a7fda2d0c9096cd9c6007b841ac7e8098c13fc026354088  verify_chimerax_interop.py
+587745ede6c6997a298f8f0a4e01127823de1b7c606383cfa49b87db0cc60d0c  CONFORMANCE_FIXTURE_SPEC.md
+70dcf80f0bb4972cf374d13bcd8714001c3b3fcc0d0a32e1fd0c5e619c0b9766  oklo_temperature.mrc
+3e951f3ee385f3a0c971ac9f3aa92bf927f072964e1f8ecb4e5a8e1ac54b19ec  oklo_hydration.mrc
+20db0315200c261be84ca5619d13d1bfeb757ace05285a15b12667a7cfa33f7f  oklo_h2_concentration.mrc
+8805534c6ef1f9a9cda783661daccbd3f5348ac1a72f194b6e77decaf83c1ae5  oklo_u235_ratio.mrc
+1d85bf12f86d71b5800983abf9dc85682055dffadda48a61b91194dc451c3ca5  oklo_polymer_yield.mrc
+d3ba9a2509ed1b28968900b1faf4339fb2c6360ce0844f15d0c1ce7e961910fc  oklo_compartments.mrc
+
+== source hashes (this receipt covers these files)
+7fa97898f92cd53754942cb282b4d49403d2e8ea91f74349c98e7af77ccda8d1  crates/oklo_core/src/lib.rs
+1acd157ddb0d7b2b988f1fc6335c3fad9c2a959e9827daada43b869617f9f484  crates/oklo_core/src/ffi.rs
+8641bdc3e4cf408ec5a2027dd342fcc800ba63911ae81d14ffb321382b85455a  crates/oklo_core/include/oklo_core.h
+9ded8391fd0ff2c411a3c3d5c53a52ab0723fa0bfa13122cf4e42549eafdb34c  tests/conformance_cf2/src/lib.rs
+05e4a32182eb7c905257f3d1261e222c6cfb4fd9ca714572c1bdafdb4bd73fa6  tests/conformance_cf2/src/reference.rs
+20251090989b521eff411a7d607307c44ba3c096e3ed153bf39c41834e367435  tests/conformance_cf2/src/matrix.rs
+7ce429efe17536f76dbe94c2d3633d34b8acba18147544ef7e606727942d0c46  tests/conformance_cf2/src/sha256.rs
+bec8bfba5974dff609d11238638bf6fbec35ef1805415632673f6783e63c8a78  tests/conformance_cf2/src/bin/cf2_receipt.rs
+fb6b2a1a34bde49b2f9d1cb6307b17f7d7c1978567a12077375855d187eb5f07  tests/conformance_cf2/tests/cf2_suite.rs
+6eef678951a52e4b909e833061d8920eaed76dda72b46d0c9750862b299517cc  scripts/cf2_reference.py
+
+== verification summary
+Target 1 (Host Rust, macOS aarch64, tested_source_commit ae56062a9f96fe12988a658dd89b3427e244bc9a): PASS (20 of 20 cases pass, 120 of 120 fields within tolerance, seed invariance confirmed)
+Target 2 (iOS OkloCoreKit, macOS slice, tested_source_commit ae56062a9f96fe12988a658dd89b3427e244bc9a): PASS (20 of 20 cases pass, C ABI round-trip verified, arrays match reference)
+Target 3 (iOS Simulator, aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 8235b1a36e870dd0c0347501129802f546587acd on ios/v1-app): PASS (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via OkloAppModelTests/testCf2TwentyCaseMatrixMatchesReference)
+Target 4 (Android emulator, arm64-v8a API 36, tested_source_commit a4673ec173a8da5c6ddf254edf9c576dbe500449 on android/v1-app): PASS on arm64-v8a emulator (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference); x86_64 JNI build-verified, runtime not tested (host-architecture blocked on Apple Silicon)
+
+== Target 1: cargo test --release -p conformance_cf2 -- --nocapture
+   Compiling conformance_cf2 v0.1.0 (/Users/aurascoper/Developer/oklo_pool_mobile/tests/conformance_cf2)
+    Finished `release` profile [optimized] target(s) in 0.83s
+     Running unittests src/lib.rs (target/release/deps/conformance_cf2-7fa3ba192404ad08)
+
+running 4 tests
+test sha256::tests::test_standard_test_vector ... ok
+test sha256::tests::test_abc ... ok
+test sha256::tests::test_empty_string ... ok
+test reference::tests::test_reference_snapshot_matches_fixture_spec ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/cf2_receipt.rs (target/release/deps/cf2_receipt-77471542d2185207)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cf2_suite.rs (target/release/deps/cf2_suite-4d6f0154ae12e6dd)
+
+running 5 tests
+PASSED: R0-1 pulse boundary sensitivity diagnostic verified: max diff = 25.48 C
+test test_r0_1_sensitivity_diagnostic ... ok
+PASSED: Seed and invocation invariance verified.
+test test_seed_invariance_control ... ok
+PASSED: All 20 cases (120 field volumes) verified against C ABI within tolerance.
+test test_all_20_cases_c_abi_against_reference ... ok
+PASSED: All 20 cases (120 field volumes) verified against Rust API within tolerance.
+test test_all_20_cases_rust_api_against_reference ... ok
+PASSED: All 120 field volumes exhibit bitwise identity between Rust and Python.
+test test_cross_language_bitwise_identity_with_python ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.51s
+
+   Doc-tests conformance_cf2
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+exit_status: 0
+
+== Target 2: (cd ios/OkloCoreKit && swift test)
+Building for debugging...
+[1 / 5]
+Build complete! (0.48 sec)
+Test Suite 'All tests' started at 2026-10-18 21:56:27.568.
+Test Suite 'All tests' passed at 2026-10-18 21:56:27.569.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test zoneCountsMatchRecordedSnapshot() started.
+◇ Test rejectsInvalidPulseBoundary() started.
+◇ Test stepWrapsAndRejectsNegativeSteps() started.
+◇ Test fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test abiVersionIsOne() started.
+✔ Test rejectsInvalidPulseBoundary() passed after 0.001 seconds.
+✔ Test abiVersionIsOne() passed after 0.001 seconds.
+◇ Test case passing 2 arguments field → .hydration, name → "hydration" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .polymerYield, name → "polymer_yield" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .h2Concentration, name → "h2_concentration" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .u235Ratio, name → "u235_ratio" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .compartments, name → "compartments" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .temperature, name → "temperature" to fieldMatchesPythonExportBitForBit(field:name:) started.
+✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.009 seconds.
+✔ Test stepWrapsAndRejectsNegativeSteps() passed after 0.015 seconds.
+✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.123 seconds.
+✔ Test run with 5 tests in 0 suites passed after 0.124 seconds.
+exit_status: 0
+
+== Target 3: iOS Simulator evaluation (aarch64-apple-ios-sim)
+status: PASS
+tested_source_commit: 8235b1a36e870dd0c0347501129802f546587acd (branch ios/v1-app, receipt commit 49a5169328681e9145faacffcf6819d5572b0d9d, worktree_clean_at_test: true)
+device: iPhone 17 (UDID 646CF1C6-8720-4906-B73B-FD46ACAA8EF0, iOS 27.0 24A5297g, arm64)
+command: xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'platform=iOS Simulator,id=646CF1C6-8720-4906-B73B-FD46ACAA8EF0'
+result: Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' passed (0.713 seconds). All 20 CF-2 cases (120 3D field volumes) matched reference SHA-256 digests bit-for-bit. Full suite: 15 of 15 tests passed (11 unit + 4 UI). See receipts/ios_simulator_test_2026-10-19.txt on branch ios/v1-app (SHA-256 7897563507a351d1bb9b42660932749439d1c93b0e4090a6464d01128609884d).
+
+== Target 4: Android emulator evaluation (arm64-v8a API 36; x86_64 build-verified, runtime not tested)
+status: PASS (arm64-v8a runtime and build) / NOT TESTED AT RUNTIME (x86_64 JNI build-verified, runtime blocked on Apple Silicon host)
+tested_source_commit: a4673ec173a8da5c6ddf254edf9c576dbe500449 (branch android/v1-app, receipt commit f0b0b268f1b89a0c17c90b316fbf08aee6850f16, worktree_clean_at_test: true)
+device: Android Emulator oklo-api36 (system-images;android-36;google_apis;arm64-v8a, Android 16 / API 36)
+command: adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner
+result: org.oklo.pool.bridge.NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference PASSED. All 20 CF-2 cases (120 3D field volumes) matched reference SHA-256 digests bit-for-bit over JNI. Full suite: 11 of 11 instrumented tests passed (50.298 seconds). Both arm64-v8a and x86_64 JNI libraries compiled with 16 KB ELF PT_LOAD alignment. See receipts/android_emulator_test_2026-10-19.txt on branch android/v1-app (SHA-256 6f2c4c76af2add5cb8c6e393b46c3a7bd86b1e9e644185ab10fd797e3f4d4571).
