@@ -25,7 +25,12 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
     packaging { jniLibs.useLegacyPackaging = false }
-    testOptions { animationsDisabled = true }
+    testOptions {
+        unitTests.all {
+            it.systemProperty("java.library.path", file("${project.rootDir}/../target/release").absolutePath)
+        }
+        animationsDisabled = true
+    }
 }
 
 dependencies {

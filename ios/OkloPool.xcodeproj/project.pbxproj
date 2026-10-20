@@ -28,6 +28,7 @@
 		9B72CB0F011524AD4BB14864 /* OkloAppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214561FED53B8EF052BB7A0 /* OkloAppModel.swift */; };
 		A0BA2391DAC0225B2C633AE1 /* OkloCore in Frameworks */ = {isa = PBXBuildFile; productRef = C01B4C9BBE996947BAD3DD58 /* OkloCore */; };
 		C0044EA6F26BE4B0EEA4811F /* VolumeRaymarcher.metal in Sources */ = {isa = PBXBuildFile; fileRef = 5248546F3B0C84B098D8DB16 /* VolumeRaymarcher.metal */; };
+		C3813ED6192326F587A8E06B /* OnRenderGateBenchmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE55F14D9B550C538E828FBA /* OnRenderGateBenchmarkTests.swift */; };
 		DFA92CF1F750D95A0F6DF0F8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B0D58BBBF59B18A69DCF1AFF /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +68,7 @@
 		8D8617E7E03BF91148001236 /* SliceContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliceContainerView.swift; sourceTree = "<group>"; };
 		B0D58BBBF59B18A69DCF1AFF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B4A58448202CD69E27927FF4 /* StripChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StripChartView.swift; sourceTree = "<group>"; };
+		BE55F14D9B550C538E828FBA /* OnRenderGateBenchmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnRenderGateBenchmarkTests.swift; sourceTree = "<group>"; };
 		C192506B04F039E44686E572 /* FieldCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldCatalog.swift; sourceTree = "<group>"; };
 		C647D254E79C5EAA2A0F9C7F /* ProvenanceSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvenanceSheetView.swift; sourceTree = "<group>"; };
 		C8677D6617CB95221CCD580F /* SectionSliceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionSliceView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				FD0D4A582287E8088CF46DF1 /* OkloAppModelTests.swift */,
+				BE55F14D9B550C538E828FBA /* OnRenderGateBenchmarkTests.swift */,
 			);
 			path = OkloPoolTests;
 			sourceTree = "<group>";
@@ -377,6 +380,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				534047A268520D493CE0FBD8 /* OkloAppModelTests.swift in Sources */,
+				C3813ED6192326F587A8E06B /* OnRenderGateBenchmarkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

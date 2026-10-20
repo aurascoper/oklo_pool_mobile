@@ -207,4 +207,67 @@ public enum PrescribedCurves {
 
         return FieldSeriesStats(stats: statsMap, overallRange: rangeMap, driverCurve: drivers)
     }
+
+    nonisolated public static func computeSingleFieldSeries(
+        field: OkloSim.Field,
+        pulseBoundary: Double,
+        nullScenario: Bool
+    ) -> [FrameStat] {
+        let totalVoxels: Double = 32.0 * 32.0 * 32.0
+        var statsList: [FrameStat] = []
+        statsList.reserveCapacity(totalFrames)
+
+        for frame in 0..<totalFrames {
+            let p = Double(frame) / Double(totalFrames)
+            let timeMin = p * (cyclePeriodSeconds / 60.0)
+
+            let cfg = OkloSim.Config(
+                nx: 32, ny: 32, nz: 32,
+                phase: p,
+                nullScenario: nullScenario,
+                pulseBoundary: pulseBoundary,
+                cyclePeriodSeconds: cyclePeriodSeconds
+            )
+
+            guard let sim = OkloSim(cfg) else { continue }
+
+            let voxels = sim.field(field)
+            var mn = Double.greatestFiniteMagnitude
+            var mx = -Double.greatestFiniteMagnitude
+            var sum: Double = 0.0
+            var zone3Count = 0
+            var zone4Count = 0
+
+            for v in voxels {
+                let d = Double(v)
+                if d < mn { mn = d }
+                if d > mx { mx = d }
+                sum += d
+
+                if field == .compartments {
+                    let z = Int(round(v))
+                    if z == 3 { zone3Count += 1 }
+                    if z == 4 { zone4Count += 1 }
+                }
+            }
+
+            let meanVal = voxels.isEmpty ? 0.0 : sum / Double(voxels.count)
+            let z3Frac = Double(zone3Count) / totalVoxels
+            let z4Frac = Double(zone4Count) / totalVoxels
+
+            let stat = FrameStat(
+                id: frame,
+                phase: p,
+                timeMinutes: timeMin,
+                minVal: mn,
+                meanVal: meanVal,
+                maxVal: mx,
+                zone3Fraction: z3Frac,
+                zone4Fraction: z4Frac
+            )
+            statsList.append(stat)
+        }
+        return statsList
+    }
 }
+
