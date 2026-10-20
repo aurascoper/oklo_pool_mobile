@@ -5,7 +5,7 @@
 - Branch: `planetary-explorer/v2-prototype`
 - Repository: `/Users/aurascoper/Developer/oklo_pool_mobile`
 - Author: worker_milestone_b2
-- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b`
+- Tested Source Commit: `f1634962967a99acb053313c0d029ff5e024ae2e`
 
 ## 1. Executive Summary
 
@@ -61,8 +61,8 @@ Result: 7/7 passed.
 
 ### 3.3 Epistemic Model Manifest Validation
 Command: `python3 scripts/validate_models.py`
-Result: 17/17 models passed schema validation.
-- Registered models: 17
+Result: 18/18 models passed schema validation.
+- Registered models: 18 (including R6A `surface_matrix_protection_v0` research candidate)
 - Count of `empirically_calibrated_model`: 0 (Invariant 3 satisfied)
 
 ## 4. Specification Integrity Verification

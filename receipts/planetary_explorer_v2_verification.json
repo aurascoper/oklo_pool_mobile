@@ -2,8 +2,8 @@
   "timestamp": "2026-10-20T13:45:00Z",
   "milestone": "Milestone B2: Interactive Globe-to-Cutaway Vertical Slice",
   "branch": "planetary-explorer/v2-prototype",
-  "tested_commit": "934ffb6c3e2be6b63c27aba5973012ec152c787b",
-  "tested_source_commit": "934ffb6c3e2be6b63c27aba5973012ec152c787b",
+  "tested_commit": "f1634962967a99acb053313c0d029ff5e024ae2e",
+  "tested_source_commit": "f1634962967a99acb053313c0d029ff5e024ae2e",
   "environment": {
     "os": "Darwin 25.1.0 arm64 (macOS)",
     "node_version": "v26.11.1",
@@ -79,7 +79,7 @@
       ]
     },
     "model_manifest_validation": {
-      "passed": 17,
+      "passed": 18,
       "failed": 0,
       "empirically_calibrated_model_count": 0
     },

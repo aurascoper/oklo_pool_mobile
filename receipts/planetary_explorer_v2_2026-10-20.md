@@ -6,7 +6,7 @@
 - Target Branch: `planetary-explorer/v2-prototype`
 - Repository: `/Users/aurascoper/Developer/oklo_pool_mobile`
 - Author: worker_milestone_b3
-- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b`
+- Tested Source Commit: `f1634962967a99acb053313c0d029ff5e024ae2e`
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee`
 - Runtime Platform: Headless Google Chromium 131 (131.0.6778.85) / Darwin arm64 (macOS 15.0 Apple Silicon)
 - Overall Status: PASS / ACCEPTED
@@ -30,7 +30,7 @@ All components operate 100% offline with zero external CDN dependencies, zero Go
 ## 2. Commit Cryptographic Binding
 
 To guarantee absolute provenance and cryptographic traceability without recursive self-referential git cycles:
-- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b` (delivers the complete code, viewer runtime, shaders, scripts, and model schemas).
+- Tested Source Commit: `f1634962967a99acb053313c0d029ff5e024ae2e` (delivers the complete code, viewer runtime, shaders, scripts, model schemas, and R6A exploratory `surface_matrix_protection_v0` work package).
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee` (remediates receipt Frame 9 field hashes and prose citation sanitization).
 - Acceptance Publication: Milestone B3 packages the final acceptance receipt, red-team audit report, and dual-track `TEST_READY.md` test specification directly on branch `planetary-explorer/v2-prototype`.
 
@@ -101,15 +101,15 @@ Individual Conformance Tests:
 
 ### 5.3 Epistemic Model Manifest Validation
 Command: `python3 scripts/validate_models.py`
-Outcome: 17/17 PASS (All 17 models validated against schema, exit code 0)
+Outcome: 18/18 PASS (All 18 models validated against schema, exit code 0)
 
 Validation Summary:
-- Total Registered Models: 17
+- Total Registered Models: 18
 - Count of `geographic_observation_or_locator`: 1
 - Count of `sourced_geological_record`: 3
 - Count of `prescribed_analytic_field`: 6
 - Count of `numerically_verified_synthetic_model`: 5
-- Count of `hypothesis_or_unvalidated_model`: 2
+- Count of `hypothesis_or_unvalidated_model`: 3 (including R6A `surface_matrix_protection_v0` research candidate)
 - Count of `empirically_calibrated_model`: 0 (Invariant 3 strictly satisfied)
 
 ---
