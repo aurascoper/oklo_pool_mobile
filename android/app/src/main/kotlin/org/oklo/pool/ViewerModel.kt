@@ -18,7 +18,7 @@ data class FixtureField(val id: Int, val title: String, val unit: String) {
             FixtureField(1, "Hydration", "dimensionless"),
             FixtureField(2, "H2 concentration", "index, labelled mmol/L"),
             FixtureField(3, "235U/238U ratio", "ratio"),
-            FixtureField(4, "Polymer yield", "index, labelled umol/L"),
+            FixtureField(4, "Polymer accumulation index", "arbitrary units"),
             FixtureField(5, "Compartments", "zone 0 to 4")
         )
     }

@@ -41,7 +41,7 @@ class ViewerSmokeTest {
             "Hydration  •  dimensionless" to "Hydration (dimensionless)",
             "H2 concentration  •  index, labelled mmol/L" to "H2 concentration (index, labelled mmol/L)",
             "235U/238U ratio  •  ratio" to "235U/238U ratio (ratio)",
-            "Polymer yield  •  index, labelled umol/L" to "Polymer yield (index, labelled umol/L)",
+            "Polymer accumulation index  •  arbitrary units" to "Polymer accumulation index (arbitrary units)",
             "Compartments  •  zone 0 to 4" to "Compartments (zone 0 to 4)"
         )
         var currentSelected = "Temperature  •  degrees C"
@@ -76,6 +76,7 @@ class ViewerSmokeTest {
     @Test fun provenanceSheetOpensAndDisplaysLimitations() {
         compose.onNodeWithText("Scope").performClick()
         compose.onNodeWithText("Assumptions and provenance").assertIsDisplayed()
+        compose.onNodeWithText("Polymer accumulation index (arbitrary units): Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.").performScrollTo().assertIsDisplayed()
         saveScreen("android_provenance")
     }
 
