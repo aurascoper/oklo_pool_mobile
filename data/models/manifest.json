@@ -160,7 +160,7 @@
       "known_limitations": "Prescribed categorical zone indicators (0=Sandstone, 1=Core, 2=Halo, 3=Conduit, 4=Steam Chimney). Schematic geometry, not surveyed subsurface geology or mapped fracture networks."
     },
     {
-      "model_id": "darcy_flow_v1_A4",
+      "model_id": "darcy_flow_v1_a4",
       "model_version": "1.4.0",
       "evidence_class": "numerically_verified_synthetic_model",
       "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",
@@ -174,7 +174,7 @@
       "known_limitations": "Hypothetical steady Darcy flow on idealized 16m cube geometry. Does not describe historical Oklo hydrogeology. Pore velocities use unsourced flow porosities except core. Single-phase liquid only; does not model steam boiling."
     },
     {
-      "model_id": "uranium_redox_column_v1_A1",
+      "model_id": "uranium_redox_column_v1_a1",
       "model_version": "1.1.0",
       "evidence_class": "numerically_verified_synthetic_model",
       "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",

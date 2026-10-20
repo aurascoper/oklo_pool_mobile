@@ -21,7 +21,7 @@
   "properties": {
     "model_id": {
       "type": "string",
-      "pattern": "^[a-z0-9_]+$",
+      "pattern": "^[a-zA-Z0-9_]+$",
       "description": "Unique machine-readable identifier for the model or data record."
     },
     "model_version": {

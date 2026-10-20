@@ -301,7 +301,7 @@ Every data object, visual field, model panel, and timeline interval rendered by 
 
 4. **`numerically_verified_synthetic_model`**:
    - Numerical solutions of mathematical differential equations whose stability, convergence, and conservation laws are proven by automated tests, but which are not calibrated to real-world field data.
-   - Applied to: 3D Darcy groundwater flow (`darcy_flow_v1_A4`), 1D uranium reduction-transport column (`uranium_redox_column_v1_A1`), `rna_biofilm_toy` 5-term mass ledger (`rna_biofilm_toy_v1`), `Biofilms` Cellular Potts solver (`biofilms_potts_cpm_v0`), `SobolevMacromolecule` $H^1$ coordinate relaxation (`sobolev_rna_c1_norm_v0`).
+   - Applied to: 3D Darcy groundwater flow (`darcy_flow_v1_a4`), 1D uranium reduction-transport column (`uranium_redox_column_v1_a1`), `rna_biofilm_toy` 5-term mass ledger (`rna_biofilm_toy_v1`), `Biofilms` Cellular Potts solver (`biofilms_potts_cpm_v0`), `SobolevMacromolecule` $H^1$ coordinate relaxation (`sobolev_rna_c1_norm_v0`).
    - Constraint: Numerical correctness is not physical reality. Must never be termed an Oklo subsurface reconstruction.
 
 5. **`hypothesis_or_unvalidated_model`**:
