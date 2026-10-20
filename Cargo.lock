@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "conformance_cf2"
+version = "0.1.0"
+dependencies = [
+ "oklo_core",
+]
+
+[[package]]
 name = "oklo_core"
 version = "0.0.1"
 

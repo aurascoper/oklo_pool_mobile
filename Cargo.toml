@@ -1,3 +1,7 @@
 [workspace]
-members = ["crates/oklo_core", "crates/oklo_web"]
+members = [
+    "crates/oklo_core",
+    "crates/oklo_web",
+    "tests/conformance_cf2",
+]
 resolver = "2"
