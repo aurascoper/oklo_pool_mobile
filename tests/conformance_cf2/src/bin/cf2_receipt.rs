@@ -180,8 +180,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     "total_field_volumes": 120,
     "target_1_host_rust": "PASS (tested_source_commit {tested_sha})",
     "target_2_ios_package": "PASS (tested_source_commit {tested_sha})",
-    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 2db67d4ce3526bb2968954fecdba6ade7a991b02, 120/120 volumes bitwise equal)",
-    "target_4_android_emulator": "PASS on arm64-v8a API 36 emulator (tested_source_commit 30bbe03bdffe80d09a5242508d4b5fab19289c04, 120/120 volumes bitwise equal); x86_64 JNI build-verified, runtime not tested (host-arch blocked)"
+    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 8235b1a36e870dd0c0347501129802f546587acd, 120/120 volumes bitwise equal)",
+    "target_4_android_emulator": "PASS on arm64-v8a API 36 emulator (tested_source_commit a4673ec173a8da5c6ddf254edf9c576dbe500449, 120/120 volumes bitwise equal); x86_64 JNI build-verified, runtime not tested (host-arch blocked)"
   }},
   "cases": [
 {cases}
