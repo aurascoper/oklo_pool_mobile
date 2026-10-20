@@ -3,7 +3,7 @@
 - Document ID: `PLANETARY_EXPLORER_v2_RED_TEAM_AUDIT`
 - Target Branch: `planetary-explorer/v2-prototype`
 - Baseline Commit: `636b7d7bb41999b80278d90046da893ee1044f20`
-- Tested Source Commit: `b2ed8d852ce8ba3983553ee6505056fc957671d2`
+- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b`
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee`
 - Date: 2026-10-20
 - Author: worker_milestone_b3 (Roles: implementer, qa, specialist)
@@ -74,7 +74,7 @@ Stage 4 exposes precomputed numerical simulation outputs for Darcy groundwater f
 ### 2.4 Strict Prohibition of False Abiogenesis and Endosymbiosis Claims
 
 The red-team conducted a thorough language and conceptual audit regarding origin-of-life claims:
-- Field 4 (Polymer Yield): In Stage 3, Field 4 is labeled "Polymer Yield Index". The mathematical definition in `crates/oklo_core` evaluates an algebraic surrogate function whose global mass balance closes by mathematical construction (Finding R0-8). It does not compute monomer condensation kinetics, phosphodiester bond synthesis, template-directed ligation, or RNA folding. Representing this field as evidence of prebiotic polymer formation or RNA emergence is strictly forbidden.
+- Field 4 (Polymer accumulation index): In Stage 3, Field 4 is labeled "Polymer accumulation index" in "arbitrary units" per Option A (FIELD_ONTOLOGY_AMENDMENT_A1.md), with the explicit caveat that the revision-0 fixture labels this quantity in umol/L with no established kinetic or thermodynamic basis. The mathematical definition in `crates/oklo_core` evaluates an algebraic surrogate function whose global mass balance closes by mathematical construction (Finding R0-8). It does not compute monomer condensation kinetics, phosphodiester bond synthesis, template-directed ligation, or RNA folding. Representing this field as evidence of prebiotic polymer formation or RNA emergence is strictly forbidden.
 - Abiogenesis and RNA World Non-Claims: The platform does not simulate the origin of life, RNA synthesis, metabolic cycle closure, or self-replicating chemical systems.
 - Protocell and Endosymbiosis Non-Claims: The platform does not model lipid vesicle formation, protocell division, phagocytosis, or mitochondrial/plastid endosymbiosis.
 - Enforcement: Any marketing, user interface, or documentation copy suggesting that Oklo Pool Mobile or Planetary Explorer v2 simulates abiogenesis or proves life originated in nuclear geyser environments violates the project charter and must be rejected immediately.

@@ -5,7 +5,7 @@
 - Date: 2026-10-20
 - Author: worker_milestone_b3
 - Baseline Commit: `636b7d7bb41999b80278d90046da893ee1044f20`
-- Tested Source Commit: `b2ed8d852ce8ba3983553ee6505056fc957671d2`
+- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b`
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee`
 - Overall Status: READY / PASS
 
@@ -41,7 +41,7 @@ cargo test -p oklo_core --locked --test conformance
 Executes the Python strict schema validator across all 17 registered models in `data/models/manifest.json`, enforcing schema compliance and the strict emptiness of the `empirically_calibrated_model` evidence class.
 
 ```bash
-python3 .agents/teamwork/explorer_milestone_b1_remediation/validate_models.py
+python3 scripts/validate_models.py
 ```
 - Expected Result: 17/17 models validated, 0 empirically calibrated models (exit code 0).
 

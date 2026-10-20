@@ -6,7 +6,7 @@
 - Target Branch: `planetary-explorer/v2-prototype`
 - Repository: `/Users/aurascoper/Developer/oklo_pool_mobile`
 - Author: worker_milestone_b3
-- Tested Source Commit: `b2ed8d852ce8ba3983553ee6505056fc957671d2`
+- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b`
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee`
 - Runtime Platform: Headless Google Chromium 131 (131.0.6778.85) / Darwin arm64 (macOS 15.0 Apple Silicon)
 - Overall Status: PASS / ACCEPTED
@@ -30,7 +30,7 @@ All components operate 100% offline with zero external CDN dependencies, zero Go
 ## 2. Commit Cryptographic Binding
 
 To guarantee absolute provenance and cryptographic traceability without recursive self-referential git cycles:
-- Tested Source Commit: `b2ed8d852ce8ba3983553ee6505056fc957671d2` (delivers the complete code, viewer runtime, shaders, scripts, and model schemas).
+- Tested Source Commit: `934ffb6c3e2be6b63c27aba5973012ec152c787b` (delivers the complete code, viewer runtime, shaders, scripts, and model schemas).
 - Receipts Remediation Commit: `39ba9648b692bc3730e72058595501f4e19f92ee` (remediates receipt Frame 9 field hashes and prose citation sanitization).
 - Acceptance Publication: Milestone B3 packages the final acceptance receipt, red-team audit report, and dual-track `TEST_READY.md` test specification directly on branch `planetary-explorer/v2-prototype`.
 
@@ -57,12 +57,12 @@ All 6 prototype verification screenshots were captured at 1920x1080 resolution v
 
 | Stage / View | File Path | Resolution | SHA-256 Digest | Status |
 |---|---|---|---|---|
-| Stage 1 Globe | `receipts/screenshots/v2_stage1_globe.png` | 1920x1080 | `cfe9acdca1af9857d02803d9bb7ac8e456e51a19e92713c8b94b613b5b03f9df` | PASS |
-| Stage 2 Cutaway | `receipts/screenshots/v2_stage2_cutaway.png` | 1920x1080 | `a27e0be44d8e070201bc7161eb537c91f444893d52a059424fc7d72930608452` | PASS |
-| Stage 3 Compartments | `receipts/screenshots/v2_stage3_field_compartments.png` | 1920x1080 | `c9100375ae1d0e235820d9dfd843f85f508dca152b49a393d6964fce761f33f0` | PASS |
-| Stage 3 Temperature | `receipts/screenshots/v2_stage3_field_temperature.png` | 1920x1080 | `e1c75e40f37138faab49363dbb19393a9b60f0f2b654a6456565c8634361920e` | PASS |
-| Stage 4 Model A Darcy | `receipts/screenshots/v2_stage4_darcy_inspection.png` | 1920x1080 | `31778e517ac0650bb3782db0dec2f6acd359eb83b9db2ab0f372e181419dbdee` | PASS |
-| Stage 4 Model B Uranium | `receipts/screenshots/v2_stage4_uranium_inspection.png` | 1920x1080 | `8a05ceb6b4348afa60e5c49142718b24bf195b1d8bd451008b7c94197dd61a6f` | PASS |
+| Stage 1 Globe | `receipts/screenshots/v2_stage1_globe.png` | 1920x1080 | `ac3bfbc66d09d0c13b919218f6d4c9bf75247b9cbbd5adef22e8df9e53ed6543` | PASS |
+| Stage 2 Cutaway | `receipts/screenshots/v2_stage2_cutaway.png` | 1920x1080 | `6c4e23acf8f547e28e462a118a7883c155c44574bbe108ff3f2ea8e0f0a7be86` | PASS |
+| Stage 3 Compartments | `receipts/screenshots/v2_stage3_field_compartments.png` | 1920x1080 | `15cc7b5f5bc5c74ceecdce58a891480b94851fef1674c0645c73d13c9611061c` | PASS |
+| Stage 3 Temperature | `receipts/screenshots/v2_stage3_field_temperature.png` | 1920x1080 | `3badc8b9249513e15085d951a10728fb8f92325991980d6f620d168c4a02ddc9` | PASS |
+| Stage 4 Model A Darcy | `receipts/screenshots/v2_stage4_darcy_inspection.png` | 1920x1080 | `a6122038cc2ac3d47a548dca123efb74ebc17961b7cdda3cfbccd32fe702f2f7` | PASS |
+| Stage 4 Model B Uranium | `receipts/screenshots/v2_stage4_uranium_inspection.png` | 1920x1080 | `6a4e57e3e24f3ba31e7fff9121480b34455cf176d53690ae364f46f1fd5420ad` | PASS |
 
 Verification Check: All 6 screenshot hashes are mutually distinct, non-trivial, and byte-verified against disk payloads.
 
@@ -100,7 +100,7 @@ Individual Conformance Tests:
 - `e_step_keeps_phase_in_range`: PASS
 
 ### 5.3 Epistemic Model Manifest Validation
-Command: `python3 .agents/teamwork/explorer_milestone_b1_remediation/validate_models.py`
+Command: `python3 scripts/validate_models.py`
 Outcome: 17/17 PASS (All 17 models validated against schema, exit code 0)
 
 Validation Summary:
