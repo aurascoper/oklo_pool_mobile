@@ -45,6 +45,16 @@ xcodegen generate --spec project.yml
 
 ## Reproducible Build Commands
 
+### 0. Build the local Rust XCFramework
+
+The XCFramework is a generated build artifact and is not checked into Git. Generate the device, simulator, and macOS slices before resolving or building the Xcode project:
+
+```bash
+bash scripts/build_xcframework.sh
+```
+
+The script requires the `aarch64-apple-ios`, `aarch64-apple-ios-sim`, and `aarch64-apple-darwin` Rust targets. It uses Cargo offline and installs no toolchains.
+
 ### 1. Build Application for Generic iOS Device
 
 Builds the application binary for physical iOS hardware (code signing disabled for local development):
@@ -93,10 +103,8 @@ Result: 5 tests passed (including 6 parameterized bit-for-bit comparisons) in ~0
 
 ### 2. Simulator Runtime Tests (BLOCKED)
 
-Status: BLOCKED per Rule 5.
-Reason: 0 iOS Simulator runtimes are installed in the local CoreSimulator environment (`xcrun simctl list runtimes` returns empty).
-Executing `xcodebuild ... test` exits with code 70:
-`Cannot test target "OkloPoolTests" on "Any iOS Simulator Device": Tests must be run on a concrete device`
+Status: BLOCKED.
+The Simulator application is reported as installed on the Mac. However, `xcrun simctl list runtimes` reports no registered iOS runtimes, and existing iPhone and iPad simulator definitions are unavailable because their iOS 26.5 runtime profile is missing. Generic device and simulator builds, including `build-for-testing`, succeed, but they do not execute UI or lifecycle tests.
 
 Prerequisite to unblock simulator testing:
 Install an iOS simulator runtime using Xcode:
@@ -107,7 +115,7 @@ Once installed, execute:
 ```bash
 xcodebuild -project ios/OkloPool.xcodeproj \
   -scheme OkloPool \
-  -destination "platform=iOS Simulator,name=iPhone 16" \
+  -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
   test
 ```
 
