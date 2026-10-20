@@ -6,21 +6,39 @@ Effective date: [Insert effective date prior to publication]
 App: Oklo Fixture Viewer
 Publisher: [Insert publisher or account-owner name]
 Support contact: [Insert monitored support email]
-Public policy URL: [Insert public HTTPS URL once hosted]
+Proposed public policy URL: https://aurascoper.github.io/oklo_pool_mobile/privacy-policy.html
+Hosting verification notice: The proposed policy URL https://aurascoper.github.io/oklo_pool_mobile/privacy-policy.html remains unverified until confirmed live by the account owner.
 
 ## What the app does
 
 Oklo Fixture Viewer is a free scientific visualization app that presents six fields from the revision 0 Oklo natural reactor conformance fixture. Users can select a field, change the displayed cycle phase, choose a pulse boundary (`0.17` or `0.1667`), toggle the null scenario, and inspect 2D plan and section slices, a 3D volume view, and prescribed field charts. All displayed values are evaluated locally from fixed analytic fixture equations. Phase navigation does not run a live physical dynamics simulation.
+
+### Persistent initial-screen statement and disclaimers
+
+The app displays a persistent initial-screen disclaimer across all active views:
+"Revision-0 prescribed fields; not a physical simulation."
+
+### Field limitation records
+
+Each active field displays an adjacent limitation callout, and the in-app Scope and Provenance view documents all six field limitation records:
+
+1. **Temperature:** Prescribed thermal profile; not coupled to hydrodynamic or convective cooling.
+2. **Hydration:** Prescribed saturation index; not a multiphase porous flow solve.
+3. **H2 Concentration:** Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
+4. **235U/238U Ratio:** Prescribed isotopic depletion curve; not a 3D neutron transport solve.
+5. **Polymer Accumulation:** Prescribed synthetic index; not an empirical prebiotic assay.
+6. **Compartments:** Prescribed geometric bounding cells; not a physical membrane simulation.
 
 ## Data collection, sharing, and transmission
 
 Oklo Fixture Viewer does not collect, store, transmit, or share personal data, usage analytics, diagnostics, or device identifiers:
 
 - The app has no user accounts, sign-in, cloud sync, analytics SDK, advertising SDK, crash-reporting service, or network client.
-- All computations and rendering run locally on the user's device using the embedded `oklo_core` engine.
+- All computations and rendering run locally on the user device using the embedded `oklo_core` engine.
+- A complete plain-text copy of this privacy policy is bundled directly inside the mobile application for offline review.
 - On Android, the application manifest does not request the `android.permission.INTERNET` permission or any user-data permission.
-- On iOS, the application declares no external package dependencies, no network client, and no sensitive system permission usage descriptions.
-- Runtime verification on both the iOS Simulator (`iPhone 17`, iOS 27.0) and the Android Emulator (Android 16 / API 36) confirmed zero open network sockets during operation.
+- On iOS, the application declares no external package dependencies, no network client, and includes an Apple `PrivacyInfo.xcprivacy` manifest declaring zero tracking and zero collected data types.
+- Runtime verification on both the iOS Simulator (`iPhone 17`, iOS 27.0) and the Android JVM native bridge confirmed zero open network sockets during operation.
 
 ## Device storage and permissions
 

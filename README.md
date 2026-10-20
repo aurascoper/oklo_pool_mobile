@@ -24,7 +24,50 @@ Four review branches implement and verify the cross-platform v1 viewer around th
    - Receipts: `receipts/android_build_2026-10-19.md`, `receipts/android_emulator_test_2026-10-19.txt` (tested source commit `e46930c8ba9fd8eac59670798a46646a571fcd77`, receipt commit `1dfde72db1f121ddb488c1daf041a7a5a0593ca2`), plus post-merge integrated verification in `receipts/integrated_gate3_verification_2026-10-20.md`.
 4. **Store release materials and privacy audit (`release/v1-materials`, [PR #7](https://github.com/aurascoper/oklo_pool_mobile/pull/7)):**
    - Display-ontology amendment specification (`docs/specs/FIELD_ONTOLOGY_AMENDMENT_A1.md`), privacy policy (`docs/store/privacy-policy.md`, `docs/store/privacy-policy.html`), dependency and data-flow inventory (`docs/store/data-flow-inventory.md`), Apple App Privacy and Google Play Data safety drafts, store listing draft, app icons, 9 authentic simulator/emulator PNG screenshots (`docs/store/screenshots/`), post-merge integrated verification receipt (`receipts/integrated_gate3_verification_2026-10-20.md`), and the release gate report (`docs/store/release-gate-report.md`).
-   - Overall release gate remains **NOT STORE-SUBMISSION-READY** until external account-owner prerequisites are completed: physical-device smoke tests on provisioned hardware, production Apple/Google distribution code signing, public HTTPS hosting of the privacy policy, and store console submission.
+   - Reconciled with On-Render Gate implementation on `release/on-render-gate` (PR #8) and benchmark receipt `receipts/on_render_gate_2026-10-20.md`.
+   - Overall release gate remains **NOT STORE-SUBMISSION-READY** until external account-owner prerequisites are completed: physical-device smoke tests on provisioned hardware, production Apple/Google distribution code signing, public HTTPS hosting confirmation of the privacy policy, and resolving host disk space for Android emulator AVD startup.
+
+### Milestone A On-Render Gate and release reconciliation summary
+
+1. **Persistent initial-screen statement and disclaimers:**
+   - Both apps render a persistent initial-screen disclaimer visible across all views on launch:
+     `"Revision-0 prescribed fields; not a physical simulation."`
+   - Active field limitation statements are rendered dynamically adjacent to the visualization canvas.
+
+2. **Field limitation records for all six fields:**
+   The in-app Scope and Provenance views document the complete six-field limitation catalog:
+   - **Temperature:** Prescribed thermal profile; not coupled to hydrodynamic or convective cooling.
+   - **Hydration:** Prescribed saturation index; not a multiphase porous flow solve.
+   - **H2 Concentration:** Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
+   - **235U/238U Ratio:** Prescribed isotopic depletion curve; not a 3D neutron transport solve.
+   - **Polymer Accumulation:** Prescribed synthetic index; not an empirical prebiotic assay.
+   - **Compartments:** Prescribed geometric bounding cells; not a physical membrane simulation.
+
+3. **Privacy Policy and manifest audit:**
+   - Offline bundled full-text privacy policy accessible in-app with zero network requirements.
+   - Local computation only: zero tracking, zero networking permissions, zero open sockets (`ZERO_INET_SOCKETS`).
+   - Explicit disclosure: proposed URL `https://aurascoper.github.io/oklo_pool_mobile/privacy-policy.html` remains unverified until confirmed live by the account owner.
+   - Apple `PrivacyInfo.xcprivacy` included in app target (Milestone A1 PR #8), declaring empty collection/tracking arrays.
+
+4. **Timing budgets and benchmark methodology:**
+   - Frozen measurement methodology documented in `receipts/on_render_gate_2026-10-20.md`: separating computation latency from time to rendered frame, 3 unmeasured warmup cycles, ascending order percentiles.
+   - Budget 1 (Initial model and slice generation <= 100 ms): PASS (iOS p95 3.99 ms, Android p95 2.83 ms).
+   - Budget 2 (Field switching <= 50 ms): PASS (iOS p95 9.27 ms, Android p95 2.85 ms).
+   - Budget 3a (Active single-field 60-frame chart calculation): nominal runs pass within 315 ms (iOS) and 172 ms (Android); under iOS simulator test suite CPU contention p95 reaches 435 to 445 ms. Threshold revision proposed: `<= 500 ms`.
+   - Budget 3b (Full 6-field 60-frame precomputation, 360 3D volumes / 11.79M voxels): iOS simulator median 1086 to 1398 ms, p95 1450 to 1500 ms; Android median 208 ms. Threshold revision proposed: `<= 1500 ms` (recommended `<= 1600 ms` headroom).
+   - Budget 4 (Volume frame readiness <= 100 ms): PASS (iOS p95 0.19 ms, Android p95 0.25 ms).
+   - Budget 5 (Phase update <= 35 ms): PASS (iOS p95 9.34 ms, Android p95 2.91 ms).
+
+5. **Android emulator startup status:**
+   - Status: **BLOCKED / UNRESOLVED**. Host machine has <1 GiB free disk space (840 MiB on root APFS volume), blocking `oklo-api36` AVD memory and overlay allocation. Android JVM native tests against release JNI libraries verified 18/18 checks.
+
+6. **Account-owner blocker catalog before store submission:**
+   - App Store Connect account configuration, bundle ID registration, signing certificates, and live hosting confirmation of privacy policy.
+   - Physical iOS and Android device validation (Apple Developer account, TestFlight, Google Play Console internal testing).
+   - Android Emulator host disk space: host machine has <1 GiB free disk space, blocking `oklo-api36` AVD startup (status: BLOCKED / UNRESOLVED per Launch Gates).
+
+7. **Authentic screenshots:**
+   - Nine authentic PNG screenshots (4 iOS Simulator at `1206x2622`, 5 Android Emulator at `1080x2400`) verified in `docs/store/screenshots/`. Zero mock placeholders.
 
 ## Historical M0 status on 2026-10-17
 
