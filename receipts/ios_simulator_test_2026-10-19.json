@@ -12,7 +12,7 @@
       },
       "expectedFailures" : 0,
       "failedTests" : 0,
-      "passedTests" : 14,
+      "passedTests" : 15,
       "skippedTests" : 0,
       "testPlanConfiguration" : {
         "configurationId" : "1",
@@ -23,14 +23,14 @@
   "environmentDescription" : "OkloPool · Built with macOS 27.0.1",
   "expectedFailures" : 0,
   "failedTests" : 0,
-  "finishTime" : 1792464423.409,
-  "passedTests" : 14,
+  "finishTime" : 1792469998.245,
+  "passedTests" : 15,
   "result" : "Passed",
   "runtimeWarnings" : [
 
   ],
   "skippedTests" : 0,
-  "startTime" : 1792464329.249,
+  "startTime" : 1792469725.894,
   "statistics" : [
 
   ],
@@ -39,7 +39,11 @@
   ],
   "title" : "Test - OkloPool",
   "topInsights" : [
-
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "68% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 1.15s (three standard deviations)"
+    }
   ],
-  "totalTestCount" : 14
+  "totalTestCount" : 15
 }
