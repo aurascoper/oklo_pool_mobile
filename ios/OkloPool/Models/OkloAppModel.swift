@@ -33,6 +33,7 @@ public final class OkloAppModel {
 
     private var sim: OkloSim? = nil
     private var playbackTask: Task<Void, Never>? = nil
+    private var statsTask: Task<Void, Never>? = nil
 
     private var seriesCache: [String: FieldSeriesStats] = [:]
 
@@ -43,6 +44,7 @@ public final class OkloAppModel {
 
     isolated deinit {
         playbackTask?.cancel()
+        statsTask?.cancel()
     }
 
     public var currentFrameIndex: Int {
@@ -76,10 +78,6 @@ public final class OkloAppModel {
     }
 
     public var currentFieldRange: (min: Float, max: Float) {
-        if let r = seriesStats?.overallRange[selectedField] {
-            return (min: Float(r.min), max: Float(r.max))
-        }
-        // Fallback to min and max of current voxel buffer
         if !currentFieldData.isEmpty {
             var mn = Float.greatestFiniteMagnitude
             var mx = -Float.greatestFiniteMagnitude
@@ -90,6 +88,13 @@ public final class OkloAppModel {
             if mn < mx {
                 return (min: mn, max: mx)
             }
+            if let r = seriesStats?.overallRange[selectedField] {
+                return (min: Float(r.min), max: Float(r.max))
+            }
+            return (min: mn, max: mx)
+        }
+        if let r = seriesStats?.overallRange[selectedField] {
+            return (min: Float(r.min), max: Float(r.max))
         }
         return (min: 0.0, max: 1.0)
     }
@@ -251,14 +256,39 @@ public final class OkloAppModel {
     private func refreshSeriesStats() {
         let cacheKey = "\(pulseBoundary)|\(nullScenario)"
         if let cached = seriesCache[cacheKey] {
+            statsTask?.cancel()
             seriesStats = cached
+            updateSliceImages()
             return
         }
-        let computed = PrescribedCurves.computeSeries(
-            pulseBoundary: pulseBoundary,
-            nullScenario: nullScenario
-        )
-        seriesCache[cacheKey] = computed
-        seriesStats = computed
+        statsTask?.cancel()
+        seriesStats = nil
+        let requestedBoundary = pulseBoundary
+        let requestedNullScenario = nullScenario
+        statsTask = Task.detached(priority: .userInitiated) { [weak self] in
+            let computed = PrescribedCurves.computeSeries(
+                pulseBoundary: requestedBoundary,
+                nullScenario: requestedNullScenario
+            )
+            guard !Task.isCancelled else { return }
+            await self?.installSeriesStats(
+                computed,
+                cacheKey: cacheKey,
+                pulseBoundary: requestedBoundary,
+                nullScenario: requestedNullScenario
+            )
+        }
+    }
+
+    private func installSeriesStats(
+        _ stats: FieldSeriesStats,
+        cacheKey: String,
+        pulseBoundary: Double,
+        nullScenario: Bool
+    ) {
+        guard self.pulseBoundary == pulseBoundary, self.nullScenario == nullScenario else { return }
+        seriesCache[cacheKey] = stats
+        seriesStats = stats
+        updateSliceImages()
     }
 }

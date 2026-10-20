@@ -58,20 +58,17 @@ public struct SectionSliceView: View {
             }
             .frame(width: side, height: side)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let clampedX = max(0.0, min(side, value.location.x))
-                        let clampedY = max(0.0, min(side, value.location.y))
-                        let normX = clampedX / side
-                        let normY = 1.0 - (clampedY / side)
-                        let newI = Int(round(normX * 31.0))
-                        let newK = Int(round(normY * 31.0))
-                        inspectedI = max(0, min(31, newI))
-                        inspectedK = max(0, min(31, newK))
-                        model.setKDepth(newK)
-                    }
-            )
+            .onTapGesture { location in
+                let clampedX = max(0.0, min(side, location.x))
+                let clampedY = max(0.0, min(side, location.y))
+                let normX = clampedX / side
+                let normY = 1.0 - (clampedY / side)
+                let newI = Int(round(normX * 31.0))
+                let newK = Int(round(normY * 31.0))
+                inspectedI = max(0, min(31, newI))
+                inspectedK = max(0, min(31, newK))
+                model.setKDepth(newK)
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Section slice at row j = \(model.jSectionRow) of 32")
             .accessibilityValue("Crosshair depth level k = \(model.kDepthSlice) of 32")

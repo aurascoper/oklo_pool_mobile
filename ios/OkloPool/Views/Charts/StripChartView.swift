@@ -134,12 +134,9 @@ public struct StripChartView: View {
                 Rectangle()
                     .fill(Color.clear)
                     .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                updatePhaseFromChartLocation(value.location.x, proxy: proxy, geo: geo)
-                            }
-                    )
+                    .onTapGesture { location in
+                        updatePhaseFromChartLocation(location.x, proxy: proxy, geo: geo)
+                    }
             }
         }
     }
@@ -191,12 +188,9 @@ public struct StripChartView: View {
                 Rectangle()
                     .fill(Color.clear)
                     .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                updatePhaseFromChartLocation(value.location.x, proxy: proxy, geo: geo)
-                            }
-                    )
+                    .onTapGesture { location in
+                        updatePhaseFromChartLocation(location.x, proxy: proxy, geo: geo)
+                    }
             }
         }
     }

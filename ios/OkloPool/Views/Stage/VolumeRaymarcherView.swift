@@ -187,7 +187,8 @@ struct MetalVolumeRepresentable: UIViewRepresentable {
             desc.colorAttachments[0].isBlendingEnabled = true
             desc.colorAttachments[0].rgbBlendOperation = .add
             desc.colorAttachments[0].alphaBlendOperation = .add
-            desc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+            // The fragment shader accumulates premultiplied RGB front to back.
+            desc.colorAttachments[0].sourceRGBBlendFactor = .one
             desc.colorAttachments[0].sourceAlphaBlendFactor = .one
             desc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
             desc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha

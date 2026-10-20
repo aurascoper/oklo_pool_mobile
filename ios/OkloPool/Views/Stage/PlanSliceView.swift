@@ -58,20 +58,17 @@ public struct PlanSliceView: View {
             }
             .frame(width: side, height: side)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let clampedX = max(0.0, min(side, value.location.x))
-                        let clampedY = max(0.0, min(side, value.location.y))
-                        let normX = clampedX / side
-                        let normY = 1.0 - (clampedY / side)
-                        let newI = Int(round(normX * 31.0))
-                        let newJ = Int(round(normY * 31.0))
-                        inspectedI = max(0, min(31, newI))
-                        inspectedJ = max(0, min(31, newJ))
-                        model.setJSection(newJ)
-                    }
-            )
+            .onTapGesture { location in
+                let clampedX = max(0.0, min(side, location.x))
+                let clampedY = max(0.0, min(side, location.y))
+                let normX = clampedX / side
+                let normY = 1.0 - (clampedY / side)
+                let newI = Int(round(normX * 31.0))
+                let newJ = Int(round(normY * 31.0))
+                inspectedI = max(0, min(31, newI))
+                inspectedJ = max(0, min(31, newJ))
+                model.setJSection(newJ)
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Plan slice at depth level k = \(model.kDepthSlice) of 32")
             .accessibilityValue("Crosshair section row j = \(model.jSectionRow) of 32")
