@@ -495,6 +495,18 @@ The integration registry defines the authoritative ground truth, commit-pinned r
 - Caveats: The reported TM-score of 0.50934 is repository-reported only and has not been verified by external benchmarks.
 - Boundary Decision: **RESTRICTED.** Consume precomputed static coordinate tables adhering to `RNA-C1-NORM v0`. Prohibit JAX/Python dependencies and live solver execution in client applications.
 
+### 5.2 Exploratory Research Work Package: Surface-Associated Fungal Matrix (Requirement R6A)
+
+- **Specification Reference:** `docs/specs/SURFACE_MATRIX_PROTECTION_v0.md` (`surface_matrix_protection_v0`)
+- **Status:** Proposed; research-only; no production-model changes authorized.
+- **Disposition:** Research candidate only. Passing this work package does not promote it to a calibrated model or authorize production coupling.
+- **Architectural Placement:** Cross-cutting exploratory research work package under Milestone B (R6 to R8), **not** a sixth scientific tier alongside the five planetary-exploration tiers and **not** a change to the current `aurascoper/Biofilms` solver.
+- **Objective and Evidence Boundary:** Uses the photographed wood-growing mushroom on *Morus* in Lima, Peru (`obs_lima_morus_mushroom_2026_10_20`, SHA-256 `b7741a3560ab4fc1a93cf212df06ca436e0d4a49bf354a68e284ac26bd58086c`) and its sharply demarcated black surface growth to exercise the platform's hypothesis-to-model evidence architecture without promoting a visual observation into a demonstrated mechanism:
+  1. **Evidence and Identification (R6A.A):** Preserves original photograph provenance and records unknown metadata (`exact_coordinates`, `observation_date`, `voucher_specimen_id`, `additional_views`) explicitly as `unknown`. Registers the *Pleurotus cystidiosus* complex / *Antromycopsis macrocarpa* identification as an unconfirmed hypothesis alongside competing explanations (secondary dematiaceous mold/mycoparasite, overhanging spore deposit, senescent necrosis) and required microscopy ($3\%$ KOH arthroconidial biometrics at $400\times\text{ to }1000\times$) and ITS barcoding.
+  2. **Independent Model Specification (`surface_matrix_protection_v0`, R6A.B):** Specifies a generic surface-associated matrix field $M_{\mathrm{surf}}(\mathbf{x}, t)$ (never labeled as melanin without material characterization) and transport of one explicitly named reactive species $C_R(\mathbf{x}, t)$ with a hypothesized sink $k_M M_{\mathrm{surf}} C_R$ initially disabled ($k_M = 0$) or tagged `synthetic_uncalibrated`. Refuses to treat radiation dose rate as a universal ROS source without an explicit radiation-chemistry and unit contract.
+  3. **Preregistered Verification and Controls (R6A.C):** Requires seven controls (C1 Matrix-free baseline, C2 Source-free limiting case, C3 Matrix production and loss accounting, C4 Reaction-transport conservation and convergence, C5 Sink-strength monotonicity under linear assumptions, C6 Surface-localized vs. spatially uniform matrix at equal total inventory, and C7 Rejection of invalid units, unsupported provenance, and incompatible coordinates).
+  4. **Evidence Gate for Mechanistic Interpretation (R6A.D & R6A.E):** Blocks biological interpretation until taxonomic voucher/ITS confirmation, chemical matrix characterization, single-species lifetime/penetration measurement, matrix-free/inactivated controls, and parameter identification are completed. Keeps `Biofilms`, `rna_biofilm_toy`, `SobolevMacromolecule`, and Oklo transport models strictly isolated and unmodified.
+
 ---
 
 ## 6. Epistemic Separation Contract and Invariants (Requirement R7)

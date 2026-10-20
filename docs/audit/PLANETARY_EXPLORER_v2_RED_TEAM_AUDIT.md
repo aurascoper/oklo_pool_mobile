@@ -13,7 +13,7 @@
 
 ## 1. Executive Summary
 
-This red-team audit provides an adversarial evaluation of the Planetary Explorer v2 prototype on branch `planetary-explorer/v2-prototype`. The objective is to verify scientific provenance, enforce strict epistemic separation, detect visual proximity risks, audit integration boundaries for external research repositories, and formalize an epistemic limitations matrix across all seventeen registered models in `data/models/manifest.json`.
+This red-team audit provides an adversarial evaluation of the Planetary Explorer v2 prototype on branch `planetary-explorer/v2-prototype`. The objective is to verify scientific provenance, enforce strict epistemic separation, detect visual proximity risks, audit integration boundaries for external research repositories and the R6A exploratory work package, and formalize an epistemic limitations matrix across all eighteen registered models in `data/models/manifest.json`.
 
 The foundational architectural principle of Planetary Explorer v2 is fail-closed epistemic integrity:
 1. Presentation is strictly decoupled from physical simulation. The client application performs zero live numerical solving, zero neural inference, and zero unverified parameter interpolation.
@@ -130,9 +130,18 @@ Milestone B requires formal integration boundaries for three external research r
   - Coordinate Resolution: The representation tracks only C1-prime backbone atoms (nominal distance 5.95 Angstroms); it lacks full-atom ribose, phosphate, and purine/pyrimidine base geometries.
 - Architectural Boundary: Client applications (iOS, Android, WebGL) must never embed JAX, PyTorch, model weights, or remote inference APIs. The interface is strictly restricted to static coordinate tables formatted under the `RNA-C1-NORM v0` specification for 3D ribbon visual rendering.
 
+### 3.4 R6A: Exploratory Research Work Package (`surface_matrix_protection_v0`)
+- Specification Document: `docs/specs/SURFACE_MATRIX_PROTECTION_v0.md`
+- Status and Disposition: Proposed; research-only; no production-model changes authorized. Research candidate only.
+- Scope Placement: Folded under Milestone B (R6 to R8) as a cross-cutting research work package, explicitly excluded from becoming a sixth planetary scientific tier or modifying `aurascoper/Biofilms`.
+- Epistemic Separation Audit:
+  1. Preserves the motivating Lima *Morus* mushroom photograph (`obs_lima_morus_mushroom_2026_10_20`, SHA-256 `b7741a3560ab4fc1a93cf212df06ca436e0d4a49bf354a68e284ac26bd58086c`) with unrecorded fields (`geographic_coordinates`, `observation_date`, `voucher_specimen_id`, `additional_photographs`) explicitly marked `unknown`.
+  2. Separates the candidate *Pleurotus cystidiosus* complex / *Antromycopsis macrocarpa* hypothesis from competing explanations (secondary dematiaceous hyphomycetes/mycoparasites, spore deposit, necrosis) and flags the arthroconidial size discrepancy ($17\text{ to }25 \times 5\text{ to }7.5\ \mu\text{m}$ in Neotropical *P. cystidiosus* per *Acta Botanica Mexicana* 2024 vs. unverified $6\text{ to }12 \times 3\text{ to }6\ \mu\text{m}$).
+  3. Distinguishes a generic surface-associated matrix field $M_{\mathrm{surf}}(\mathbf{x}, t)$ from a melanin-specific mechanism, requires a single named reactive species $C_R(\mathbf{x}, t)$, refuses universal dose-rate-to-ROS conversion without an explicit radiation-chemistry contract, and preregisters seven controls (C1 to C7) and a five-part empirical Gate D before any mechanistic interpretation.
+
 ---
 
-## 4. Epistemic Limitations Matrix Across All 17 Models
+## 4. Epistemic Limitations Matrix Across All 18 Models
 
 The following matrix documents the governing assumptions, empirical gaps, and strict non-claims for every model registered in `data/models/manifest.json`:
 
@@ -155,6 +164,7 @@ The following matrix documents the governing assumptions, empirical gaps, and st
 | 15 | `sobolev_rna_c1_norm_v0` | `numerically_verified_synthetic_model` | H^1 Sobolev gradient descent smoothing with DCT-II frequency damping (alpha = 5.0) on C1-prime coordinates. | Self-TM-score (0.50934) unbenchmarked externally; lacks full-atom ribose-phosphate geometry. | Static precomputed coordinate table only; client runtime executes zero inference or physical relaxation. |
 | 16 | `prebiotic_wet_dry_polymerization_geyser` | `hypothesis_or_unvalidated_model` | Theoretical conjecture that cyclic geyser dehydration drives nucleotide precursor condensation. | Uncalibrated kinetic rate constants under high-radiation Paleoproterozoic hydrothermal conditions. | Unproven theoretical hypothesis; not demonstrated in natural nuclear reactor geochemical environments. |
 | 17 | `radiation_gradient_quasispecies_selection` | `hypothesis_or_unvalidated_model` | Theoretical conjecture that ionizing radiation gradients establish stable error-tolerant selection bands. | Falsified under realistic non-enzymatic RNA replication error rates (approx 7.6% per base error collapse). | Falsified hypothesis; single-strand radiolytic scissions do not equal point replication mutations. |
+| 18 | `surface_matrix_protection_v0` | `hypothesis_or_unvalidated_model` | Exploratory R6A specification for a generic surface-associated matrix field $M_{\mathrm{surf}}$ and single named reactive species $C_R$ with hypothesized sink $k_M M_{\mathrm{surf}} C_R$. | Lima *Morus* specimen uncollected/unsequenced; matrix composition and $k_M$ unmeasured; solver unexecuted (`run_receipt: null`). | Does NOT establish taxonomic identity, identify pigment as melanin, demonstrate ROS quenching, establish radiation protection, or support radiosynthesis. |
 
 ---
 
@@ -191,7 +201,7 @@ The red-team audit concludes with the following determinations:
 1. Epistemic Integrity: PASS. The prototype on branch `planetary-explorer/v2-prototype` successfully enforces epistemic badges, prominent schematic warning banners, and dynamic limitation callouts. Visual proximity does not elevate model classifications.
 2. Sourced Geological vs Synthetic Separation: PASS. Sourced empirical assays (Meshik 2004, Bodu 1972, Gauthier-Lafaye 1989) are strictly separated from prescribed algebraic scenarios (v0 fields) and synthetic numerical benchmarks (Darcy v1+A4, Uranium v1+A1).
 3. Research Repositories Boundaries: PASS. `Biofilms` is appropriately marked BLOCKED and restricted to an architectural reference. `rna_biofilm_toy` is restricted to a methodological mass-ledger reference with documented falsification of Spec 14. `SobolevMacromolecule` is restricted to static precomputed coordinate tables.
-4. Model Manifest Validation: PASS. All 17 registered models in `data/models/manifest.json` validate against `data/models/schema.json`. Exactly 0 models are classified as `empirically_calibrated_model`.
+4. Model Manifest Validation: PASS. All 18 registered models in `data/models/manifest.json` (including the R6A exploratory `surface_matrix_protection_v0` specification) validate against `data/models/schema.json`. Exactly 0 models are classified as `empirically_calibrated_model`.
 5. Typography and Quarantined Invariants: PASS. Zero em-dashes, zero en-dashes, and zero quarantined terms exist across all audited files.
 
 Audit Status: VERIFIED AND APPROVED FOR ACCEPTANCE.

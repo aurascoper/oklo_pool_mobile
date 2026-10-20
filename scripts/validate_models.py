@@ -39,8 +39,8 @@ def validate_models(schema_path: str, manifest_path: str) -> bool:
     models = manifest.get("models", [])
     total_models = len(models)
     print(f"Total models registered: {total_models}")
-    if total_models != 17:
-        print(f"FAIL: Expected exactly 17 models, found {total_models}")
+    if total_models != 18:
+        print(f"FAIL: Expected exactly 18 models, found {total_models}")
         return False
 
     # 2. Check if jsonschema library is available
@@ -143,6 +143,17 @@ def validate_models(schema_path: str, manifest_path: str) -> bool:
         failures += 1
     else:
         print("PASS: Invariant 3 satisfied (class empirically_calibrated_model is strictly empty).")
+
+    # Verify R6A model record and Control C7 negative-control rejection
+    r6a = next((m for m in models if m.get("model_id") == "surface_matrix_protection_v0"), None)
+    if r6a is None:
+        print("FAIL: R6A model 'surface_matrix_protection_v0' missing from manifest.json.")
+        failures += 1
+    elif r6a.get("evidence_class") != "hypothesis_or_unvalidated_model" or r6a.get("run_receipt") is not None:
+        print("FAIL: R6A model 'surface_matrix_protection_v0' must remain hypothesis_or_unvalidated_model with null run_receipt.")
+        failures += 1
+    else:
+        print("PASS: R6A model 'surface_matrix_protection_v0' verified as hypothesis_or_unvalidated_model (research candidate only).")
 
     print("\n=== Validation Summary ===")
     if failures == 0:

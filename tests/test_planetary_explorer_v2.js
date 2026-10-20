@@ -169,14 +169,24 @@ test("Epistemic: Models manifest strictly satisfies schema and zero calibrated m
   const pManifest = path.join(__dirname, "../viewer/data/models_manifest.json");
   const manifest = JSON.parse(fs.readFileSync(pManifest, "utf-8"));
 
-  assert(manifest.models.length >= 17);
+  assert.strictEqual(manifest.models.length, 18);
   const calibrated = manifest.models.filter((m) => m.evidence_class === "empirically_calibrated_model");
   assert.strictEqual(calibrated.length, 0, "No model may be classified as empirically_calibrated_model");
+
+  const r6a = manifest.models.find((m) => m.model_id === "surface_matrix_protection_v0");
+  assert(r6a, "R6A surface_matrix_protection_v0 entry must exist in models_manifest.json");
+  assert.strictEqual(r6a.evidence_class, "hypothesis_or_unvalidated_model");
+  assert.strictEqual(r6a.run_receipt, null);
+  assert(r6a.known_limitations.includes("Does not establish taxonomic identity"));
+  assert(r6a.known_limitations.includes("general surface-matrix field M_surf"));
 });
 
 // 6. Typography and Quarantine Scan
 test("Typography: Zero em-dashes, zero en-dashes, and zero quarantined terms", () => {
   const targets = [
+    "docs/specs/PLANETARY_EXPLORER_ARCHITECTURE_v2.md",
+    "docs/specs/SURFACE_MATRIX_PROTECTION_v0.md",
+    "docs/audit/PLANETARY_EXPLORER_v2_RED_TEAM_AUDIT.md",
     "viewer/planetary_explorer.html",
     "viewer/css/explorer_layout.css",
     "viewer/css/explorer_theme.css",

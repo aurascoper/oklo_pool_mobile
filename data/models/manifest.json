@@ -256,6 +256,20 @@
       "coordinate_system": "1D_radial_lattice_gradient",
       "uncertainty": "Falsified under empirical non-enzymatic RNA replication error rates (approx 7.6 percent per base); required baseline error rate sitting below literature bounds.",
       "known_limitations": "Hypothetical model positing that spatial ionizing radiation gradients select for error-tolerant replicator quasispecies. Lacks experimental validation; equating single-strand radiolytic breaks to point replication mutations is physically unvalidated."
+    },
+    {
+      "model_id": "surface_matrix_protection_v0",
+      "model_version": "0.1.0",
+      "evidence_class": "hypothesis_or_unvalidated_model",
+      "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",
+      "source_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
+      "specification_version": "docs/specs/SURFACE_MATRIX_PROTECTION_v0.md (Requirement R6A)",
+      "run_receipt": null,
+      "parameter_set_id": "synthetic_uncalibrated_sink_disabled_v0",
+      "units": "kg_m3_matrix_and_mol_m3_named_species_or_dimensionless_unit_basis",
+      "coordinate_system": "cartesian_local_meters_or_dimensionless_unit_domain",
+      "uncertainty": "Observation metadata (exact coordinates, observation date, voucher specimen ID, underside hymenophore) unknown; Pleurotus cystidiosus complex / Antromycopsis macrocarpa identification unconfirmed; matrix composition and sink rate constant k_M unmeasured.",
+      "known_limitations": "Exploratory research candidate only (R6A). Does not establish taxonomic identity, identify pigment as melanin, demonstrate ROS quenching, establish radiation protection, or support radiation-associated energy transduction. Distinguishes general surface-matrix field M_surf from melanin-specific chemistry, requires one named reactive species C_R and 7 preregistered controls (C1 to C7), and does not modify Biofilms or couple to Oklo transport results."
     }
   ]
 }
