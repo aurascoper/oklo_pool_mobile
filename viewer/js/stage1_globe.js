@@ -453,7 +453,7 @@
       };
 
       // Baseline timeline axis
-      const yAxis = h * 0.72;
+      const yAxis = h * 0.78;
       ctx.strokeStyle = "rgba(110, 118, 129, 0.4)";
       ctx.lineWidth = 1.5 * dpr;
       ctx.beginPath();
@@ -471,7 +471,7 @@
         ctx.moveTo(tx, yAxis - 4 * dpr);
         ctx.lineTo(tx, yAxis + 4 * dpr);
         ctx.stroke();
-        ctx.fillText(`${ga.toFixed(1)} Ga`, tx, yAxis + 16 * dpr);
+        ctx.fillText(`${ga.toFixed(1)} Ga`, tx, yAxis + 14 * dpr);
       }
 
       // Interval 1: Gumsley et al. 2017 GOE (2.460 to 2.060 Ga)
@@ -480,21 +480,21 @@
       ctx.fillStyle = "rgba(35, 134, 54, 0.22)";
       ctx.strokeStyle = "rgba(63, 185, 80, 0.7)";
       ctx.lineWidth = 1 * dpr;
-      ctx.fillRect(xGumsleyStart, yAxis - 46 * dpr, xGumsleyEnd - xGumsleyStart, 16 * dpr);
-      ctx.strokeRect(xGumsleyStart, yAxis - 46 * dpr, xGumsleyEnd - xGumsleyStart, 16 * dpr);
+      ctx.fillRect(xGumsleyStart, yAxis - 42 * dpr, xGumsleyEnd - xGumsleyStart, 14 * dpr);
+      ctx.strokeRect(xGumsleyStart, yAxis - 42 * dpr, xGumsleyEnd - xGumsleyStart, 14 * dpr);
       ctx.fillStyle = "#3fb950";
       ctx.textAlign = "left";
-      ctx.fillText("GOE: Gumsley 2017 (2.46 to 2.06 Ga)", xGumsleyStart + 4 * dpr, yAxis - 34 * dpr);
+      ctx.fillText("GOE: Gumsley 2017 (2.46 to 2.06 Ga)", xGumsleyStart + 4 * dpr, yAxis - 31 * dpr);
 
       // Interval 2: Craig et al. 2023 GOE (2.43 to 2.22 Ga)
       const xCraigStart = xForGa(2.43);
       const xCraigEnd = xForGa(2.22);
       ctx.fillStyle = "rgba(210, 153, 34, 0.2)";
       ctx.strokeStyle = "rgba(227, 179, 65, 0.7)";
-      ctx.fillRect(xCraigStart, yAxis - 26 * dpr, xCraigEnd - xCraigStart, 14 * dpr);
-      ctx.strokeRect(xCraigStart, yAxis - 26 * dpr, xCraigEnd - xCraigStart, 14 * dpr);
+      ctx.fillRect(xCraigStart, yAxis - 24 * dpr, xCraigEnd - xCraigStart, 14 * dpr);
+      ctx.strokeRect(xCraigStart, yAxis - 24 * dpr, xCraigEnd - xCraigStart, 14 * dpr);
       ctx.fillStyle = "#e3b341";
-      ctx.fillText("GOE: Craig 2023 (2.43 to 2.22 Ga)", xCraigStart + 4 * dpr, yAxis - 16 * dpr);
+      ctx.fillText("GOE: Craig 2023 (2.43 to 2.22 Ga)", xCraigStart + 4 * dpr, yAxis - 14 * dpr);
 
       // Dated Marker: Oklo Natural Reactors (1.95 +/- 0.04 Ga)
       const xOklo = xForGa(1.95);
@@ -505,38 +505,38 @@
       ctx.strokeStyle = "#f85149";
       ctx.lineWidth = 2 * dpr;
       ctx.beginPath();
-      ctx.moveTo(xOkloLo, yAxis - 22 * dpr);
-      ctx.lineTo(xOkloHi, yAxis - 22 * dpr);
-      ctx.moveTo(xOkloLo, yAxis - 26 * dpr);
-      ctx.lineTo(xOkloLo, yAxis - 18 * dpr);
-      ctx.moveTo(xOkloHi, yAxis - 26 * dpr);
+      ctx.moveTo(xOkloLo, yAxis - 18 * dpr);
       ctx.lineTo(xOkloHi, yAxis - 18 * dpr);
+      ctx.moveTo(xOkloLo, yAxis - 22 * dpr);
+      ctx.lineTo(xOkloLo, yAxis - 14 * dpr);
+      ctx.moveTo(xOkloHi, yAxis - 22 * dpr);
+      ctx.lineTo(xOkloHi, yAxis - 14 * dpr);
       ctx.stroke();
 
       // Oklo central diamond marker
       ctx.fillStyle = "#f85149";
       ctx.beginPath();
-      ctx.moveTo(xOklo, yAxis - 27 * dpr);
-      ctx.lineTo(xOklo + 5 * dpr, yAxis - 22 * dpr);
-      ctx.lineTo(xOklo, yAxis - 17 * dpr);
-      ctx.lineTo(xOklo - 5 * dpr, yAxis - 22 * dpr);
+      ctx.moveTo(xOklo, yAxis - 23 * dpr);
+      ctx.lineTo(xOklo + 5 * dpr, yAxis - 18 * dpr);
+      ctx.lineTo(xOklo, yAxis - 13 * dpr);
+      ctx.lineTo(xOklo - 5 * dpr, yAxis - 18 * dpr);
       ctx.closePath();
       ctx.fill();
 
       ctx.fillStyle = "#f85149";
       ctx.textAlign = "center";
-      ctx.fillText("Oklo 1.95 +/- 0.04 Ga", xOklo, yAxis - 32 * dpr);
+      ctx.fillText("Oklo 1.95 +/- 0.04 Ga", xOklo, yAxis - 27 * dpr);
 
       // Interval 3: Craig 2023 Eukaryogenesis (2.04 to 1.79 Ga core)
       const xEukStart = xForGa(2.04);
       const xEukEnd = xForGa(1.79);
       ctx.fillStyle = "rgba(147, 51, 234, 0.22)";
       ctx.strokeStyle = "rgba(168, 85, 247, 0.7)";
-      ctx.fillRect(xEukStart, yAxis - 58 * dpr, xEukEnd - xEukStart, 10 * dpr);
-      ctx.strokeRect(xEukStart, yAxis - 58 * dpr, xEukEnd - xEukStart, 10 * dpr);
+      ctx.fillRect(xEukStart, yAxis - 60 * dpr, xEukEnd - xEukStart, 14 * dpr);
+      ctx.strokeRect(xEukStart, yAxis - 60 * dpr, xEukEnd - xEukStart, 14 * dpr);
       ctx.fillStyle = "#c084fc";
       ctx.textAlign = "left";
-      ctx.fillText("Eukaryogenesis core: 2.04 to 1.79 Ga", xEukStart + 4 * dpr, yAxis - 62 * dpr);
+      ctx.fillText("Eukaryogenesis core: 2.04 to 1.79 Ga", xEukStart + 4 * dpr, yAxis - 49 * dpr);
     }
   }
 

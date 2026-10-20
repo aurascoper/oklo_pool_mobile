@@ -106,6 +106,51 @@
         coordinate_system: "FRAME_FIXTURE_GRID",
         known_limitations: "Not a thermal-hydraulic solution. Prescribed algebraic temperature function; must not be used to state historical temperatures at Oklo."
       },
+      oklo_hydration_v0: {
+        model_id: "oklo_hydration_v0",
+        model_version: "0.1.0",
+        evidence_class: "prescribed_analytic_field",
+        specification_version: "CONFORMANCE_FIXTURE_SPEC.md v2.1",
+        units: "dimensionless_saturation",
+        coordinate_system: "FRAME_FIXTURE_GRID",
+        known_limitations: "Prescribed desiccation curve scaling pore saturation between 0.02 and 1.0. Not a two-phase unsaturated flow, Richards equation, or multiphase steam-water transport solution."
+      },
+      oklo_h2_concentration_v0: {
+        model_id: "oklo_h2_concentration_v0",
+        model_version: "0.1.0",
+        evidence_class: "prescribed_analytic_field",
+        specification_version: "CONFORMANCE_FIXTURE_SPEC.md v2.1",
+        units: "dimensionless_proxy_index",
+        coordinate_system: "FRAME_FIXTURE_GRID",
+        known_limitations: "Dimensionless radiolytic proxy index. G-value alone without dose rate, dose integration, and diffusive transport cannot yield physical chemical concentrations."
+      },
+      oklo_u235_ratio_v0: {
+        model_id: "oklo_u235_ratio_v0",
+        model_version: "0.1.0",
+        evidence_class: "prescribed_analytic_field",
+        specification_version: "CONFORMANCE_FIXTURE_SPEC.md v2.1",
+        units: "atom_ratio_u235_u238",
+        coordinate_system: "FRAME_FIXTURE_GRID",
+        known_limitations: "Prescribed spatial depletion gradient anchored at natural baseline 0.00725. Atom ratio is not interchangeable with 0.7204 atom percent. Not a solved neutronics or burnup calculation."
+      },
+      oklo_polymer_yield_v0: {
+        model_id: "oklo_polymer_yield_v0",
+        model_version: "0.1.0",
+        evidence_class: "prescribed_analytic_field",
+        specification_version: "CONFORMANCE_FIXTURE_SPEC.md §3 and FIELD_ONTOLOGY_AMENDMENT_A1.md",
+        units: "arbitrary_units",
+        coordinate_system: "FRAME_FIXTURE_GRID",
+        known_limitations: "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations, and its mass balance closes by construction (Finding R0-8)."
+      },
+      oklo_compartments_v0: {
+        model_id: "oklo_compartments_v0",
+        model_version: "0.1.0",
+        evidence_class: "prescribed_analytic_field",
+        specification_version: "CONFORMANCE_FIXTURE_SPEC.md v2.1",
+        units: "categorical_zone_id",
+        coordinate_system: "FRAME_FIXTURE_GRID",
+        known_limitations: "Prescribed categorical zone indicators (0=Sandstone, 1=Core, 2=Halo, 3=Conduit, 4=Steam Chimney). Schematic geometry, not surveyed subsurface geology or mapped fracture networks."
+      },
       darcy_flow_v1_a4: {
         model_id: "darcy_flow_v1_a4",
         model_version: "1.0.0",

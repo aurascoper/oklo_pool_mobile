@@ -137,13 +137,13 @@
       "evidence_class": "prescribed_analytic_field",
       "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",
       "source_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
-      "specification_version": "CONFORMANCE_FIXTURE_SPEC.md §3",
+      "specification_version": "CONFORMANCE_FIXTURE_SPEC.md §3 and FIELD_ONTOLOGY_AMENDMENT_A1.md",
       "run_receipt": "receipts/m0_conformance_2026-10-17.txt",
       "parameter_set_id": "fixture_v0_phase_cycle",
-      "units": "dimensionless_oligomer_index",
+      "units": "arbitrary_units",
       "coordinate_system": "lattice_indices_32x32x32",
       "uncertainty": null,
-      "known_limitations": "Hypothetical oligomer surrogate index. Mass balance closes by construction (Finding R0-8); not evidence of prebiotic polymer synthesis, polymerization kinetics, or RNA formation."
+      "known_limitations": "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations, and its mass balance closes by construction (Finding R0-8); not evidence of prebiotic polymer synthesis, polymerization kinetics, or RNA formation."
     },
     {
       "model_id": "oklo_compartments_v0",

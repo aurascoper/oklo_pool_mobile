@@ -203,6 +203,9 @@
     const fieldRadios = document.querySelectorAll("input[name='fieldSelect']");
     fieldRadios.forEach((r) => {
       r.addEventListener("change", () => {
+        document.querySelectorAll("#stage3Controls .radio-item").forEach((el) => el.classList.remove("selected"));
+        const parentItem = r.closest(".radio-item");
+        if (parentItem) parentItem.classList.add("selected");
         const fi = parseInt(r.value, 10);
         stage3.setField(fi);
         updateHUD(3);
@@ -423,8 +426,14 @@
       const radio = document.querySelector("input[name='fieldSelect'][value='5']");
       if (radio) {
         radio.checked = true;
+        document.querySelectorAll("#stage3Controls .radio-item").forEach((el) => el.classList.remove("selected"));
+        const parentItem = radio.closest(".radio-item");
+        if (parentItem) parentItem.classList.add("selected");
         stage3.setField(5);
         updateHUD(3);
+      }
+      if ($("btnViewSlices")) {
+        $("btnViewSlices").click();
       }
     } else if (hash === "#stage4") {
       setStage(4, false);

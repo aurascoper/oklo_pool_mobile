@@ -161,12 +161,29 @@
    * @param {number} pitch Elevation angle in radians
    * @param {number} dist Distance from target
    * @param {[number, number, number]} target Look-at center point
-   * @returns {{pos: number[], fwd: number[], right: number[], up: number[]}}
+   * @param {string} upAxis World up axis: "Y" for globe, "Z" for local [i,j,k] block where +k is up
+   * @returns {{pos: number[], fwd: number[], right: number[], up: number[], target: number[]}}
    */
-  function computeCameraBasis(yaw, pitch, dist, target = [0, 0, 0]) {
+  function computeCameraBasis(yaw, pitch, dist, target = [0, 0, 0], upAxis = "Y") {
     const clampedPitch = Math.max(-1.45, Math.min(1.45, pitch));
     const cp = Math.cos(clampedPitch);
     const sp = Math.sin(clampedPitch);
+
+    if (upAxis === "Z") {
+      const pos = [
+        target[0] + dist * cp * Math.cos(yaw),
+        target[1] + dist * cp * Math.sin(yaw),
+        target[2] + dist * sp
+      ];
+      const fwd = vNorm(vSub(target, pos));
+      const worldUp = [0, 0, 1];
+      let right = vNorm(vCross(fwd, worldUp));
+      if (Math.hypot(...right) < 1e-4) {
+        right = [1, 0, 0];
+      }
+      const up = vNorm(vCross(right, fwd));
+      return { pos, fwd, right, up, target };
+    }
 
     const pos = [
       target[0] + dist * cp * Math.cos(yaw),

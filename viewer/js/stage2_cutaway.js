@@ -119,7 +119,7 @@
     }
 
     projectPoint(p, w, h) {
-      const cam = SpatialEngine.computeCameraBasis(this.yaw, this.pitch, this.dist, this.target);
+      const cam = SpatialEngine.computeCameraBasis(this.yaw, this.pitch, this.dist, this.target, "Z");
       const r = SpatialEngine.vSub(p, cam.pos);
       const z = SpatialEngine.vDot(cam.fwd, r);
       if (z <= 0.01) return null;
@@ -158,10 +158,8 @@
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      const cam = SpatialEngine.computeCameraBasis(this.yaw, this.pitch, this.dist, this.target);
-
       // Draw 3D bounding box corners and wireframe
-      // Unit cube [0, 1]^3
+      // Unit cube [0, 1]^3 with k (Z) pointing upward
       const corners = [
         [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], // Bottom face (k=0)
         [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]  // Top face (k=1)
@@ -169,36 +167,109 @@
 
       const projCorners = corners.map((p) => this.projectPoint(p, w, h));
 
-      // Draw Sandstone base block if enabled
+      // Draw Sandstone host cutaway faces (Zone 0) if enabled
       if (this.visibleLayers.sandstone && projCorners.every(Boolean)) {
-        // Subtle shaded faces of unit block
-        ctx.fillStyle = "rgba(216, 199, 159, 0.06)";
+        // Base plane (k=0)
+        ctx.fillStyle = "rgba(216, 199, 159, 0.14)";
         ctx.beginPath();
-        // Base plane
         ctx.moveTo(projCorners[0][0], projCorners[0][1]);
         ctx.lineTo(projCorners[1][0], projCorners[1][1]);
         ctx.lineTo(projCorners[2][0], projCorners[2][1]);
         ctx.lineTo(projCorners[3][0], projCorners[3][1]);
         ctx.closePath();
         ctx.fill();
+
+        // Back cutaway walls (x=0 and y=1) showing sandstone matrix
+        ctx.fillStyle = "rgba(216, 199, 159, 0.08)";
+        ctx.beginPath();
+        ctx.moveTo(projCorners[0][0], projCorners[0][1]);
+        ctx.lineTo(projCorners[3][0], projCorners[3][1]);
+        ctx.lineTo(projCorners[7][0], projCorners[7][1]);
+        ctx.lineTo(projCorners[4][0], projCorners[4][1]);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(216, 199, 159, 0.06)";
+        ctx.beginPath();
+        ctx.moveTo(projCorners[3][0], projCorners[3][1]);
+        ctx.lineTo(projCorners[2][0], projCorners[2][1]);
+        ctx.lineTo(projCorners[6][0], projCorners[6][1]);
+        ctx.lineTo(projCorners[7][0], projCorners[7][1]);
+        ctx.closePath();
+        ctx.fill();
       }
 
-      // Draw Alteration Halo (Zone 2)
+      // Draw Alteration Halo (Zone 2) around [0.5, 0.5, 0.35]
       if (this.visibleLayers.halo) {
-        // Annular shell around core center [0.5, 0.5, 0.35]
         const haloCenter = [0.5, 0.5, 0.35];
         const projHalo = this.projectPoint(haloCenter, w, h);
         if (projHalo) {
-          ctx.strokeStyle = "rgba(142, 168, 108, 0.65)";
-          ctx.fillStyle = "rgba(142, 168, 108, 0.15)";
-          ctx.lineWidth = 1.5 * dpr;
-          // Approximate ellipse projection
-          const rx = 55 * dpr * (2.6 / this.dist);
-          const ry = 36 * dpr * (2.6 / this.dist);
+          ctx.strokeStyle = "rgba(142, 168, 108, 0.85)";
+          ctx.fillStyle = "rgba(142, 168, 108, 0.24)";
+          ctx.lineWidth = 2 * dpr;
+          const rx = 95 * dpr * (2.6 / this.dist);
+          const ry = 56 * dpr * (2.6 / this.dist);
           ctx.beginPath();
           ctx.ellipse(projHalo[0], projHalo[1], rx, ry, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
+
+          ctx.font = `${Math.round(10 * dpr)}px -apple-system, sans-serif`;
+          ctx.fillStyle = "#a8c686";
+          ctx.textAlign = "right";
+          ctx.fillText("Alteration Halo (Zone 2)", projHalo[0] - rx - 8 * dpr, projHalo[1] + 4 * dpr);
+        }
+      }
+
+      // Draw Fracture Conduit (Zone 3: vertical column from k=11/32 to k=24/32)
+      if (this.visibleLayers.conduit) {
+        const pBottom = this.projectPoint([0.5, 0.5, 0.35], w, h);
+        const pTop = this.projectPoint([0.5, 0.5, 0.75], w, h);
+        if (pBottom && pTop) {
+          ctx.strokeStyle = "rgba(60, 127, 192, 0.85)";
+          ctx.lineWidth = 26 * dpr * (2.6 / this.dist);
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(pBottom[0], pBottom[1]);
+          ctx.lineTo(pTop[0], pTop[1]);
+          ctx.stroke();
+          ctx.lineCap = "butt";
+
+          ctx.font = `${Math.round(11 * dpr)}px -apple-system, sans-serif`;
+          ctx.fillStyle = "#58a6ff";
+          ctx.textAlign = "left";
+          ctx.fillText("Fracture Conduit (Zone 3)", pTop[0] + 22 * dpr, (pBottom[1] + pTop[1]) * 0.5);
+        }
+      }
+
+      // Draw Steam Chimney (Zone 4: upper conduit k >= 24/32 = 0.75 to 1.0)
+      if (this.visibleLayers.chimney) {
+        const pChimneyBot = this.projectPoint([0.5, 0.5, 0.75], w, h);
+        const pChimneyTop = this.projectPoint([0.5, 0.5, 0.96], w, h);
+        if (pChimneyBot && pChimneyTop) {
+          ctx.strokeStyle = "rgba(240, 238, 232, 0.75)";
+          ctx.lineWidth = 30 * dpr * (2.6 / this.dist);
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(pChimneyBot[0], pChimneyBot[1]);
+          ctx.lineTo(pChimneyTop[0], pChimneyTop[1]);
+          ctx.stroke();
+          ctx.lineCap = "butt";
+
+          ctx.strokeStyle = "rgba(240, 238, 232, 0.9)";
+          ctx.fillStyle = "rgba(240, 238, 232, 0.35)";
+          ctx.lineWidth = 1.5 * dpr;
+          const rx = 28 * dpr * (2.6 / this.dist);
+          const ry = 14 * dpr * (2.6 / this.dist);
+          ctx.beginPath();
+          ctx.ellipse(pChimneyTop[0], pChimneyTop[1], rx, ry, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.font = `${Math.round(11 * dpr)}px -apple-system, sans-serif`;
+          ctx.fillStyle = "rgba(240, 238, 232, 0.95)";
+          ctx.textAlign = "left";
+          ctx.fillText("Steam Chimney (Zone 4, k >= 24)", pChimneyTop[0] + rx + 10 * dpr, pChimneyTop[1] + 4 * dpr);
         }
       }
 
@@ -207,65 +278,21 @@
         const coreCenter = [0.5, 0.5, 0.35];
         const projCore = this.projectPoint(coreCenter, w, h);
         if (projCore) {
-          ctx.strokeStyle = "#8b3da6";
-          ctx.fillStyle = "rgba(107, 45, 130, 0.75)";
+          ctx.strokeStyle = "#b565d9";
+          ctx.fillStyle = "rgba(107, 45, 130, 0.88)";
           ctx.lineWidth = 2 * dpr;
-          const rx = 32 * dpr * (2.6 / this.dist);
-          const ry = 22 * dpr * (2.6 / this.dist);
+          const rx = 54 * dpr * (2.6 / this.dist);
+          const ry = 32 * dpr * (2.6 / this.dist);
           ctx.beginPath();
           ctx.ellipse(projCore[0], projCore[1], rx, ry, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
 
           // Core label
-          ctx.font = `${Math.round(11 * dpr)}px -apple-system, sans-serif`;
+          ctx.font = `600 ${Math.round(11 * dpr)}px -apple-system, sans-serif`;
           ctx.fillStyle = "#ffffff";
           ctx.textAlign = "center";
-          ctx.fillText("Reactor Core", projCore[0], projCore[1] + 4 * dpr);
-        }
-      }
-
-      // Draw Fracture Conduit (Zone 3)
-      if (this.visibleLayers.conduit) {
-        const pBottom = this.projectPoint([0.5, 0.5, 0.35], w, h);
-        const pTop = this.projectPoint([0.5, 0.5, 0.85], w, h);
-        if (pBottom && pTop) {
-          ctx.strokeStyle = "#3c7fc0";
-          ctx.lineWidth = 8 * dpr * (2.6 / this.dist);
-          ctx.beginPath();
-          ctx.moveTo(pBottom[0], pBottom[1]);
-          ctx.lineTo(pTop[0], pTop[1]);
-          ctx.stroke();
-
-          ctx.strokeStyle = "rgba(100, 180, 255, 0.8)";
-          ctx.lineWidth = 2 * dpr;
-          ctx.stroke();
-
-          ctx.font = `${Math.round(10 * dpr)}px -apple-system, sans-serif`;
-          ctx.fillStyle = "#58a6ff";
-          ctx.textAlign = "left";
-          ctx.fillText("Fracture Conduit", pTop[0] + 12 * dpr, (pBottom[1] + pTop[1]) * 0.5);
-        }
-      }
-
-      // Draw Steam Chimney (Zone 4)
-      if (this.visibleLayers.chimney) {
-        const pChimney = this.projectPoint([0.5, 0.5, 0.9], w, h);
-        if (pChimney) {
-          ctx.strokeStyle = "rgba(240, 238, 232, 0.8)";
-          ctx.fillStyle = "rgba(240, 238, 232, 0.25)";
-          ctx.lineWidth = 1.5 * dpr;
-          const rx = 24 * dpr * (2.6 / this.dist);
-          const ry = 14 * dpr * (2.6 / this.dist);
-          ctx.beginPath();
-          ctx.ellipse(pChimney[0], pChimney[1], rx, ry, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.font = `${Math.round(10 * dpr)}px -apple-system, sans-serif`;
-          ctx.fillStyle = "rgba(240, 238, 232, 0.9)";
-          ctx.textAlign = "center";
-          ctx.fillText("Steam Chimney (k >= 24)", pChimney[0], pChimney[1] - 18 * dpr);
+          ctx.fillText("Reactor Core (Zone 1)", projCore[0], projCore[1] + 4 * dpr);
         }
       }
 

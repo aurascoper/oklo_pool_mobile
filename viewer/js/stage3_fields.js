@@ -55,12 +55,12 @@
     },
     {
       id: "polymer_yield",
-      name: "Polymer Index",
-      unit: "index; labelled umol/L with no kinetic basis",
+      name: "Polymer accumulation index",
+      unit: "arbitrary units (revision-0 fixture labels this in umol/L with no kinetic or thermodynamic basis)",
       cmap: "magma",
       digits: 3,
       invert: false,
-      limit: "Not evidence of polymerization at Oklo or anywhere. Mass balance closes by construction (Finding R0-8)."
+      limit: "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations, and its mass balance closes by construction (Finding R0-8)."
     },
     {
       id: "compartments",
@@ -509,7 +509,7 @@
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
-      const cam = SpatialEngine.computeCameraBasis(this.yaw, this.pitch, this.dist, [0.5, 0.5, 0.5]);
+      const cam = SpatialEngine.computeCameraBasis(this.yaw, this.pitch, this.dist, [0.5, 0.5, 0.5], "Z");
       gl.uniform3fv(this.uni.camPos, cam.pos);
       gl.uniform3fv(this.uni.camRight, cam.right);
       gl.uniform3fv(this.uni.camUp, cam.up);
