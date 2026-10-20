@@ -13,8 +13,8 @@
     "total_field_volumes": 120,
     "target_1_host_rust": "PASS",
     "target_2_ios_package": "PASS",
-    "target_3_ios_simulator": "BLOCKED",
-    "target_4_android_emulator": "BLOCKED"
+    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, 120/120 volumes bitwise equal)",
+    "target_4_android_emulator": "PASS (arm64-v8a API 36 emulator, 120/120 volumes bitwise equal; x86_64 build-verified, host-arch runtime blocked)"
   },
   "cases": [
     {
