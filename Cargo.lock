@@ -31,6 +31,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "conformance_cf2"
+version = "0.1.0"
+dependencies = [
+ "oklo_core",
+]
+
+[[package]]
 name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
