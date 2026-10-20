@@ -130,6 +130,7 @@ public enum PrescribedCurves {
 
         // Generate genuine 60-frame series using OkloSim
         for frame in 0..<totalFrames {
+            guard !Task.isCancelled else { break }
             let p = Double(frame) / Double(totalFrames)
             let timeMin = p * (cyclePeriodSeconds / 60.0)
 
@@ -218,6 +219,7 @@ public enum PrescribedCurves {
         statsList.reserveCapacity(totalFrames)
 
         for frame in 0..<totalFrames {
+            guard !Task.isCancelled else { break }
             let p = Double(frame) / Double(totalFrames)
             let timeMin = p * (cyclePeriodSeconds / 60.0)
 

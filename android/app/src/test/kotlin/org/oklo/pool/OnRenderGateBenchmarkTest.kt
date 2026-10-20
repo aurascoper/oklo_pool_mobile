@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.oklo.pool.bridge.OkloSim
 import kotlin.math.ceil
 
 class OnRenderGateBenchmarkTest {
@@ -141,7 +142,8 @@ class OnRenderGateBenchmarkTest {
             model.seek(0.25)
             val w3 = model.fieldValues()
             model.seek(0.15)
-            assertTrue(w1.isNotEmpty() && w2.isNotEmpty() && w3.isNotEmpty())
+            val w4 = model.fieldStatsSeries(0, 0.17, false)
+            assertTrue(w1.isNotEmpty() && w2.isNotEmpty() && w3.isNotEmpty() && w4.isNotEmpty())
         }
 
         // Budget 1: Initial model and slice generation <= 100 ms
@@ -188,9 +190,9 @@ class OnRenderGateBenchmarkTest {
         println("Android Budget 2 (Field switching): median=${"%.2f".format(switchMedian)} ms, p95=${"%.2f".format(switchP95)} ms, threshold=50.0 ms")
         assertTrue("Budget 2 field switching <= 50 ms", switchP95 <= 50.0)
 
-        // Budget 3: Uncached 60-frame chart calculation <= 400 ms
+        // Budget 3a: Uncached 60-frame chart calculation <= 400 ms (N=20)
         val chartTimes = mutableListOf<Double>()
-        repeat(10) {
+        repeat(20) {
             val t0 = System.nanoTime()
             val series = model.fieldStatsSeries(0, 0.17, false)
             val t1 = System.nanoTime()
@@ -203,6 +205,31 @@ class OnRenderGateBenchmarkTest {
         val chartP95 = chartTimes[ceil(0.95 * chartTimes.size).toInt() - 1]
         println("Android Budget 3 (60-frame chart): median=${"%.2f".format(chartMedian)} ms, p95=${"%.2f".format(chartP95)} ms, threshold=400.0 ms")
         assertTrue("Budget 3 chart calculation <= 400 ms", chartP95 <= 400.0)
+
+        // Budget 3b: Full 6-field 60-frame precomputation diagnostic (N=5, 360 volumes)
+        val fullSeriesTimes = mutableListOf<Double>()
+        repeat(5) {
+            val t0 = System.nanoTime()
+            val values = FloatArray(OkloSim.VOXELS)
+            val fullMap = (0..5).associateWith { mutableListOf<FieldStats>() }
+            (0..59).forEach { frame ->
+                val p = frame / 60.0
+                OkloSim.create(p, 0.17, false).use { sim ->
+                    for (fieldId in 0..5) {
+                        sim.copyField(fieldId, values)
+                        fullMap[fieldId]!!.add(FieldStats.summarize(p, fieldId, values))
+                    }
+                }
+            }
+            val t1 = System.nanoTime()
+            val elapsedMs = (t1 - t0) / 1_000_000.0
+            fullSeriesTimes.add(elapsedMs)
+            assertEquals(60, fullMap[0]?.size)
+        }
+        fullSeriesTimes.sort()
+        val fullMedian = fullSeriesTimes[fullSeriesTimes.size / 2]
+        val fullP95 = fullSeriesTimes[fullSeriesTimes.size - 1]
+        println("Android Full 6-field 60-frame precomputation: median=${"%.2f".format(fullMedian)} ms, p95=${"%.2f".format(fullP95)} ms (360 volumes)")
 
         // Budget 4: Volume frame <= 100 ms (16 isometric projection slices)
         val volumeTimes = mutableListOf<Double>()
