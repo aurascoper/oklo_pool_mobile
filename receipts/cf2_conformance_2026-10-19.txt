@@ -1,6 +1,9 @@
 oklo_pool_mobile CF-2 cross-platform conformance receipt
-generated_utc: 2026-10-19T03:00:00Z
-git_head: 041d1bab092553798dec6f7b84df1edfbe417ab4 (branch conformance/cf2-suite)
+generated_utc: 2026-10-20T03:50:00Z
+git_head: f81b76725f11c47a1413031f1ffaebe3b362b373 (branch conformance/cf2-suite)
+tested_source_commit: f81b76725f11c47a1413031f1ffaebe3b362b373
+worktree_clean_at_test: true
+main_base_commit: 041d1bab092553798dec6f7b84df1edfbe417ab4
 scope: 20 cases (5 phases x 2 scenarios x 2 pulse boundaries) across 6 fields (120 field volumes), plus seed invariance control
 policy: reference implementation derived independently from CONFORMANCE_FIXTURE_SPEC.md section 3; no parameter, equation, or threshold was modified to force agreement. Tolerances declared in advance: relative 1e-6 for continuous fields, exact match for categorical compartments.
 
@@ -36,15 +39,15 @@ d3ba9a2509ed1b28968900b1faf4339fb2c6360ce0844f15d0c1ce7e961910fc  oklo_compartme
 05e4a32182eb7c905257f3d1261e222c6cfb4fd9ca714572c1bdafdb4bd73fa6  tests/conformance_cf2/src/reference.rs
 20251090989b521eff411a7d607307c44ba3c096e3ed153bf39c41834e367435  tests/conformance_cf2/src/matrix.rs
 7ce429efe17536f76dbe94c2d3633d34b8acba18147544ef7e606727942d0c46  tests/conformance_cf2/src/sha256.rs
-01e483d01cdc8e15b65348bafdd95a78801e048eaa705fa01ad7e99b70666d11  tests/conformance_cf2/src/bin/cf2_receipt.rs
+9531b9179d12db6aea092333d53b712c77a2f1d9008fd4e55a6deb0eb5d642c4  tests/conformance_cf2/src/bin/cf2_receipt.rs
 fb6b2a1a34bde49b2f9d1cb6307b17f7d7c1978567a12077375855d187eb5f07  tests/conformance_cf2/tests/cf2_suite.rs
 6eef678951a52e4b909e833061d8920eaed76dda72b46d0c9750862b299517cc  scripts/cf2_reference.py
 
 == verification summary
-Target 1 (Host Rust, macOS aarch64): PASS (20 of 20 cases pass, 120 of 120 fields within tolerance, seed invariance confirmed)
-Target 2 (iOS OkloCoreKit, macOS slice): PASS (20 of 20 cases pass, C ABI round-trip verified, arrays match reference)
-Target 3 (iOS Simulator, aarch64-apple-ios-sim, iPhone 17 iOS 27.0): PASS (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via OkloAppModelTests/testCf2TwentyCaseMatrixMatchesReference)
-Target 4 (Android emulator, arm64-v8a API 36): PASS (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference; x86_64 JNI build-verified, runtime host-architecture blocked on Apple Silicon)
+Target 1 (Host Rust, macOS aarch64, tested_source_commit f81b76725f11c47a1413031f1ffaebe3b362b373): PASS (20 of 20 cases pass, 120 of 120 fields within tolerance, seed invariance confirmed)
+Target 2 (iOS OkloCoreKit, macOS slice, tested_source_commit f81b76725f11c47a1413031f1ffaebe3b362b373): PASS (20 of 20 cases pass, C ABI round-trip verified, arrays match reference)
+Target 3 (iOS Simulator, aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 2db67d4ce3526bb2968954fecdba6ade7a991b02 on ios/v1-app): PASS (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via OkloAppModelTests/testCf2TwentyCaseMatrixMatchesReference)
+Target 4 (Android emulator, arm64-v8a API 36, tested_source_commit 30bbe03bdffe80d09a5242508d4b5fab19289c04 on android/v1-app): PASS on arm64-v8a emulator (20 of 20 cases, 120 of 120 field volumes match reference SHA-256 bit-for-bit via NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference); x86_64 JNI build-verified, runtime not tested (host-architecture blocked on Apple Silicon)
 
 == Target 1: cargo test --release -p conformance_cf2 -- --nocapture
    Compiling conformance_cf2 v0.1.0 (/Users/aurascoper/Developer/oklo_pool_mobile/tests/conformance_cf2)
@@ -120,12 +123,14 @@ exit_status: 0
 
 == Target 3: iOS Simulator evaluation (aarch64-apple-ios-sim)
 status: PASS
+tested_source_commit: 2db67d4ce3526bb2968954fecdba6ade7a991b02 (branch ios/v1-app, receipt commit 4742bb57dab2ee175777c5991cca8c05a4f43080, worktree_clean_at_test: true)
 device: iPhone 17 (UDID 646CF1C6-8720-4906-B73B-FD46ACAA8EF0, iOS 27.0 24A5297g, arm64)
 command: xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'platform=iOS Simulator,id=646CF1C6-8720-4906-B73B-FD46ACAA8EF0'
 result: Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' passed (0.713 seconds). All 20 CF-2 cases (120 3D field volumes) matched reference SHA-256 digests bit-for-bit. Full suite: 14 of 14 tests passed (10 unit + 4 UI). See receipts/ios_simulator_test_2026-10-19.txt on branch ios/v1-app (SHA-256 9e75c60ca4259cdb2eb5672a6f02857494f4dea89101bc987831d149f7779a5d).
 
-== Target 4: Android emulator evaluation (arm64-v8a API 36; x86_64 build-verified)
-status: PASS (arm64-v8a runtime and build) / BLOCKED (x86_64 runtime on Apple Silicon host)
+== Target 4: Android emulator evaluation (arm64-v8a API 36; x86_64 build-verified, runtime not tested)
+status: PASS (arm64-v8a runtime and build) / NOT TESTED AT RUNTIME (x86_64 JNI build-verified, runtime blocked on Apple Silicon host)
+tested_source_commit: 30bbe03bdffe80d09a5242508d4b5fab19289c04 (branch android/v1-app, receipt commit 7edcd0ed58f233630ddf579d96dff859beeeb6c8, worktree_clean_at_test: true)
 device: Android Emulator oklo-api36 (system-images;android-36;google_apis;arm64-v8a, Android 16 / API 36)
 command: adb shell am instrument -w -r org.oklo.pool.test/androidx.test.runner.AndroidJUnitRunner
 result: org.oklo.pool.bridge.NativeBridgeTest#cf2TwentyCaseMatrixMatchesReference PASSED. All 20 CF-2 cases (120 3D field volumes) matched reference SHA-256 digests bit-for-bit over JNI. Full suite: 11 of 11 instrumented tests passed (46.945 seconds). Both arm64-v8a and x86_64 JNI libraries compiled with 16 KB ELF PT_LOAD alignment. See receipts/android_emulator_test_2026-10-19.txt on branch android/v1-app (SHA-256 627bfea9dd43f2488add185f7984ca75d29c384dfe8a2ae4900ff68c7d9d1e0c).
