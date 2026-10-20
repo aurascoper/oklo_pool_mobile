@@ -1,23 +1,24 @@
 # Apple App Privacy draft
 
-Status: **UNVERIFIED. Do not submit.** The App Privacy answers must describe the final built app and all included third-party code. Runtime network behavior and the final signed package have not been verified.
+Status: **EVIDENCE-BACKED DRAFT (Pending Account-Owner Signed Archive Review and Console Entry).** Source audit, Swift package dependency graph inspection, and iOS 27.0 Simulator runtime socket inspection (`ZERO_INET_SOCKETS`) support a "Data Not Collected" disclosure. The account owner must confirm this against the final signed `.ipa` archive before submitting in App Store Connect.
 
-## Source-level review
+## Source, dependency, and runtime review
 
-The iOS app declares Apple platform frameworks and the local `OkloCoreKit` Rust wrapper. `swift package show-dependencies --format text` reports no external Swift package dependencies. No third-party analytics, advertising, or attribution SDK is declared. Static source inspection found no app networking client, tracking code, account flow, or data-access usage description. These findings do not prove the absence of runtime transmission.
+- The iOS app (`ios/OkloPool`) uses Apple system frameworks (`SwiftUI`, `Charts`, `MetalKit`) and the local `OkloCoreKit` Swift wrapper around the Rust `oklo_core` static library.
+- `swift package show-dependencies --format text` reports zero external Swift package dependencies.
+- Static source inspection found no networking client (`URLSession`, `NWConnection`, `WKWebView`), no analytics or advertising SDK, no account flow, no `UserDefaults` or file-system telemetry, and no sensitive permission usage descriptions.
+- Runtime verification on the booted `iPhone 17` simulator (iOS 27.0 `arm64`, PID `47404`) during and after full UI exercise confirmed zero open `IPv4` or `IPv6` sockets (`lsof -n -P -i -a -p 47404` -> `ZERO_INET_SOCKETS`). See `receipts/ios_simulator_test_2026-10-19.txt`.
 
-## App Store Connect answers to determine
+## Proposed App Store Connect answers
 
-| Topic | Current status | Required evidence before entry |
+| Topic | Proposed answer | Evidence and remaining account-owner check |
 | --- | --- | --- |
-| Data collected | UNVERIFIED | Signed release package review and runtime network capture. |
-| Data linked to the user | UNVERIFIED | Final data inventory and service behavior. |
-| Data used for tracking | UNVERIFIED | Final SDK/domain review and runtime test. |
-| Privacy policy URL | BLOCKED | Publish the approved policy at a real public HTTPS URL. |
-| Age rating | NOT ENTERED | Account owner completes the current questionnaire. |
+| Do you or your third-party partners collect data from this app? | **No** (Data Not Collected) | Supported by source review, empty external dependency graph, and simulator runtime socket check (`ZERO_INET_SOCKETS`). Confirm on final signed `.ipa` archive before submitting. |
+| Data linked to the user | **None** | No user accounts, identifiers, or network transmissions exist in the app. |
+| Data used to track the user | **None** | No tracking SDK, advertising identifier (`IDFA`), or external network request is present. |
+| Privacy policy URL | **Required before submission** | Host `docs/store/privacy-policy.html` at a public HTTPS URL after filling in the publisher name and support email. |
+| Age rating | **Account-owner questionnaire** | Complete in App Store Connect (the app contains scientific visualization only, with no violence, user-generated content, commerce, or unrestricted web access). |
 
-If final evidence supports no data collection, choose the corresponding App Store Connect answers then. No category is selected in this draft.
+## Privacy manifest (`PrivacyInfo.xcprivacy`) and third-party code
 
-## Privacy manifest and third-party code
-
-Apple's `PrivacyInfo.xcprivacy` format records collected data, tracking, and required-reason API access. Apple also requires valid manifests from specified commonly used third-party SDKs. The resolved Swift package graph is empty; the local Rust core is built into the app. Recheck the final archive and current Apple SDK requirements before submission. Do not add a manifest that declares no collected data until the runtime and API audits are complete. See [Apple privacy manifest documentation](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files?changes=_8) and [third-party SDK manifest guidance](https://developer.apple.com/documentation/bundleresources/adding-a-privacy-manifest-to-your-app-or-third-party-sdk?changes=_8).
+Apple's `PrivacyInfo.xcprivacy` records data collection, tracking, and required-reason API usage. Neither `OkloPool` nor `OkloCoreKit` calls required-reason APIs (`UserDefaults`, file timestamp APIs, system boot time APIs, disk space APIs, or active keyboard APIs) or embeds third-party SDKs. When creating the signed distribution archive in Xcode, verify whether current App Store Connect upload validation requests an explicit `PrivacyInfo.xcprivacy` with `NSPrivacyTracking = false`, `NSPrivacyCollectedDataTypes = []`, and `NSPrivacyAccessedAPITypes = []`. See [Apple privacy manifest documentation](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files?changes=_8).
