@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071b2c"/>
+      <stop offset="1" stop-color="#123e55"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9bf3df"/>
+      <stop offset="1" stop-color="#39b8b1"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#46c9bd"/>
+      <stop offset="1" stop-color="#177c90"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#218d9e"/>
+      <stop offset="1" stop-color="#15506d"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="520" cy="470" r="225" fill="#54ded0" opacity=".18" filter="url(#glow)"/>
+  <path d="M512 218 794 374 512 531 230 374Z" fill="url(#top)"/>
+  <path d="M230 374 512 531V845L230 687Z" fill="url(#front)"/>
+  <path d="M794 374 512 531V845L794 687Z" fill="url(#side)"/>
+  <path d="M512 218V531M230 374 512 531 794 374M230 687 512 845 794 687" fill="none" stroke="#d9fff4" stroke-width="18" stroke-linejoin="round" opacity=".8"/>
+  <path d="M317 326 599 482M424 266 706 422" fill="none" stroke="#f3c977" stroke-width="18" stroke-linecap="round" opacity=".95"/>
+  <path d="M512 531V845M230 374V687M794 374V687" fill="none" stroke="#d9fff4" stroke-width="18" stroke-linecap="round" opacity=".58"/>
+</svg>
