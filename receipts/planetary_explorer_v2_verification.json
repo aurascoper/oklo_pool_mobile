@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-10-20T13:45:00Z",
+  "milestone": "Milestone B2: Interactive Globe-to-Cutaway Vertical Slice",
+  "branch": "planetary-explorer/v2-prototype",
+  "environment": {
+    "os": "Darwin 25.1.0 arm64 (macOS)",
+    "node_version": "v26.11.1",
+    "chrome_version": "Google Chrome 155.0.8059.85",
+    "rust_conformance_suite": "cargo test -p oklo_core --locked --test conformance (7/7 passed)"
+  },
+  "screenshots": [
+    {
+      "stage": "Stage 1: Planetary Globe & Paleo Timeline",
+      "path": "receipts/screenshots/v2_stage1_globe.png",
+      "resolution": "1920x1080",
+      "sha256": "cfe9acdca1af9857d02803d9bb7ac8e456e51a19e92713c8b94b613b5b03f9df"
+    },
+    {
+      "stage": "Stage 2: Geological Cutaway Schematic",
+      "path": "receipts/screenshots/v2_stage2_cutaway.png",
+      "resolution": "1920x1080",
+      "sha256": "a27e0be44d8e070201bc7161eb537c91f444893d52a059424fc7d72930608452"
+    },
+    {
+      "stage": "Stage 3: Revision-0 Prescribed Fields (Compartments)",
+      "path": "receipts/screenshots/v2_stage3_field_compartments.png",
+      "resolution": "1920x1080",
+      "sha256": "c9100375ae1d0e235820d9dfd843f85f508dca152b49a393d6964fce761f33f0"
+    },
+    {
+      "stage": "Stage 3: Revision-0 Prescribed Fields (Temperature)",
+      "path": "receipts/screenshots/v2_stage3_field_temperature.png",
+      "resolution": "1920x1080",
+      "sha256": "e1c75e40f37138faab49363dbb19393a9b60f0f2b654a6456565c8634361920e"
+    },
+    {
+      "stage": "Stage 4: Model A Darcy Groundwater Flow",
+      "path": "receipts/screenshots/v2_stage4_darcy_inspection.png",
+      "resolution": "1920x1080",
+      "sha256": "31778e517ac0650bb3782db0dec2f6acd359eb83b9db2ab0f372e181419dbdee"
+    },
+    {
+      "stage": "Stage 4: Model B Uranium Reduction Column",
+      "path": "receipts/screenshots/v2_stage4_uranium_inspection.png",
+      "resolution": "1920x1080",
+      "sha256": "8a05ceb6b4348afa60e5c49142718b24bf195b1d8bd451008b7c94197dd61a6f"
+    }
+  ],
+  "verification_results": {
+    "test_planetary_explorer_v2_js": {
+      "passed": 10,
+      "failed": 0,
+      "suites": [
+        "Spatial: WGS84 to Cartesian and back (round-trip error < 1e-6)",
+        "Spatial: Coordinate boundary rejection",
+        "Spatial: Camera pitch clamping to [-1.45, 1.45] radians",
+        "Timeline: Non-merging of literature definitions in paleo_intervals_v1.json",
+        "Fields: Frame 9 bit-identical SHA-256 hashes against frozen SPEC",
+        "Fields: Non-zero variance across all 6 fields",
+        "Transport: Darcy summary loads and contains 11 configurations with honest D3a failure note",
+        "Transport: Uranium summary loads 144 runs with ledger closure < 1e-10 and positivity",
+        "Epistemic: Models manifest strictly satisfies schema and zero calibrated models",
+        "Typography: Zero em-dashes, zero en-dashes, and zero quarantined terms"
+      ]
+    },
+    "cargo_conformance": {
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        "b_sensitivity_to_gui_boundary_is_detectable",
+        "c_matches_recorded_snapshot",
+        "d_abi_round_trip",
+        "a_matches_python_export_at_recorded_boundary",
+        "f_series_frame_9_matches_fixture_and_cf3_header",
+        "g_temperature_isovalue_160_frames",
+        "e_step_keeps_phase_in_range"
+      ]
+    },
+    "model_manifest_validation": {
+      "passed": 17,
+      "failed": 0,
+      "empirically_calibrated_model_count": 0
+    },
+    "frozen_field_frame9_hashes": {
+      "temperature": "b1cfb69b6a9da0e0266205ea8bb97db465715a31a9caef81b8577ae7c34d3fb0",
+      "hydration": "0da4a682feea1c2a0468971f11cb2bcfe1db83505c2ea0e6fcda751688dbcf2f",
+      "h2_concentration": "14e3661eb1a478be3f3458bf59cfec9bb6aa42bc53d7122a6136d892df9a7be8",
+      "u235_ratio": "747ce7339d1b0682ba76a445ec6c41b80d0d8293796859e21759ea24d26f6345",
+      "polymer_yield": "2722b5e28a5cfef31174ee0fca7a1c775d7e35b71db3f05db5ff99002ae79737",
+      "compartments": "b0196ce22b102b4bb398d5c48b7882269a8421b44ecb391d179c394c8b6d396d"
+    },
+    "typography_audit": {
+      "em_dashes_found": 0,
+      "en_dashes_found": 0,
+      "quarantined_terms_found": 0
+    }
+  }
+}
