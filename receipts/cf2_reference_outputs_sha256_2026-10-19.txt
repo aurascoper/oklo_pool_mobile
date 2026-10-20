@@ -1,6 +1,6 @@
 CF-2 reference run: sha256 of canonical field arrays (little-endian float32, X fastest, 32^3 = 32768 floats = 131072 bytes)
-git_head: f81b76725f11c47a1413031f1ffaebe3b362b373
-tested_source_commit: f81b76725f11c47a1413031f1ffaebe3b362b373
+git_head: ae56062a9f96fe12988a658dd89b3427e244bc9a
+tested_source_commit: ae56062a9f96fe12988a658dd89b3427e244bc9a
 worktree_clean_at_test: true
 main_base_commit: 041d1bab092553798dec6f7b84df1edfbe417ab4
 receipt: receipts/cf2_conformance_2026-10-19.txt

@@ -1,8 +1,8 @@
 {
   "name": "cf2_conformance_matrix",
   "generated_utc": "2026-10-20T03:50:00Z",
-  "git_head": "f81b76725f11c47a1413031f1ffaebe3b362b373",
-  "tested_source_commit": "f81b76725f11c47a1413031f1ffaebe3b362b373",
+  "git_head": "ae56062a9f96fe12988a658dd89b3427e244bc9a",
+  "tested_source_commit": "ae56062a9f96fe12988a658dd89b3427e244bc9a",
   "worktree_clean_at_test": true,
   "main_base_commit": "041d1bab092553798dec6f7b84df1edfbe417ab4",
   "branch": "conformance/cf2-suite",
@@ -14,10 +14,10 @@
   "summary": {
     "total_cases": 20,
     "total_field_volumes": 120,
-    "target_1_host_rust": "PASS (tested_source_commit f81b76725f11c47a1413031f1ffaebe3b362b373)",
-    "target_2_ios_package": "PASS (tested_source_commit f81b76725f11c47a1413031f1ffaebe3b362b373)",
-    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 2db67d4ce3526bb2968954fecdba6ade7a991b02, 120/120 volumes bitwise equal)",
-    "target_4_android_emulator": "PASS on arm64-v8a API 36 emulator (tested_source_commit 30bbe03bdffe80d09a5242508d4b5fab19289c04, 120/120 volumes bitwise equal); x86_64 JNI build-verified, runtime not tested (host-arch blocked)"
+    "target_1_host_rust": "PASS (tested_source_commit ae56062a9f96fe12988a658dd89b3427e244bc9a)",
+    "target_2_ios_package": "PASS (tested_source_commit ae56062a9f96fe12988a658dd89b3427e244bc9a)",
+    "target_3_ios_simulator": "PASS (aarch64-apple-ios-sim, iPhone 17 iOS 27.0, tested_source_commit 8235b1a36e870dd0c0347501129802f546587acd, 120/120 volumes bitwise equal)",
+    "target_4_android_emulator": "PASS on arm64-v8a API 36 emulator (tested_source_commit a4673ec173a8da5c6ddf254edf9c576dbe500449, 120/120 volumes bitwise equal); x86_64 JNI build-verified, runtime not tested (host-arch blocked)"
   },
   "cases": [
     {
