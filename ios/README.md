@@ -101,21 +101,16 @@ The core wrapper tests run on the host macOS toolchain and verify all six fixtur
 
 Result: 5 tests passed (including 6 parameterized bit-for-bit comparisons) in ~0.12 seconds.
 
-### 2. Simulator Runtime Tests (BLOCKED)
+### 2. Simulator Runtime Tests (PASS)
 
-Status: BLOCKED.
-The Simulator application is reported as installed on the Mac. However, `xcrun simctl list runtimes` reports no registered iOS runtimes, and existing iPhone and iPad simulator definitions are unavailable because their iOS 26.5 runtime profile is missing. Generic device and simulator builds, including `build-for-testing`, succeed, but they do not execute UI or lifecycle tests.
+Executed on an iPhone 17 simulator with iOS 27.0 (runtime build 24A434), arm64, using Xcode 27.0 (build 27A266a) on macOS 27.0.1. All 10 unit tests (including the 20-case CF-2 120-volume SHA-256 conformance matrix) and 4 UI tests passed. The run exercised initial model state and field bounds, null scenario, phase and pulse-boundary navigation, lifecycle, Metal uniform layout, app launch, provenance sheet, play/pause, and view-mode switching. The structured result is recorded in `receipts/ios_simulator_test_2026-10-19.md`.
 
-Prerequisite to unblock simulator testing:
-Install an iOS simulator runtime using Xcode:
-```bash
-xcodebuild -downloadPlatform iOS
-```
-Once installed, execute:
+Reproduce after generating the Rust XCFramework:
 ```bash
 xcodebuild -project ios/OkloPool.xcodeproj \
   -scheme OkloPool \
-  -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
+  -destination "platform=iOS Simulator,name=iPhone 17" \
+  CODE_SIGNING_ALLOWED=NO \
   test
 ```
 

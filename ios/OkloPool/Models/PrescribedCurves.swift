@@ -118,7 +118,7 @@ public enum PrescribedCurves {
         }
     }
 
-    public static func computeSeries(pulseBoundary: Double, nullScenario: Bool) -> FieldSeriesStats {
+    nonisolated public static func computeSeries(pulseBoundary: Double, nullScenario: Bool) -> FieldSeriesStats {
         let totalVoxels: Double = 32.0 * 32.0 * 32.0
         var statsMap: [OkloSim.Field: [FrameStat]] = [:]
         var rangeMap: [OkloSim.Field: (min: Double, max: Double)] = [:]
