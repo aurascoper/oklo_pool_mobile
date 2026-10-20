@@ -10,9 +10,11 @@ Recommendation: **NOT STORE-SUBMISSION-READY**
 | PR A conformance | [`conformance/cf2-suite` at `b4ec76ac79e21f6d198234f8c280d094fc7e803f`](https://github.com/aurascoper/oklo_pool_mobile/pull/4) | 20 cases, 120 field volumes; host Rust and Swift package pass. See conformance receipt on that branch. | Open; gate PASS; simulator and emulator targets blocked. |
 | PR B iOS | [`ios/v1-app` at `29f75739bddd4a42f24924eb1a2fac7f92736097`](https://github.com/aurascoper/oklo_pool_mobile/pull/5) | XCFramework generated locally; generic device, generic simulator, and simulator test bundles build; Swift package 5/5. | Open; build PASS; simulator tests and device smoke test blocked. |
 | PR C Android | [`android/v1-app` at `088e668fe42339f74154125a177ebaf7cce436df`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 5/5 unit tests; APK and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
-| PR D release materials | [`release/v1-materials` at `43deb7f9280b85a93b9ec30f82ae53e78659c866`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | This document and supporting drafts; targets `ios/v1-app`. | Open; prepared; requires PR B and Android PR C evidence. |
+| PR D release materials | [`release/v1-materials`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | This document and supporting drafts; targets `ios/v1-app`. | Open; prepared; requires PR B and Android PR C evidence. |
 
 All four requested pull requests are open. PR D is based on PR B and targets `ios/v1-app`; after PR B and PR C are approved and merged, reconcile PR D against `main`. No branch is merged into `main`.
+
+GitHub status was checked after opening the pull requests. No status checks are configured and no review decisions are recorded. PRs A, B, and C report a clean merge state; PR D reports an unknown merge state while based on `ios/v1-app`.
 
 ## Build evidence
 
