@@ -1,7 +1,7 @@
 # Dependency and data-flow inventory
 
 Review date: 2026-10-20
-Scope: iOS app sources on `release/on-render-gate` at tested source commit `35093c21c63b0d4e9b55e0352f208e0c2684aa08` and Android app sources on `release/on-render-gate`.
+Scope: iOS app sources on `release/on-render-gate` at tested source commit `dd1ce73bea4716cd5a8161a56bdc8868fd792a01` (receipt head `fef07277ccb30826c12875e150c5d0405bb0be20`) and Android app sources on `release/on-render-gate`.
 Status: source inspection, resolved production dependency graph, privacy manifest verification, and simulator/emulator runtime socket checks completed; physical-device signed release package verification remains an account-owner step.
 
 ## User inputs and data path
@@ -14,7 +14,7 @@ Status: source inspection, resolved production dependency graph, privacy manifes
    - Hydration: Prescribed saturation index; not a multiphase porous flow solve.
    - H2 Concentration: Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
    - 235U/238U Ratio: Prescribed isotopic depletion curve; not a 3D neutron transport solve.
-   - Polymer Accumulation: Prescribed synthetic index; not an empirical prebiotic assay.
+   - Polymer accumulation index (arbitrary units): Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.
    - Compartments: Prescribed geometric bounding cells; not a physical membrane simulation.
 4. The Rust `oklo_core` library computes the prescribed field values locally in process memory.
 5. SwiftUI/Metal (iOS) or Kotlin/Compose (Android) renders slices, charts, and the volume view on the device screen.

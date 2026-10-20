@@ -21,7 +21,7 @@ The viewer renders prescribed analytic fixture functions. Phase navigation chang
 2. Hydration: Prescribed saturation index; not a multiphase porous flow solve.
 3. H2 Concentration: Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
 4. 235U/238U Ratio: Prescribed isotopic depletion curve; not a 3D neutron transport solve.
-5. Polymer Accumulation: Prescribed synthetic index; not an empirical prebiotic assay.
+5. Polymer accumulation index (arbitrary units): Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.
 6. Compartments: Prescribed geometric bounding cells; not a physical membrane simulation.
 
 **Privacy and Data Handling:**

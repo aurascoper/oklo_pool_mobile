@@ -40,7 +40,7 @@ Four review branches implement and verify the cross-platform v1 viewer around th
    - **Hydration:** Prescribed saturation index; not a multiphase porous flow solve.
    - **H2 Concentration:** Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
    - **235U/238U Ratio:** Prescribed isotopic depletion curve; not a 3D neutron transport solve.
-   - **Polymer Accumulation:** Prescribed synthetic index; not an empirical prebiotic assay.
+   - **Polymer accumulation index (arbitrary units):** Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.
    - **Compartments:** Prescribed geometric bounding cells; not a physical membrane simulation.
 
 3. **Privacy Policy and manifest audit:**

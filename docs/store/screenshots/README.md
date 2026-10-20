@@ -12,19 +12,19 @@ All screenshots depict the genuine user interface, including:
   2. Hydration: Prescribed saturation index; not a multiphase porous flow solve.
   3. H2 Concentration: Prescribed radiolysis proxy; not a reaction-diffusion kinetic solve.
   4. 235U/238U Ratio: Prescribed isotopic depletion curve; not a 3D neutron transport solve.
-  5. Polymer Accumulation: Prescribed synthetic index; not an empirical prebiotic assay.
+  5. Polymer accumulation index (arbitrary units): Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations.
   6. Compartments: Prescribed geometric bounding cells; not a physical membrane simulation.
 
-## iOS (`iPhone 17`, iOS 27.0 `24A5297g`, `1206x2622` PNG)
+## iOS (`iPhone 17`, iOS 27.0 `24A434`, `1206x2622` PNG)
 
-Captured during `xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'platform=iOS Simulator,id=646CF1C6-8720-4906-B73B-FD46ACAA8EF0'` (`OkloPoolUITests/testCaptureStoreScreenshots`):
+Captured during `xcodebuild test -project ios/OkloPool.xcodeproj -scheme OkloPool -destination 'platform=iOS Simulator,name=iPhone 17,OS=27.0'` (`OkloPoolUITests`) against tested source commit `dd1ce73bea4716cd5a8161a56bdc8868fd792a01`:
 
 | File | Resolution | SHA-256 | Depicted view |
 | --- | --- | --- | --- |
-| `ios-iphone17-slices.png` | `1206x2622` | `57a717582dcf89bff61805a02762fd52f436b093b91e113699f1bfe8069a612b` | 2D Plan (`XY` at `Z = 16`) and Section (`XZ` at `Y = 16`) slices, Temperature field (`26.85 to 432.2 degrees C`), transport controls, pulse boundary `0.1700` vs `0.1667` |
-| `ios-iphone17-volume.png` | `1206x2622` | `497e5b8afea79efff9f3ac4bc7fd6d13cc4053638ae7083d26769b9df302865d` | 3D Volume raymarcher view (`32x32x32` voxel cube) with azimuth/elevation/opacity sliders and transport bar |
-| `ios-iphone17-fields-chart.png` | `1206x2622` | `8c7ec45ae269b9d8f2554bc9069e99d58f64ca08a54f183b67b3563ed82c0f56` | Compartments field (`zone 0 to 4`, discrete 5-zone palette) and strip chart below slices |
-| `ios-iphone17-provenance.png` | `1206x2622` | `9252b1cd4f008a4c9251d63fdc1d6ce8f7ea34a0eef6496d16675ba3b2467476` | In-app Provenance and Scientific Scope sheet disclosing prescribed revision 0 analytic functions, limitations, and the Option A polymer caveat |
+| `ios-iphone17-slices.png` | `1206x2622` | `629f4db9fdad2e4c5366790584c795ebb778363f777503477f86e1c8d5515a54` | Persistent `"Revision-0 prescribed fields; not a physical simulation."` banner, 2D Plan (`XY` at `k = 12`) and Section (`XZ` at `j = 15`) slices of Temperature field |
+| `ios-iphone17-volume.png` | `1206x2622` | `3811d6fa848f628b5460ae5fabc1e011160d650e5dd010bf1be62d76438badbc` | Persistent top banner, 3D Volume raymarcher view (`32x32x32` voxel cube), adjacent selected-field limitation banner, and Phase Navigation (`Frame 9 of 60`) |
+| `ios-iphone17-fields-chart.png` | `1206x2622` | `a9ce6dddb52fc122b0216d2022c901b1063e07e308d15c203d56d0183a583394` | Persistent top banner, Field Selection (`Polymer accumulation index`, `arbitrary units`), adjacent limitation banner, and Prescribed Field Strip Chart + Driver Curves |
+| `ios-iphone17-provenance.png` | `1206x2622` | `a4560516d981dbbb2847cda2af19071f475234a9fa5bb3e9ce2430de6eecb11c` | In-app Provenance and Limitations sheet disclosing prescribed revision 0 analytic functions, field-by-field limitations, Option A polymer caveat, and offline Privacy Policy |
 
 ## Android (`oklo-api36`, Android 16 / API 36 `arm64-v8a`, `1080x2400` PNG)
 
