@@ -1,7 +1,7 @@
 OKLO POOL MOBILE - ON-RENDER GATE ACCEPTANCE RECEIPT
 Date: 2026-10-20
 Branch: release/on-render-gate
-Tested commit: c6a516a7ac483e8bf63b0897a800af806af7051c
+Tested commit: 35093c21c63b0d4e9b55e0352f208e0c2684aa08
 Worktree clean at test: true
 Main baseline: 636b7d7bb41999b80278d90046da893ee1044f20
 
@@ -27,49 +27,65 @@ PROVISIONAL TIMING BUDGETS UNDER FROZEN METHODOLOGY
 ===================================================
 Frozen methodology: 3 unmeasured warmup cycles, high-precision monotonic clock, separation of computation vs frame render time.
 
-iOS Simulator (iPhone 17, arm64, N=30 / N=20):
+iOS Simulator (iPhone 17, arm64, N=30 / N=20 / N=5):
 - Budget 1 (Initial model + slice generation <= 100 ms):
   Computation: median 0.42 ms, p95 0.55 ms
-  Rendered Frame: median 5.48 ms, p95 5.65 ms
+  Rendered Frame: median 3.97 ms, p95 3.99 ms
   Failures: 0 / 30
   Result: PASS
 - Budget 2 (Field switching <= 50 ms):
   Computation: median 0.38 ms, p95 0.49 ms
-  Rendered Frame: median 11.31 ms, p95 12.84 ms
+  Rendered Frame: median 8.14 ms, p95 9.27 ms
   Failures: 0 / 30
   Result: PASS
-- Budget 3 (Uncached 60-frame chart calculation <= 400 ms):
-  Active single-field series: median 311.56 ms, p95 318.09 ms
-  Failures: 0 / 20
-  Result: PASS
-  Full 6-field precomputation (360 3D volumes): median 1086.51 ms, p95 1101.96 ms
-  Result: EXCEEDED provisional 400 ms budget (proposing 1200 ms threshold)
+- Budget 3 (Uncached 60-frame chart calculation):
+  Active single-field series (N=20):
+    Idle / uncontended: median 315.30 ms, p95 316.73 ms, fails: 0 / 20 (threshold 400.0 ms)
+    Contended suite run: median 380 to 430 ms, p95 435 to 445 ms, fails: up to 20 / 20 (threshold 400.0 ms)
+    Result: UNRESOLVED / CONTENDED against provisional <= 400.0 ms; PASS against proposed <= 500.0 ms
+  Full 6-field precomputation (360 3D volumes / 11.79M voxels, N=5):
+    Idle run: median 1086 to 1098 ms, p95 1098 to 1102 ms
+    Contended run: median 1188 to 1398 ms, p95 1450 to 1500 ms
+    Result: EXCEEDED provisional 400 ms budget (proposing <= 1500 ms threshold, recommended <= 1600 ms headroom)
 - Budget 4 (Volume frame <= 100 ms under declared benchmark method):
-  Metal 3D texture replace: median 0.09 ms, p95 0.10 ms
+  Metal 3D texture replace: median 0.14 ms, p95 0.19 ms
   Failures: 0 / 30
   Result: PASS
 - Budget 5 (Phase update <= 35 ms per step):
   Computation: median 0.41 ms, p95 0.52 ms
-  Rendered Frame: median 9.22 ms, p95 9.53 ms
+  Rendered Frame: median 9.26 ms, p95 9.34 ms
   Failures: 0 / 30
   Result: PASS
 
-Android JVM Native Bridge (arm64, target/release, N=30 / N=10):
+Android JVM Native Bridge (arm64, target/release, N=30 / N=20 / N=5):
 - Budget 1 (Initial model + slice generation <= 100 ms): median 2.81 ms, p95 2.83 ms, fails: 0. Result: PASS
-- Budget 2 (Field switching <= 50 ms): median 2.77 ms, p95 2.80 ms, fails: 0. Result: PASS
-- Budget 3 (Uncached 60-frame chart calculation <= 400 ms): median 172.20 ms, p95 182.30 ms, fails: 0. Result: PASS
-- Budget 4 (Volume frame projection <= 100 ms): median 0.06 ms, p95 0.26 ms, fails: 0. Result: PASS
-- Budget 5 (Phase update <= 35 ms): median 2.77 ms, p95 2.81 ms, fails: 0. Result: PASS
+- Budget 2 (Field switching <= 50 ms): median 2.78 ms, p95 2.85 ms, fails: 0. Result: PASS
+- Budget 3a (Active single-field 60-frame chart <= 400 ms, N=20):
+  Warmed JIT: median 171.24 ms, p95 171.91 ms, fails: 0 / 20
+  Contended / cold JIT: median 175 to 250 ms, p95 250 to 375 ms, fails: 0 / 20
+  Result: PASS
+- Budget 3b (Full 6-field precomputation 360 volumes, N=5): median 207.59 ms, p95 211.41 ms, fails: 0 / 5. Result: PASS
+- Budget 4 (Volume frame projection <= 100 ms): median 0.02 ms, p95 0.25 ms, fails: 0. Result: PASS
+- Budget 5 (Phase update <= 35 ms): median 2.78 ms, p95 2.91 ms, fails: 0. Result: PASS
+
+THRESHOLD REVISION PROPOSALS (ORIGINAL_REQUEST.md SECTION R2)
+=============================================================
+1. Budget 3a (Active single-field 60-frame chart calculation):
+   Provisional: <= 400.0 ms.
+   Proposed: <= 500.0 ms for iOS Simulator under test suite CPU contention.
+2. Budget 3b (Full 6-field 60-frame precomputation, 360 volumes / 11.79M voxels):
+   Provisional: None designated (exceeds single-field 400 ms budget).
+   Proposed: <= 1500.0 ms (recommended <= 1600.0 ms headroom) for complete background series precomputation.
 
 SHA-256 MANIFEST
 ================
 b54f62baa17321c5faf6d776c05366cb97162d0c12bd162e2bb356e0a999ed64  android/app/build.gradle.kts
-423e8556a691f280446ca06602020b0468459e4dff543fb1b0852f14201a99b3  android/app/src/test/kotlin/org/oklo/pool/OnRenderGateBenchmarkTest.kt
+9d44117cd89eb31b1e26dc1fe073b25718c093649a722a77a9ae56e5aa1a599d  android/app/src/test/kotlin/org/oklo/pool/OnRenderGateBenchmarkTest.kt
 e365025c797f9b50995d897cebb2a29662a36744617d112e09d51aa8f26626a2  android/app/src/main/kotlin/org/oklo/pool/MainActivity.kt
 7de7689f244c2bb543ac7f887b458ccdc6192e69b847bead9c9915af6798bc9b  android/app/src/main/AndroidManifest.xml
 439eb8fd572be14446c7078685453aeff2a4a4c0afca9e9d844d3c5823c308a4  ios/OkloPool.xcodeproj/project.pbxproj
-584d58c09fd5dda2d17bf13426e0b67ad2342da2ff20ef34e67efadaf00798b1  ios/OkloPool/Models/PrescribedCurves.swift
-b9e3ead1472de66a912eb329361bbef08aef0c055b1a5efb48066fd1b4d733c9  ios/OkloPoolTests/OnRenderGateBenchmarkTests.swift
+76f88ddf72cc4bbdc6b0cfbe2ef58242c5c5af91a048e9361b83e56641acfe61  ios/OkloPool/Models/PrescribedCurves.swift
+6b40b83ba7bc0443e0024c0d19aaf21d18fb97aed5663cc524fe330fbe09dcec  ios/OkloPoolTests/OnRenderGateBenchmarkTests.swift
 205b920014ee08025970b55fa00906f1fb32ea3fd622814eb018fdd68f863233  ios/OkloPool/Views/ContentView.swift
 ceb7dcaab2fe3b743e012076b550e09a1ddfffa3d0c2fedad1a62bde2cc2847e  ios/OkloPool/Views/Provenance/ProvenanceSheetView.swift
 8d65d0b43a1262cfe29e83396c00b3db94fb120d44d1188d927341f14a6c223c  ios/OkloPool/PrivacyInfo.xcprivacy
