@@ -4,7 +4,7 @@ Status: Active for v1 Cross-Platform Release (`PR #5`, `PR #6`, `PR #7`)
 Scope: UI presentation, unit labels, and in-app/store provenance disclosures only
 Frozen Fixture Impact: Zero changes to revision-0 equations, numerical values, C ABI symbols, Rust enum identifiers, or CF-2 SHA-256 reference digests
 
-## 1. Defect Addressed: Concentration Units Without a Kinetic or Thermodynamic Rate Law
+## 1. Defect Addressed: Concentration Units Without a Kinetic, Equilibrium, or Thermodynamic Basis
 
 In the frozen revision-0 Oklo GUI conformance fixture (`CONFORMANCE_FIXTURE_SPEC.md`, Section 3.6), field 4 (`polymer_yield` / `oklo_polymer_yield.mrc`) is evaluated at each voxel $(x, y, z) \in [-1, 1]^3$ and phase $\varphi \in [0, 1)$ by an instantaneous closed-form algebraic expression:
 
@@ -14,10 +14,10 @@ where $d(\varphi) = \frac{1}{2}(1 - \cos(2\pi(\varphi - \varphi_b)))$ is the des
 
 The revision-0 browser prototype and fixture specification attached the concentration label `umol/L` (`\u00b5mol/L`) to this field. Assigning molar concentration units to $P_{\text{poly}}$ is a modeling defect for four reasons:
 
-1. **No conservation law or differential equation**: A chemical concentration in $\mu\text{mol/L}$ requires a mass-balance equation with transport, condensation synthesis, hydrolytic cleavage, and radiolytic degradation terms. No such differential equation, rate constant, or reaction order exists in revision 0.
+1. **No defensible concentration basis in revision 0**: The fixture supplies an algebraic heuristic but no kinetic mass balance, equilibrium or thermodynamic relation, empirical calibration, or unit mapping that supports interpreting its values as $\mu\text{mol/L}$ (`umol/L`). The relevant synthesis, degradation, and transport processes are not modeled.
 2. **Instantaneous algebraic evaluation**: The field is evaluated as a memoryless function of instantaneous phase $\varphi$, returning immediately to zero at $\varphi = \varphi_b$ where $d(\varphi_b) = 0$ and showing no multi-cycle accumulation or hysteresis.
 3. **Unphysical spatial ripple**: The factor $(1 + 0.35 \sin(4\pi(x+y+z)))$ is a geometric texture modulation introduced for visual contrast in 2D/3D slicing rather than a solution to a pore-network transport operator.
-4. **Inappropriate post-hoc thermodynamic rationalizations**: Post-hoc appeals to entropic-spring mechanics, Flory-Huggins excluded volume, or Rouse/Zimm relaxation times do not supply the missing kinetic rate law and are excluded from project documentation and UI copy.
+4. **Inappropriate post-hoc thermodynamic rationalizations**: Post-hoc appeals to entropic-spring mechanics, Flory-Huggins excluded volume, or Rouse/Zimm relaxation times do not supply a missing kinetic, equilibrium, or thermodynamic derivation and are excluded from project documentation and UI copy.
 
 ## 2. Option A Amendment (Enacted for v1 Release)
 
