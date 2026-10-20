@@ -9,7 +9,7 @@ Recommendation: **NOT STORE-SUBMISSION-READY**
 | --- | --- | --- | --- |
 | PR A conformance | [`conformance/cf2-suite` at `b4ec76ac79e21f6d198234f8c280d094fc7e803f`](https://github.com/aurascoper/oklo_pool_mobile/pull/4) | 20 cases, 120 field volumes; host Rust and Swift package pass. See conformance receipt on that branch. | Open; gate PASS; simulator and emulator targets blocked. |
 | PR B iOS | [`ios/v1-app` at `29f75739bddd4a42f24924eb1a2fac7f92736097`](https://github.com/aurascoper/oklo_pool_mobile/pull/5) | XCFramework generated locally; generic device, generic simulator, and simulator test bundles build; Swift package 5/5. | Open; build PASS; simulator tests and device smoke test blocked. |
-| PR C Android | [`android/v1-app` at `cb05954da703b0cc7fafd09ea50294b4dac657f`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 7/7 unit tests; APK, instrumentation APK, and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
+| PR C Android | [`android/v1-app` at `11f9561287418b31cc291004dcaceeb9917039c9`](https://github.com/aurascoper/oklo_pool_mobile/pull/6) | `receipts/android_build_2026-10-19.md`; 7/7 unit tests; APK, instrumentation APK, and AAB build. | Open; build PASS; emulator tests, screenshots, physical smoke test, and signing remain. |
 | PR D release materials | [`release/v1-materials`](https://github.com/aurascoper/oklo_pool_mobile/pull/7) | This document and supporting drafts; targets `ios/v1-app`. | Open; prepared; requires PR B and Android PR C evidence. |
 
 All four requested pull requests are open. PRs A, B, and C report a clean merge state. PR D is based on PR B and targets `ios/v1-app`; after PR B and PR C are approved and merged, reconcile PR D against `main`. No branch is merged into `main`.
@@ -30,10 +30,11 @@ ANDROID_NDK_HOME=/opt/homebrew/share/android-commandlinetools/ndk/28.2.13676358 
 ```
 
 - Seven unit tests passed.
-- Instrumentation test APK compiled; it was not run.
+- Instrumentation test APK compiled, including UI checks for all six fields, four visualization modes, and stopping playback on background; tests were not run.
 - Continuous fields chart mean and min/max envelope separately from prescribed drivers; the compartment chart plots zone 3 and zone 4 shares.
 - Debug APK SHA-256: `92224fc11ca7c58077ea6eade630e141ab360b49d9cbf8bbb8b51b6bf7ebdf3d`.
-- Instrumentation APK SHA-256: `443fea9353a3dce98f25cccc7be51533cc5c39944ba27e8f2fee0682143dcde9`.
+- Instrumentation APK SHA-256: `2b46e34d2995956ab02d4585e76a744849594ff6a6124b75bdf7a14b20184dc3`.
+- Expanded UI instrumentation checks compile for all six fields, four view modes, and stop-on-background behavior; they have not been executed.
 - Release AAB SHA-256: `6af2123768b8c1a3672e7219f625c9a48890d26de710a37bfb4c736e05b01159`.
 - Both native ABIs are packaged and 16 KB ELF aligned.
 - The AAB is unsigned. It is not ready for Play upload.
