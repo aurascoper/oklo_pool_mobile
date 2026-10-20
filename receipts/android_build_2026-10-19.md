@@ -2,7 +2,22 @@
 
 Run date: 2026-10-19, America/Chicago
 Branch: `android/v1-app`
-Base: `041d1bab092553798dec6f7b84df1edfbe417ab4`
+Tested source commit: `30bbe03bdffe80d09a5242508d4b5fab19289c04` (`git diff 30bbe03bdffe80d09a5242508d4b5fab19289c04..HEAD -- ':!receipts'` is empty)
+Worktree clean at test: `true`
+Main base commit: `041d1bab092553798dec6f7b84df1edfbe417ab4`
+
+## Tested source and test file SHA-256 manifest
+
+- `0778b716e142fdee3079906d35aae643e72b1313d6a90b8cf8d8b1aa33e90313`  `crates/oklo_core_jni/Cargo.toml`
+- `b70ae83973b2569d2d1f8608c846c73455cd7c3f6e827ab44b6d9f1110983862`  `crates/oklo_core_jni/src/lib.rs`
+- `49fa402ead90247f7bf9e45c7a637783c1344ab5e662bb4a8a49013a24b7c003`  `android/app/build.gradle.kts`
+- `7de7689f244c2bb543ac7f887b458ccdc6192e69b847bead9c9915af6798bc9b`  `android/app/src/main/AndroidManifest.xml`
+- `6e1a26f36378217a79287187c754aad3d15c1ebf2837be987e7859a659e76249`  `android/app/src/main/kotlin/org/oklo/pool/MainActivity.kt`
+- `cef3d2595ef08d94b904260383c76b09e9e35e3ac64e8dd885e4e3078a12799f`  `android/app/src/main/kotlin/org/oklo/pool/ViewerModel.kt`
+- `8f79a71691f8b0693079079a0a97bef5d02ee73391dea0fbf58ff43272ffcd7f`  `android/app/src/main/kotlin/org/oklo/pool/bridge/OkloCoreNative.kt`
+- `0f035385c57ffae9cb9299bef4b4b113c65903da9e342e9fee6f476f0b920f64`  `android/app/src/test/kotlin/org/oklo/pool/ViewerMathTest.kt`
+- `9c4bfa3dccfce2f67b8b70f9b68ff9a9b670351d52ed7c19239dd8fbb200e059`  `android/app/src/androidTest/kotlin/org/oklo/pool/ViewerSmokeTest.kt`
+- `217ddd1af3fa050dfa57e7ae9a185d73375fa92708d4cd8618e8b889befcf529`  `android/app/src/androidTest/kotlin/org/oklo/pool/bridge/NativeBridgeTest.kt`
 
 ## Toolchain
 
@@ -90,7 +105,7 @@ Runtime network check:
 
 - While `org.oklo.pool` was running in the foreground (`PID 4165`), `adb shell dumpsys package org.oklo.pool` confirmed only `org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` is declared or granted (no `android.permission.INTERNET`), and `adb shell ss -tupn` confirmed zero active TCP/UDP sockets (`ACTIVE_INET_SOCKETS: 0`).
 - Five `1080x2400` PNG screenshots were captured from the running emulator across Plan, Section, Volume, Chart, and Scope/Provenance views.
-- Android `x86_64` ABI is compiled and packaged (`liboklo_core_jni.so` SHA-256 `7ed74f69a8f6dd0e60aadf9b37dae136e26331229d6dc955081e0592fb0c71f2`), while `x86_64` emulator runtime execution is `BLOCKED` by the Apple Silicon (`arm64`) host architecture.
+- Android `x86_64` ABI is **build-verified, runtime not tested**: `x86_64/liboklo_core_jni.so` (SHA-256 `7ed74f69a8f6dd0e60aadf9b37dae136e26331229d6dc955081e0592fb0c71f2`) is compiled, packaged, and verified at 16 KB ELF `PT_LOAD` alignment, while `x86_64` emulator runtime execution is not tested (`BLOCKED` on the Apple Silicon `arm64` host).
 - Physical-device testing is `NOT RUN`; no physical Android device and release signing setup were connected in this session.
 
 ## Limitations
