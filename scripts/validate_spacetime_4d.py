@@ -118,6 +118,22 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         raise SpacetimeValidationError("spatial_frame.dimensions_voxels must be 3 positive integers")
     expected_voxels = dims[0] * dims[1] * dims[2]
 
+    bounds_m = spatial.get("domain_bounds_m")
+    if not isinstance(bounds_m, dict):
+        raise SpacetimeValidationError("spatial_frame.domain_bounds_m must be an object")
+    _check_exact_keys(bounds_m, {"x", "y", "z_up"}, "spatial_frame.domain_bounds_m")
+    for axis_name in ("x", "y", "z_up"):
+        ax_b = bounds_m.get(axis_name)
+        if (
+            not isinstance(ax_b, list)
+            or len(ax_b) != 2
+            or any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(float(v)) for v in ax_b)
+            or float(ax_b[0]) >= float(ax_b[1])
+        ):
+            raise SpacetimeValidationError(
+                f"spatial_frame.domain_bounds_m.{axis_name} must be [min, max] with finite min < max"
+            )
+
     # Temporal axis validation
     temporal = bundle["temporal_axis"]
     temporal_req = set(schema["properties"]["temporal_axis"]["required"])
@@ -175,10 +191,25 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"states[{idx}] cannot have state_derivation='interpolated_for_display' under none_discrete_states_only"
             )
-        if derivation == "interpolated_for_display" and st.get("run_receipt") is not None:
-            raise SpacetimeValidationError(
-                f"states[{idx}] interpolated_for_display state must have run_receipt=None"
-            )
+        if derivation == "interpolated_for_display":
+            if st.get("run_receipt") is not None:
+                raise SpacetimeValidationError(
+                    f"states[{idx}] interpolated_for_display state must have run_receipt=None"
+                )
+            if st.get("is_simulated_state") is not False:
+                raise SpacetimeValidationError(
+                    f"states[{idx}] interpolated_for_display state must have is_simulated_state=False"
+                )
+        else:
+            if st.get("is_simulated_state") is not True:
+                raise SpacetimeValidationError(
+                    f"states[{idx}] discrete state ({derivation}) must have is_simulated_state=True"
+                )
+            rec = st.get("run_receipt")
+            if not isinstance(rec, str) or not rec.strip():
+                raise SpacetimeValidationError(
+                    f"states[{idx}] discrete state ({derivation}) must have a non-empty run_receipt string"
+                )
 
         if st.get("criterial_status") != "verified_accepted":
             raise SpacetimeValidationError(
@@ -210,6 +241,30 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     if len(seen_hashes) != len(states):
         raise SpacetimeValidationError("Duplicate sha256_f32_le across supposedly distinct time states")
 
+    t_bounds = temporal.get("time_bounds")
+    if (
+        not isinstance(t_bounds, list)
+        or len(t_bounds) != 2
+        or any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(float(v)) for v in t_bounds)
+        or float(t_bounds[0]) != float(states[0]["simulation_time"])
+        or float(t_bounds[1]) != float(states[-1]["simulation_time"])
+    ):
+        raise SpacetimeValidationError(
+            "temporal_axis.time_bounds must equal [states[0].simulation_time, states[-1].simulation_time]"
+        )
+
+    ev_markers = temporal.get("event_markers")
+    if not isinstance(ev_markers, list) or len(ev_markers) < 1:
+        raise SpacetimeValidationError("temporal_axis.event_markers must be a non-empty list")
+    for em_idx, em in enumerate(ev_markers):
+        s_i = em.get("state_index")
+        if not isinstance(s_i, int) or isinstance(s_i, bool) or s_i < 0 or s_i >= len(states):
+            raise SpacetimeValidationError(f"event_markers[{em_idx}].state_index out of range")
+        if float(em.get("simulation_time", -1.0)) != float(states[s_i]["simulation_time"]):
+            raise SpacetimeValidationError(
+                f"event_markers[{em_idx}].simulation_time does not match states[{s_i}].simulation_time"
+            )
+
     # v2 compatibility block check
     v2_comp = bundle["v2_compatibility"]
     v2_ep = v2_comp.get("epistemic_record", {})
@@ -229,6 +284,17 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             )
         if not isinstance(br.get("prune_reason"), str) or not br["prune_reason"].strip():
             raise SpacetimeValidationError(f"criterial_pruned_branches[{b_idx}] requires non-empty prune_reason")
+        max_res = br.get("max_relative_mass_balance_residual")
+        thresh = br.get("criterial_threshold_exceeded")
+        if (
+            not isinstance(max_res, (int, float))
+            or not isinstance(thresh, (int, float))
+            or float(thresh) <= 0.0
+            or float(max_res) <= float(thresh)
+        ):
+            raise SpacetimeValidationError(
+                f"criterial_pruned_branches[{b_idx}] must have max_relative_mass_balance_residual > criterial_threshold_exceeded > 0"
+            )
 
 
 def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, Any]) -> list[tuple[str, bool, str]]:
@@ -301,6 +367,24 @@ def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, An
         b["states"][3]["state_index"] = 4
 
     expect_rejection("9. Reject missing intermediate frame (state_index gap)", mut_missing_frame_gap)
+
+    # 10. Discrete state missing run_receipt
+    def mut_missing_receipt(b: dict[str, Any]) -> None:
+        b["states"][1]["run_receipt"] = None
+
+    expect_rejection("10. Reject discrete state with run_receipt=None", mut_missing_receipt)
+
+    # 11. Mismatched temporal_axis.time_bounds
+    def mut_bad_time_bounds(b: dict[str, Any]) -> None:
+        b["temporal_axis"]["time_bounds"] = [0.0, 500.0]
+
+    expect_rejection("11. Reject temporal_axis.time_bounds mismatch with states", mut_bad_time_bounds)
+
+    # 12. Inverted spatial_frame.domain_bounds_m
+    def mut_inverted_domain_bounds(b: dict[str, Any]) -> None:
+        b["spatial_frame"]["domain_bounds_m"]["x"] = [16.0, 0.0]
+
+    expect_rejection("12. Reject inverted spatial_frame.domain_bounds_m (x_min >= x_max)", mut_inverted_domain_bounds)
 
     return results
 

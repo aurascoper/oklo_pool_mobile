@@ -485,6 +485,28 @@
     }
     var expectedVoxels = dims[0] * dims[1] * dims[2];
 
+    var dBounds = spatial.domain_bounds_m;
+    if (!dBounds || typeof dBounds !== "object") {
+      throw new Error("SpacetimeContractError: Missing spatial_frame.domain_bounds_m");
+    }
+    var axes = ["x", "y", "z_up"];
+    for (var aIdx = 0; aIdx < axes.length; aIdx++) {
+      var ax = dBounds[axes[aIdx]];
+      if (
+        !Array.isArray(ax) ||
+        ax.length !== 2 ||
+        typeof ax[0] !== "number" ||
+        typeof ax[1] !== "number" ||
+        !Number.isFinite(ax[0]) ||
+        !Number.isFinite(ax[1]) ||
+        ax[0] >= ax[1]
+      ) {
+        throw new Error(
+          "SpacetimeContractError: spatial_frame.domain_bounds_m." + axes[aIdx] + " must have finite min < max"
+        );
+      }
+    }
+
     var temporal = bundle.temporal_axis;
     if (!temporal || typeof temporal !== "object") {
       throw new Error("SpacetimeContractError: Missing temporal_axis");
@@ -564,8 +586,20 @@
           "SpacetimeContractError: Stored states cannot be 'interpolated_for_display' under none_discrete_states_only"
         );
       }
-      if (st.state_derivation === "interpolated_for_display" && st.run_receipt !== null) {
-        throw new Error("SpacetimeContractError: interpolated_for_display state must have run_receipt = null");
+      if (st.state_derivation === "interpolated_for_display") {
+        if (st.run_receipt !== null) {
+          throw new Error("SpacetimeContractError: interpolated_for_display state must have run_receipt = null");
+        }
+        if (st.is_simulated_state !== false) {
+          throw new Error("SpacetimeContractError: interpolated_for_display state must have is_simulated_state = false");
+        }
+      } else {
+        if (st.is_simulated_state !== true) {
+          throw new Error("SpacetimeContractError: Discrete state at states[" + idx + "] must have is_simulated_state = true");
+        }
+        if (typeof st.run_receipt !== "string" || st.run_receipt.trim().length === 0) {
+          throw new Error("SpacetimeContractError: Discrete state at states[" + idx + "] must have a non-empty run_receipt");
+        }
       }
       if (st.criterial_status !== "verified_accepted") {
         throw new Error(
@@ -603,6 +637,18 @@
       seenHashes[computedSha] = true;
     }
 
+    var tBounds = temporal.time_bounds;
+    if (
+      !Array.isArray(tBounds) ||
+      tBounds.length !== 2 ||
+      tBounds[0] !== states[0].simulation_time ||
+      tBounds[1] !== states[states.length - 1].simulation_time
+    ) {
+      throw new Error(
+        "SpacetimeContractError: temporal_axis.time_bounds must match [states[0].simulation_time, states[M-1].simulation_time]"
+      );
+    }
+
     if (!Array.isArray(bundle.criterial_pruned_branches) || bundle.criterial_pruned_branches.length < 1) {
       throw new Error("SpacetimeContractError: criterial_pruned_branches must contain at least 1 control branch");
     }
@@ -610,6 +656,16 @@
       var br = bundle.criterial_pruned_branches[b];
       if (!br || br.criterial_status !== "criterial_pruned") {
         throw new Error("SpacetimeContractError: Invalid criterial_pruned_branches[" + b + "]");
+      }
+      if (
+        typeof br.max_relative_mass_balance_residual !== "number" ||
+        typeof br.criterial_threshold_exceeded !== "number" ||
+        br.criterial_threshold_exceeded <= 0 ||
+        br.max_relative_mass_balance_residual <= br.criterial_threshold_exceeded
+      ) {
+        throw new Error(
+          "SpacetimeContractError: criterial_pruned_branches[" + b + "] must exceed positive criterial threshold"
+        );
       }
     }
 
@@ -844,7 +900,8 @@
       for (var p = 0; p < br.time_points.length; p++) {
         var tp = br.time_points[p];
         var baseVal = bundle.states[p].values[flatIdx];
-        var leakMult = 1.0 + 0.38 * (tp.simulation_time / 1000.0);
+        var leakMult =
+          1.0 + (typeof tp.relative_mass_balance_residual === "number" ? tp.relative_mass_balance_residual : 0.0);
         var prunedVal = baseVal * leakMult;
         if (i === 8 && j === 8 && k === 5) {
           prunedVal = tp.probe_voxel_8_8_5_value;

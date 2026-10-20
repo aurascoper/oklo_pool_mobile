@@ -143,6 +143,12 @@
       color: #fde68a;
     }
 
+    .disclaimer-bar.error-active {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: var(--crimson);
+      color: #fecaca;
+    }
+
     /* Main 3-Column Grid */
     .workspace-grid {
       display: grid;
@@ -171,6 +177,7 @@
       align-items: center;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 6px;
+      gap: 8px;
     }
 
     .panel-title {
@@ -179,12 +186,14 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--fg-primary);
+      white-space: nowrap;
     }
 
     .panel-subtitle {
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--fg-secondary);
+      white-space: nowrap;
     }
 
     .canvas-wrap {
@@ -225,6 +234,8 @@
       font-family: var(--font-mono);
       display: flex;
       justify-content: space-between;
+      gap: 6px;
+      white-space: nowrap;
     }
 
     input[type="range"] {
@@ -395,6 +406,12 @@
       border-radius: 2px;
     }
 
+    .event-banner.interp-event-banner {
+      background: var(--amber-soft);
+      border-left-color: var(--amber);
+      color: #fde68a;
+    }
+
     .pruned-banner {
       background: var(--crimson-soft);
       border-left: 3px solid var(--crimson);
@@ -553,23 +570,23 @@
     <!-- Left Column: 4D Spatiotemporal Volume & Trajectory Projection -->
     <section class="panel-card">
       <div class="panel-header">
-        <span class="panel-title">1. 4D Spatiotemporal Projection (+k Vertical Up, w = t)</span>
-        <span class="panel-subtitle" id="proj-com-readout">z_cm(t) = 4.53 m</span>
+        <span class="panel-title">1. 4D Spatiotemporal Projection (+k Up, w = t)</span>
+        <span class="panel-subtitle" id="proj-com-readout">z_cm(t) = 4.530 m (+k up)</span>
       </div>
       <div class="canvas-wrap" style="flex: 1;">
         <canvas id="canvas-4d-projection" width="538" height="390"></canvas>
       </div>
       <div class="projection-controls">
         <div class="control-group">
-          <label><span>4D X-t Plane</span><span id="lbl-angle-xt">0.32 rad</span></label>
+          <label><span>X-t Plane:</span><span id="lbl-angle-xt">0.32 rad</span></label>
           <input type="range" id="slider-angle-xt" min="-1.2" max="1.2" step="0.02" value="0.32" />
         </div>
         <div class="control-group">
-          <label><span>4D Z-t (+k-t)</span><span id="lbl-angle-zt">0.22 rad</span></label>
+          <label><span>Z-t (+k-t):</span><span id="lbl-angle-zt">0.22 rad</span></label>
           <input type="range" id="slider-angle-zt" min="-1.2" max="1.2" step="0.02" value="0.22" />
         </div>
         <div class="control-group">
-          <label><span>3D Camera Yaw</span><span id="lbl-yaw">-0.62 rad</span></label>
+          <label><span>3D Yaw:</span><span id="lbl-yaw">-0.62 rad</span></label>
           <input type="range" id="slider-yaw" min="-3.14" max="3.14" step="0.04" value="-0.62" />
         </div>
         <button class="btn" id="btn-reset-camera">Reset 4D View</button>
@@ -580,7 +597,7 @@
     <section class="panel-card">
       <div class="panel-header">
         <span class="panel-title">2. Orthogonal Slice Inspector &amp; Dual-Time Comparison (t_A vs t_B)</span>
-        <span class="panel-subtitle" id="slice-probe-readout">Probe (8, 8, 5) = 8.587 mol/m^3</span>
+        <span class="panel-subtitle" id="slice-probe-readout">Probe (8, 8, 5) = 7.9336 mol_m3_synthetic_tracer</span>
       </div>
       <div class="slices-top-row">
         <div class="slice-box">
@@ -603,7 +620,7 @@
           <span id="lbl-diff-title" style="color: var(--cyan); font-weight: 700;">
             Dual-Time Difference dF(x; t_A=0s, t_B=750s) = F(t_B) - F(t_A) [Section X-k at j=8]
           </span>
-          <span id="lbl-diff-norms">||dF||_2 = 57.69 | dz_cm = +4.835 m</span>
+          <span id="lbl-diff-norms">||dF||_2 = 58.78 | dz_cm = +4.835 m</span>
         </div>
         <div class="canvas-wrap">
           <canvas id="canvas-slice-diff" width="560" height="175"></canvas>
@@ -665,7 +682,7 @@
       <div class="ledger-grid">
         <div class="ledger-cell">
           <div class="lbl">Retained Inventory (mol)</div>
-          <div class="val" id="ledger-retained">878.803</div>
+          <div class="val" id="ledger-retained">913.303</div>
         </div>
         <div class="ledger-cell">
           <div class="lbl">Cumulative Decayed (mol)</div>
@@ -732,8 +749,8 @@
             </span>
           </div>
           <div class="sub-control-row" style="color: var(--fg-secondary);">
-            <span>Max Increase: <strong id="diff-max-inc" style="color: #fb923c;">+3.55</strong></span>
-            <span>Max Depletion: <strong id="diff-max-dec" style="color: #38bdf8;">-8.57</strong></span>
+            <span>Max Increase: <strong id="diff-max-inc" style="color: #fb923c;">+3.593</strong></span>
+            <span>Max Depletion: <strong id="diff-max-dec" style="color: #38bdf8;">-9.019</strong></span>
           </div>
         </div>
 
@@ -789,6 +806,11 @@
       var bundle = S4D.buildEmbeddedSyntheticBundle();
       S4D.verifyBundleIntegrity(bundle);
 
+      var tMin = bundle.temporal_axis.time_bounds[0];
+      var tMax = bundle.temporal_axis.time_bounds[1];
+      var tSpan = Math.max(1e-9, tMax - tMin);
+      var maxStateIdx = bundle.states.length - 1;
+
       var state = {
         currentPos: 0,
         allowDisplayInterpolation: false,
@@ -803,7 +825,9 @@
         angleZT: 0.22,
         yaw: -0.62,
         pitch: 0.38,
-        highlightDiff: false
+        highlightDiff: false,
+        lastContractError: null,
+        lastActiveSelection: null
       };
 
       // Parse URL query parameters for deterministic headless screenshot verification
@@ -828,6 +852,14 @@
       if (params.has("k")) {
         var reqK = parseInt(params.get("k"), 10);
         if (Number.isInteger(reqK) && reqK >= 0 && reqK <= 15) state.probeK = reqK;
+      }
+      if (params.has("xt")) {
+        var reqXT = parseFloat(params.get("xt"));
+        if (Number.isFinite(reqXT)) state.angleXT = Math.max(-1.2, Math.min(1.2, reqXT));
+      }
+      if (params.has("zt")) {
+        var reqZT = parseFloat(params.get("zt"));
+        if (Number.isFinite(reqZT)) state.angleZT = Math.max(-1.2, Math.min(1.2, reqZT));
       }
       if (params.get("highlight") === "diff") {
         state.highlightDiff = true;
@@ -874,6 +906,10 @@
         }
       }
 
+      function normTime(tS) {
+        return (tS - tMin) / tSpan;
+      }
+
       function render4DProjection(activeSelection) {
         var canvas = document.getElementById("canvas-4d-projection");
         var ctx = canvas.getContext("2d");
@@ -885,7 +921,7 @@
         var cx = w * 0.5;
         var cy = h * 0.54;
         var scale = 128.0;
-        var tNormActive = activeSelection.simulation_time / 1000.0;
+        var tNormActive = normTime(activeSelection.simulation_time);
         var projCfg = {
           angleXT: state.angleXT,
           angleZT: state.angleZT,
@@ -914,7 +950,7 @@
           [0, 4], [1, 5], [2, 6], [3, 7]
         ];
 
-        // Ghost frame at t=0 and t=1000s + connecting w=t struts
+        // Ghost frame at t_min and t_max + connecting w=t struts
         var ptsT0 = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], 0.0); });
         var ptsT1 = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], 1.0); });
         var ptsActive = corners.map(function (c) { return toCanvas(c[0], c[1], c[2], tNormActive); });
@@ -942,19 +978,6 @@
           ctx.lineTo(b.x, b.y);
           ctx.stroke();
         }
-
-        // Highlight +k vertical up axis arrow
-        var originPt = toCanvas(0, 0, 0, tNormActive);
-        var kUpPt = toCanvas(0, 0, 17.5, tNormActive);
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(originPt.x, originPt.y);
-        ctx.lineTo(kUpPt.x, kUpPt.y);
-        ctx.stroke();
-        ctx.fillStyle = "#38bdf8";
-        ctx.font = "bold 11px ui-monospace, SFMono-Regular, Menlo, monospace";
-        ctx.fillText("+k (z up, 16m)", kUpPt.x + 5, kUpPt.y + 3);
 
         // Render active 3D scalar field iso-voxels (sorted back-to-front)
         var voxelsToDraw = [];
@@ -1001,7 +1024,7 @@
             tp.center_of_mass_m[0],
             tp.center_of_mass_m[1],
             tp.center_of_mass_m[2],
-            tp.simulation_time / 1000.0
+            normTime(tp.simulation_time)
           );
           if (pIdx === 0) ctx.moveTo(pCoord.x, pCoord.y);
           else ctx.lineTo(pCoord.x, pCoord.y);
@@ -1015,7 +1038,7 @@
             tpN.center_of_mass_m[0],
             tpN.center_of_mass_m[1],
             tpN.center_of_mass_m[2],
-            tpN.simulation_time / 1000.0
+            normTime(tpN.simulation_time)
           );
           ctx.strokeStyle = "#ef4444";
           ctx.lineWidth = 1.8;
@@ -1037,7 +1060,7 @@
             st.center_of_mass_m[0],
             st.center_of_mass_m[1],
             st.center_of_mass_m[2],
-            st.simulation_time / 1000.0
+            normTime(st.simulation_time)
           );
           if (sIdx === 0) ctx.moveTo(stPt.x, stPt.y);
           else ctx.lineTo(stPt.x, stPt.y);
@@ -1050,7 +1073,7 @@
             stM.center_of_mass_m[0],
             stM.center_of_mass_m[1],
             stM.center_of_mass_m[2],
-            stM.simulation_time / 1000.0
+            normTime(stM.simulation_time)
           );
           ctx.fillStyle = "#10b981";
           ctx.beginPath();
@@ -1070,19 +1093,37 @@
         ctx.arc(activePt.x, activePt.y, 9, 0, Math.PI * 2);
         ctx.stroke();
 
-        // HUD Overlay inside 4D canvas
-        ctx.fillStyle = "rgba(11, 15, 20, 0.82)";
-        ctx.fillRect(8, 8, 285, 56);
+        // Highlight +k vertical up axis arrow on top of wireframe with pill label
+        var originPt = toCanvas(0, 0, 0, tNormActive);
+        var kUpPt = toCanvas(0, 0, 17.5, tNormActive);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(originPt.x, originPt.y);
+        ctx.lineTo(kUpPt.x, kUpPt.y);
+        ctx.stroke();
+        var lblX = Math.max(8, Math.min(w - 118, kUpPt.x + 5));
+        var lblY = Math.max(18, Math.min(h - 72, kUpPt.y + 3));
+        ctx.fillStyle = "rgba(8, 11, 16, 0.85)";
+        ctx.fillRect(lblX - 3, lblY - 11, 110, 15);
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 11px ui-monospace, SFMono-Regular, Menlo, monospace";
+        ctx.fillText("+k (z up, 16m)", lblX, lblY);
+
+        // HUD Overlay in bottom-left corner of 4D canvas (avoids +k apex at top-left)
+        var hudY = h - 64;
+        ctx.fillStyle = "rgba(11, 15, 20, 0.88)";
+        ctx.fillRect(8, hudY, 290, 56);
         ctx.strokeStyle = "#2a3746";
-        ctx.strokeRect(8, 8, 285, 56);
+        ctx.strokeRect(8, hudY, 290, 56);
         ctx.fillStyle = "#e6edf3";
         ctx.font = "bold 11px ui-monospace, SFMono-Regular, Menlo, monospace";
-        ctx.fillText("4D Hyperplane: (x, y, +k, w=t)", 16, 24);
+        ctx.fillText("4D Hyperplane: (x, y, +k, w=t)", 16, hudY + 16);
         ctx.fillStyle = "#10b981";
         ctx.font = "10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
-        ctx.fillText("Solid Green: Verified Accepted Trajectory", 16, 40);
+        ctx.fillText("Solid Green: Verified Accepted Trajectory", 16, hudY + 32);
         ctx.fillStyle = "#ef4444";
-        ctx.fillText("Dashed Red : Criterial-Pruned Mass-Leak Control", 16, 55);
+        ctx.fillText("Dashed Red : Criterial-Pruned Mass-Leak Control", 16, hudY + 47);
       }
 
       function renderSlice2D(canvasId, sliceObj, maxScale, probeX, probeY, invertY) {
@@ -1156,7 +1197,7 @@
         );
 
         var padL = 34;
-        var padR = 165;
+        var padR = 180;
         var padT = 10;
         var padB = 22;
         var plotW = w - padL - padR;
@@ -1208,7 +1249,7 @@
         ctx.fill();
 
         // Legend & Quantitative Summary on Right Side of Diff Canvas
-        var infoX = padL + plotW + 12;
+        var infoX = padL + plotW + 10;
         ctx.fillStyle = "#e6edf3";
         ctx.font = "bold 10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
         ctx.fillText("Dual-Time Shift Summary", infoX, 24);
@@ -1261,24 +1302,25 @@
         var plotH = h - padT - padB;
 
         function timeToX(tS) {
-          return padL + (tS / 1000.0) * plotW;
+          return padL + normTime(tS) * plotW;
         }
         function valToY(v) {
           return padT + plotH - (v / maxVal) * plotH;
         }
 
-        // Grid lines
+        // Grid lines at discrete state timestamps
         ctx.strokeStyle = "#1e293b";
         ctx.lineWidth = 1;
-        for (var g = 0; g <= 4; g++) {
-          var gx = timeToX(g * 250.0);
+        for (var g = 0; g < bundle.states.length; g++) {
+          var stT = bundle.states[g].simulation_time;
+          var gx = timeToX(stT);
           ctx.beginPath();
           ctx.moveTo(gx, padT);
           ctx.lineTo(gx, padT + plotH);
           ctx.stroke();
           ctx.fillStyle = "#9da7b3";
           ctx.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
-          ctx.fillText((g * 250) + "s", gx - 12, h - 8);
+          ctx.fillText(stT.toFixed(0) + "s", gx - 12, h - 8);
         }
 
         // Y-axis ticks
@@ -1355,9 +1397,36 @@
       }
 
       function updateUI() {
-        var activeSelection = S4D.selectTimeState(bundle, state.currentPos, {
-          allowDisplayInterpolation: state.allowDisplayInterpolation
-        });
+        var activeSelection;
+        try {
+          activeSelection = S4D.selectTimeState(bundle, state.currentPos, {
+            allowDisplayInterpolation: state.allowDisplayInterpolation
+          });
+        } catch (err) {
+          state.lastContractError = err.message;
+          state.currentPos = 0;
+          elTimeline.value = "0";
+          activeSelection = S4D.selectTimeState(bundle, 0, {
+            allowDisplayInterpolation: false
+          });
+        }
+        state.lastActiveSelection = activeSelection;
+
+        if (!Number.isInteger(state.indexA) || state.indexA < 0 || state.indexA > maxStateIdx) {
+          state.lastContractError = "SpacetimeContractError: Dual-time index t_A out of bounds; reset to State 0.";
+          state.indexA = 0;
+          elSelectTa.value = "0";
+        }
+        if (!Number.isInteger(state.indexB) || state.indexB < 0 || state.indexB > maxStateIdx) {
+          state.lastContractError = "SpacetimeContractError: Dual-time index t_B out of bounds; reset to State 3.";
+          state.indexB = Math.min(3, maxStateIdx);
+          elSelectTb.value = String(state.indexB);
+        }
+
+        // Synchronize policy readout at all times (including URL query initialization)
+        document.getElementById("lbl-policy-mode").textContent = state.allowDisplayInterpolation
+          ? "Policy: explicit_display_only_when_toggled | Display Interpolation Active"
+          : "Policy: fail_closed_no_invented_states | Discrete Verified Mode";
 
         // Header & Provenance Badges
         var badgeDeriv = document.getElementById("badge-state-derivation");
@@ -1366,7 +1435,19 @@
         var disclaimerText = document.getElementById("disclaimer-text");
         var shaBox = document.getElementById("meta-sha256-box");
 
-        if (activeSelection.is_simulated_state) {
+        if (state.lastContractError) {
+          badgeDeriv.className = "badge badge-verified";
+          badgeDeriv.textContent = "DERIVATION: " + activeSelection.state_derivation.toUpperCase();
+          badgeCrit.className = "badge badge-verified";
+          badgeCrit.textContent = "CRITERIAL: VERIFIED_ACCEPTED";
+          topBar.className = "disclaimer-bar error-active";
+          disclaimerText.innerHTML =
+            "<strong>FAIL-CLOSED CONTRACT REJECTION:</strong> " +
+            state.lastContractError +
+            " (reverted to discrete State 0).";
+          shaBox.className = "sha-box";
+          shaBox.textContent = activeSelection.sha256_f32_le;
+        } else if (activeSelection.is_simulated_state) {
           badgeDeriv.className = "badge badge-verified";
           badgeDeriv.textContent = "DERIVATION: " + activeSelection.state_derivation.toUpperCase();
           badgeCrit.className = "badge badge-verified";
@@ -1389,7 +1470,7 @@
         }
 
         document.getElementById("active-time-readout").textContent =
-          "STATE " + activeSelection.state_index + " / 4 | t = " + activeSelection.simulation_time.toFixed(1) + " " + activeSelection.time_units;
+          "STATE " + activeSelection.state_index + " / " + maxStateIdx + " | t = " + activeSelection.simulation_time.toFixed(1) + " " + activeSelection.time_units;
 
         document.getElementById("proj-com-readout").textContent =
           "z_cm(t) = " + activeSelection.center_of_mass_m[2].toFixed(3) + " m (+k up)";
@@ -1422,11 +1503,26 @@
         document.getElementById("ledger-com").textContent =
           "(" + com[0].toFixed(2) + ", " + com[1].toFixed(2) + ", " + com[2].toFixed(2) + ")";
 
-        // Event marker
-        var nearestIdx = Math.round(activeSelection.state_index);
-        var evMarker = bundle.temporal_axis.event_markers[nearestIdx];
-        document.getElementById("meta-event-banner").innerHTML =
-          "<strong>Active Event Marker:</strong> " + evMarker.label;
+        // Event marker vs Interpolated Display Blend banner
+        var elEventBanner = document.getElementById("meta-event-banner");
+        if (activeSelection.is_simulated_state) {
+          var evMarker = bundle.temporal_axis.event_markers[activeSelection.state_index];
+          elEventBanner.className = "event-banner";
+          elEventBanner.innerHTML =
+            "<strong>Active Event Marker:</strong> " + evMarker.label;
+        } else {
+          elEventBanner.className = "event-banner interp-event-banner";
+          elEventBanner.innerHTML =
+            "<strong>Interpolated Display Frame (Not Simulated):</strong> Linear visual blend between State " +
+            activeSelection.parent_state_indices[0] +
+            " and State " +
+            activeSelection.parent_state_indices[1] +
+            " at t = " +
+            activeSelection.simulation_time.toFixed(1) +
+            " s (alpha = " +
+            activeSelection.interpolation_alpha.toFixed(2) +
+            ", run_receipt = null).";
+        }
 
         // Probe readout
         var probeFlat = S4D.voxelIndex(state.probeI, state.probeJ, state.probeK, 16, 16);
@@ -1479,6 +1575,7 @@
       }
 
       // Wire controls
+      elTimeline.max = String(maxStateIdx);
       elTimeline.step = state.allowDisplayInterpolation ? "0.25" : "1";
       elTimeline.value = String(state.currentPos);
       elChkInterp.checked = state.allowDisplayInterpolation;
@@ -1487,28 +1584,32 @@
       elSliderI.value = String(state.probeI);
       elSliderJ.value = String(state.probeJ);
       elSliderK.value = String(state.probeK);
+      elSliderXT.value = String(state.angleXT);
+      elSliderZT.value = String(state.angleZT);
+      document.getElementById("lbl-angle-xt").textContent = state.angleXT.toFixed(2) + " rad";
+      document.getElementById("lbl-angle-zt").textContent = state.angleZT.toFixed(2) + " rad";
 
       elTimeline.addEventListener("input", function () {
+        state.lastContractError = null;
         state.currentPos = parseFloat(elTimeline.value);
         updateUI();
       });
 
       elChkInterp.addEventListener("change", function () {
+        state.lastContractError = null;
         state.allowDisplayInterpolation = elChkInterp.checked;
         elTimeline.step = state.allowDisplayInterpolation ? "0.25" : "1";
         if (!state.allowDisplayInterpolation) {
           state.currentPos = Math.round(state.currentPos);
           elTimeline.value = String(state.currentPos);
         }
-        document.getElementById("lbl-policy-mode").textContent = state.allowDisplayInterpolation
-          ? "Policy: explicit_display_only_when_toggled | Display Interpolation Active"
-          : "Policy: fail_closed_no_invented_states | Discrete Verified Mode";
         updateUI();
       });
 
       var stateBtns = document.querySelectorAll("[data-state-btn]");
       for (var i = 0; i < stateBtns.length; i++) {
         stateBtns[i].addEventListener("click", function (ev) {
+          state.lastContractError = null;
           var idx = parseInt(ev.currentTarget.getAttribute("data-state-btn"), 10);
           state.currentPos = idx;
           elTimeline.value = String(idx);
@@ -1517,18 +1618,25 @@
       }
 
       document.getElementById("btn-step-prev").addEventListener("click", function () {
-        state.currentPos = Math.max(0, Math.floor(state.currentPos) - 1);
+        state.lastContractError = null;
+        var isFrac = Math.abs(state.currentPos - Math.round(state.currentPos)) > 1e-9;
+        var prevIdx = isFrac ? Math.floor(state.currentPos) : Math.round(state.currentPos) - 1;
+        state.currentPos = Math.max(0, prevIdx);
         elTimeline.value = String(state.currentPos);
         updateUI();
       });
 
       document.getElementById("btn-step-next").addEventListener("click", function () {
-        state.currentPos = Math.min(4, Math.floor(state.currentPos) + 1);
+        state.lastContractError = null;
+        var isFrac = Math.abs(state.currentPos - Math.round(state.currentPos)) > 1e-9;
+        var nextIdx = isFrac ? Math.ceil(state.currentPos) : Math.round(state.currentPos) + 1;
+        state.currentPos = Math.min(maxStateIdx, nextIdx);
         elTimeline.value = String(state.currentPos);
         updateUI();
       });
 
       document.getElementById("btn-play-pause").addEventListener("click", function () {
+        state.lastContractError = null;
         var btn = document.getElementById("btn-play-pause");
         if (state.playing) {
           state.playing = false;
@@ -1540,7 +1648,7 @@
           state.playTimer = setInterval(function () {
             var step = state.allowDisplayInterpolation ? 0.25 : 1.0;
             var next = state.currentPos + step;
-            if (next > 4.0) next = 0.0;
+            if (next > maxStateIdx) next = 0.0;
             state.currentPos = next;
             elTimeline.value = String(next);
             updateUI();
@@ -1549,11 +1657,13 @@
       });
 
       elSelectTa.addEventListener("change", function () {
+        state.lastContractError = null;
         state.indexA = parseInt(elSelectTa.value, 10);
         updateUI();
       });
 
       elSelectTb.addEventListener("change", function () {
+        state.lastContractError = null;
         state.indexB = parseInt(elSelectTb.value, 10);
         updateUI();
       });
@@ -1621,6 +1731,9 @@
       });
 
       document.getElementById("btn-export-png").addEventListener("click", function () {
+        var activeSel = state.lastActiveSelection || S4D.selectTimeState(bundle, state.currentPos, {
+          allowDisplayInterpolation: state.allowDisplayInterpolation
+        });
         var outCanvas = document.createElement("canvas");
         outCanvas.width = 1920;
         outCanvas.height = 1080;
@@ -1630,16 +1743,43 @@
         octx.fillStyle = "#e6edf3";
         octx.font = "bold 24px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
         octx.fillText("OKLO 4D SPATIOTEMPORAL GEOCHEMISTRY EXPLORER (spacetime_geochemistry_v0)", 40, 48);
-        octx.font = "16px ui-monospace, SFMono-Regular, Menlo, monospace";
-        octx.fillStyle = "#10b981";
-        octx.fillText("Stage 0/1 Verified Synthetic 4D Tracer Proof | State: " + state.currentPos + " | Coordinate System: cartesian_local_16m_cube (+k up, w=t)", 40, 80);
+        octx.font = "15px ui-monospace, SFMono-Regular, Menlo, monospace";
+        if (activeSel.is_simulated_state) {
+          octx.fillStyle = "#10b981";
+          octx.fillText(
+            "Stage 0/1 Verified Synthetic 4D Tracer Proof | State: " +
+              activeSel.state_index +
+              " (t=" +
+              activeSel.simulation_time.toFixed(1) +
+              "s) | Derivation: " +
+              activeSel.state_derivation +
+              " | SHA256: " +
+              activeSel.sha256_f32_le.slice(0, 16) +
+              "... | +k up, w=t",
+            40,
+            80
+          );
+        } else {
+          octx.fillStyle = "#fbbf24";
+          octx.fillText(
+            "DISPLAY INTERPOLATION ONLY (NOT SIMULATED) | State: " +
+              activeSel.state_index +
+              " (t=" +
+              activeSel.simulation_time.toFixed(1) +
+              "s) | Derivation: interpolated_for_display | run_receipt: null | SHA256: unverified_display_interpolation",
+            40,
+            80
+          );
+        }
         octx.drawImage(document.getElementById("canvas-4d-projection"), 40, 110, 860, 620);
         octx.drawImage(document.getElementById("canvas-slice-xy"), 930, 110, 460, 390);
         octx.drawImage(document.getElementById("canvas-slice-xz"), 1420, 110, 460, 390);
         octx.drawImage(document.getElementById("canvas-slice-diff"), 930, 520, 950, 290);
         octx.drawImage(document.getElementById("canvas-timeseries"), 40, 760, 1840, 280);
         var link = document.createElement("a");
-        link.download = "spacetime_geochemistry_v0_1920x1080.png";
+        link.download = activeSel.is_simulated_state
+          ? "spacetime_geochemistry_v0_state_" + activeSel.state_index + "_1920x1080.png"
+          : "spacetime_geochemistry_v0_interpolated_display_1920x1080.png";
         link.href = outCanvas.toDataURL("image/png");
         link.click();
       });
