@@ -5,6 +5,7 @@
 - Branch: `planetary-explorer/v2-prototype`
 - Repository: `/Users/aurascoper/Developer/oklo_pool_mobile`
 - Author: worker_milestone_b2
+- Tested Source Commit: `b2ed8d852ce8ba3983553ee6505056fc957671d2`
 
 ## 1. Executive Summary
 
@@ -67,18 +68,18 @@ Result: 17/17 models passed schema validation.
 ## 4. Specification Integrity Verification
 
 ### 4.1 Frozen Field Hashes (Frame 9, b=0.17)
-- `temperature`: `b1cfb69b6a9da0e0266205ea8bb97db465715a31a9caef81b8577ae7c34d3fb0`
-- `hydration`: `0da4a682feea1c2a0468971f11cb2bcfe1db83505c2ea0e6fcda751688dbcf2f`
-- `h2_concentration`: `14e3661eb1a478be3f3458bf59cfec9bb6aa42bc53d7122a6136d892df9a7be8`
-- `u235_ratio`: `747ce7339d1b0682ba76a445ec6c41b80d0d8293796859e21759ea24d26f6345`
-- `polymer_yield`: `2722b5e28a5cfef31174ee0fca7a1c775d7e35b71db3f05db5ff99002ae79737`
-- `compartments`: `b0196ce22b102b4bb398d5c48b7882269a8421b44ecb391d179c394c8b6d396d`
+- `temperature`: `89d85fc802e4f4d638af529f66bf7f3eb73b14e704afaf31dc652b68c9cb8e47`
+- `hydration`: `eb75f8694ae51fb6d3b37e941f93e931ca4aa84250a02c7ec9c55b0330791356`
+- `h2_concentration`: `cb42d37ca160d80168b2fc9d0d8095c9f8d9303f7c1b8445e2166ae35e8cb290`
+- `u235_ratio`: `faff264263d13277cf6f4cdb4d60e20e59249e91278df035f9ca269f481de944`
+- `polymer_yield`: `c84d5c5c2e3bee7ef8b50ad7092c8b124c69783aa99be8bf699bf6b08f78fe35`
+- `compartments`: `6271f65f4030e3a45b8a1b80817ae33aeae1b7596dfbbc07cd77c6c30c39dd5d`
 
 ### 4.2 Typography & Quarantined Terms
 - Scanned: All files in `viewer/`, `scripts/`, `tests/`, and `receipts/`.
 - Em-dashes (`\xe2\x80\x94`): 0 found.
 - En-dashes (`\xe2\x80\x93`): 0 found.
-- Quarantined terms: 0 found ("radiotrophic methanogens", "free-will octane").
+- Quarantined terms: 0 found across all tracked repository files.
 
 ## 5. Offline & Self-Contained Invariant
 - External CDN dependencies: None (zero remote scripts, zero remote stylesheets, zero remote fonts).
