@@ -104,14 +104,14 @@ public enum FieldCatalog {
         ),
         FieldMetadata(
             field: .polymerYield,
-            displayName: "Polymer Yield",
-            canonicalUnit: "index; labelled umol/L with no kinetic basis",
-            shortUnit: "umol/L index",
+            displayName: "Polymer accumulation index",
+            canonicalUnit: "arbitrary units (revision-0 fixture labels this in umol/L with no kinetic or thermodynamic basis)",
+            shortUnit: "arbitrary units",
             colormapName: "magma",
             digits: 3,
             isInvertedIn3D: false,
             literatureAnchor: "Wet-dry condensation at a natural reactor (Ebisuzaki and Maruyama 2017; Adam et al. 2018; published hypothesis).",
-            limitationStatement: "Not evidence of polymerization at Oklo or anywhere. Its mass balance closes by construction (R0-8)."
+            limitationStatement: "Prescribed heuristic field. The revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established. Values are not measured or predicted polymer concentrations, and its mass balance closes by construction (R0-8)."
         ),
         FieldMetadata(
             field: .compartments,

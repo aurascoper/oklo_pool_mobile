@@ -129,7 +129,7 @@ Each field is displayed with its canonical unit, colormap, and literature limita
 - Hydration: pore saturation, dimensionless (0.02 to 1.0). Blues colormap. Prescribed drying shape, not a transport solution.
 - H2 Concentration: index; labelled mmol/L with no dose basis. Viridis colormap. G-value alone cannot give a concentration.
 - 235U/238U Ratio: atom ratio; natural baseline 0.00725. Cividis colormap. Ratio, not interchangeable with 0.7204 atom percent.
-- Polymer Yield: index; labelled umol/L with no kinetic basis. Magma colormap. Mass balance closes by construction.
+- Polymer accumulation index: arbitrary units (the revision-0 fixture labels this quantity in umol/L, but no kinetic or thermodynamic basis for those concentration units is established; values are not measured or predicted polymer concentrations, and its mass balance closes by construction). Magma colormap.
 - Compartments: zone labels 0 to 4 (categorical: Sandstone, Reactor Core, Halo, Fracture Conduit, Steam Chimney). Prescribed geometry, not mapped geology.
 
 ### 2. Interactive Phase Navigation

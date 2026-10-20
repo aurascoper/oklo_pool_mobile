@@ -187,6 +187,16 @@ final class OkloAppModelTests: XCTestCase {
         XCTAssertEqual(MemoryLayout<RaymarcherUniforms>.offset(of: \.categorical), 60)
     }
 
+    func testPolymerFieldOntologyAmendmentMetadata() {
+        let meta = FieldCatalog.metadata(for: .polymerYield)
+        XCTAssertEqual(meta.displayName, "Polymer accumulation index")
+        XCTAssertEqual(meta.shortUnit, "arbitrary units")
+        XCTAssertTrue(meta.canonicalUnit.contains("arbitrary units"))
+        XCTAssertTrue(meta.canonicalUnit.contains("umol/L"))
+        XCTAssertTrue(meta.limitationStatement.contains("Prescribed heuristic field"))
+        XCTAssertTrue(meta.limitationStatement.contains("Values are not measured or predicted polymer concentrations"))
+    }
+
     func testCf2TwentyCaseMatrixMatchesReference() {
         let phases: [Double] = [0.05, 0.15, 0.20, 0.50, 0.90]
         let scenarios: [Bool] = [false, true]
