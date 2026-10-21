@@ -53,6 +53,49 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function independentRecomputeVoxelSummary(valuesBuffer, spatialFrame) {
+  const [nx, ny, nz] = spatialFrame.dimensions_voxels;
+  const [xMin, xMax] = spatialFrame.domain_bounds_m.x;
+  const [yMin, yMax] = spatialFrame.domain_bounds_m.y;
+  const [zMin, zMax] = spatialFrame.domain_bounds_m.z_up;
+  const dx = (xMax - xMin) / nx;
+  const dy = (yMax - yMin) / ny;
+  const dz = (zMax - zMin) / nz;
+  const dV = dx * dy * dz;
+
+  let minV = Infinity;
+  let maxV = -Infinity;
+  let sumV = 0.0;
+  let sx = 0.0;
+  let sy = 0.0;
+  let sz = 0.0;
+
+  for (let k = 0; k < nz; k++) {
+    const z = zMin + (k + 0.5) * dz;
+    for (let j = 0; j < ny; j++) {
+      const y = yMin + (j + 0.5) * dy;
+      for (let i = 0; i < nx; i++) {
+        const x = xMin + (i + 0.5) * dx;
+        const v = valuesBuffer[i + nx * (j + ny * k)];
+        if (v < minV) minV = v;
+        if (v > maxV) maxV = v;
+        sumV += v;
+        sx += x * v;
+        sy += y * v;
+        sz += z * v;
+      }
+    }
+  }
+
+  return {
+    min_value: minV,
+    max_value: maxV,
+    mean_value: sumV / (nx * ny * nz),
+    total_integrated_inventory_mol: sumV * dV,
+    center_of_mass_m: [sx / sumV, sy / sumV, sz / sumV]
+  };
+}
+
 function runSuite() {
   const diskBundle = JSON.parse(fs.readFileSync(BUNDLE_PATH, "utf8"));
   const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, "utf8"));
@@ -114,29 +157,38 @@ function runSuite() {
     );
   });
 
-  // Test 2: 3D field dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping
-  test("Test 2: 16x16x16 voxel dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping", () => {
+  // Test 2: 3D field dimensions, finite values, non-zero variance, derived summary agreement, and analytical decay reference checks
+  test("Test 2: 16x16x16 voxel dimensions, finite values, derived summary statistics, and analytical decay reference checks", () => {
     assert.deepStrictEqual(diskBundle.spatial_frame.dimensions_voxels, [16, 16, 16]);
     const kDecay = diskBundle.governing_parameters.decay_rate_s_inv;
-    const m0 = diskBundle.states[0].total_integrated_inventory_mol;
+    const m0 = independentRecomputeVoxelSummary(diskBundle.states[0].values, diskBundle.spatial_frame)
+      .total_integrated_inventory_mol;
     for (let s = 0; s < diskBundle.states.length; s++) {
       const st = diskBundle.states[s];
       assert.strictEqual(st.voxel_count, 4096);
       assert.strictEqual(st.values.length, 4096);
-      let minV = Infinity;
-      let maxV = -Infinity;
-      let sumV = 0.0;
       for (let i = 0; i < st.values.length; i++) {
         const v = st.values[i];
         assert(Number.isFinite(v), "Voxel value must be finite");
         assert(v >= 0.0, "Synthetic concentration must be non-negative");
-        if (v < minV) minV = v;
-        if (v > maxV) maxV = v;
-        sumV += v;
       }
-      assert(maxV - minV > 2.0, "State " + s + " must have non-trivial spatial variance");
+      const recomputed = independentRecomputeVoxelSummary(st.values, diskBundle.spatial_frame);
+      assert(recomputed.max_value - recomputed.min_value > 2.0, "State " + s + " must have non-trivial spatial variance");
+      assert(Math.abs(st.min_value - recomputed.min_value) < 1e-6, "min_value must match voxel buffer");
+      assert(Math.abs(st.max_value - recomputed.max_value) < 1e-6, "max_value must match voxel buffer");
+      assert(Math.abs(st.mean_value - recomputed.mean_value) < 1e-6, "mean_value must match voxel buffer");
+      assert(
+        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-4,
+        "total_integrated_inventory_mol must match integrated voxel buffer"
+      );
+      for (let c = 0; c < 3; c++) {
+        assert(
+          Math.abs(st.center_of_mass_m[c] - recomputed.center_of_mass_m[c]) < 1e-5,
+          "center_of_mass_m[" + c + "] must match voxel buffer"
+        );
+      }
 
-      // Finding 2: Verify illustrative analytical bookkeeping ledger and discrete quadrature/tail gap
+      // Finding 2 & derived reference check: Verify illustrative analytical bookkeeping ledger against M0*exp(-k_decay*t)
       const ledger = st.analytical_bookkeeping_ledger;
       assert(ledger && typeof ledger === "object", "State " + s + " must include analytical_bookkeeping_ledger");
       assert.strictEqual(ledger.closes_by_algebraic_definition, true);
@@ -144,7 +196,16 @@ function runSuite() {
       assert(ledger.analytical_bookkeeping_note.includes("not test finite-volume numerical conservation"));
 
       const expectedSurviving = m0 * Math.exp(-kDecay * st.simulation_time);
-      const expectedGap = expectedSurviving - sumV;
+      const expectedDecayed = m0 * (1.0 - Math.exp(-kDecay * st.simulation_time));
+      const expectedGap = expectedSurviving - recomputed.total_integrated_inventory_mol;
+      assert(
+        Math.abs(ledger.analytical_surviving_reference_mol - expectedSurviving) < 1e-4,
+        "State " + s + " analytical_surviving_reference_mol must equal M0*exp(-k_decay*t)"
+      );
+      assert(
+        Math.abs(ledger.analytical_decayed_reference_mol - expectedDecayed) < 1e-4,
+        "State " + s + " analytical_decayed_reference_mol must equal M0*(1 - exp(-k_decay*t))"
+      );
       assert(
         Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGap) < 1e-4,
         "State " + s + " unmodeled_boundary_and_quadrature_gap_mol must equal M0*exp(-k*t) - M_retained"
@@ -192,8 +253,8 @@ function runSuite() {
     assert.strictEqual(hashes.size, 5, "All 5 time states must have distinct SHA-256 digests");
   });
 
-  // Test 4: Semantic time selection proof (changing time changes underlying Float32Array & shifts z_cm upward)
-  test("Test 4: Changing time state mutates underlying Float32Array and shifts z_cm monotonically along +k", () => {
+  // Test 4: Semantic time selection proof (changing time changes underlying Float32Array & shifts independently recomputed z_cm upward)
+  test("Test 4: Changing time state mutates underlying Float32Array and shifts independently recomputed z_cm monotonically along +k", () => {
     const sel0 = S4D.selectTimeState(diskBundle, 0, { allowDisplayInterpolation: false });
     const sel2 = S4D.selectTimeState(diskBundle, 2, { allowDisplayInterpolation: false });
     const sel4 = S4D.selectTimeState(diskBundle, 4, { allowDisplayInterpolation: false });
@@ -205,19 +266,38 @@ function runSuite() {
     assert.notStrictEqual(sel0.sha256_f32_le, sel2.sha256_f32_le);
     assert.notStrictEqual(sel2.sha256_f32_le, sel4.sha256_f32_le);
 
-    // Verify monotonic upward center-of-mass motion along +k across all 5 states
-    let prevZ = -Infinity;
-    let prevMax = Infinity;
+    // Independently recompute 3D center of mass and summary statistics from each state's raw Float32Array buffer
+    let prevRecomputedZ = -Infinity;
+    let prevRecomputedMax = Infinity;
     for (let s = 0; s < 5; s++) {
       const sel = S4D.selectTimeState(diskBundle, s, { allowDisplayInterpolation: false });
       assert.strictEqual(sel.is_simulated_state, true);
       assert.strictEqual(sel.state_derivation, "prescribed_analytically");
       assert.strictEqual(sel.criterial_status, "verified_accepted");
-      const zCm = sel.center_of_mass_m[2];
-      assert(zCm > prevZ, "Vertical center of mass z_cm must strictly increase along +k");
-      assert(sel.max_value < prevMax, "Peak concentration must attenuate under diffusion and decay");
-      prevZ = zCm;
-      prevMax = sel.max_value;
+
+      const recomputed = independentRecomputeVoxelSummary(sel.float32Values, diskBundle.spatial_frame);
+      for (let c = 0; c < 3; c++) {
+        assert(
+          Math.abs(sel.center_of_mass_m[c] - recomputed.center_of_mass_m[c]) < 1e-5,
+          "Stored center_of_mass_m[" + c + "] at state " + s + " must match center of mass recomputed from Float32Array"
+        );
+      }
+      assert(Math.abs(sel.min_value - recomputed.min_value) < 1e-6);
+      assert(Math.abs(sel.max_value - recomputed.max_value) < 1e-6);
+      assert(Math.abs(sel.mean_value - recomputed.mean_value) < 1e-6);
+      assert(Math.abs(sel.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-4);
+
+      const zCmRecomputed = recomputed.center_of_mass_m[2];
+      assert(
+        zCmRecomputed > prevRecomputedZ,
+        "Independently recomputed vertical center of mass z_cm must strictly increase along +k"
+      );
+      assert(
+        recomputed.max_value < prevRecomputedMax,
+        "Independently recomputed peak concentration must attenuate under diffusion and decay"
+      );
+      prevRecomputedZ = zCmRecomputed;
+      prevRecomputedMax = recomputed.max_value;
     }
 
     // Verify specific voxel (8, 8, 5) vs (8, 8, 11) change in opposite directions over time
@@ -347,7 +427,7 @@ function runSuite() {
   });
 
   // Test 9: Negative-control rejection of corrupted/invalid bundles
-  test("Test 9: verifyBundleIntegrity rejects non-monotonic/non-uniform time, non-'s' units, NaN, bad SHA-256, false FV claims, fabricated 0.0 gap, and bad provenance", () => {
+  test("Test 9: verifyBundleIntegrity and selectTimeState reject corrupted time, provenance, voxel summaries (min/max/mean/inventory/CoM), and decay references", () => {
     // 9a. Non-monotonic time
     const bNonMono = clone(diskBundle);
     bNonMono.states[3].simulation_time = 400.0;
@@ -427,6 +507,63 @@ function runSuite() {
     const bBadPruned = clone(diskBundle);
     bBadPruned.criterial_pruned_branches[0].time_points.pop();
     assert.throws(() => S4D.verifyBundleIntegrity(bBadPruned), /time_points length must match/);
+
+    // 9p. Mutated min_value without changing values or sha256_f32_le
+    const bBadMin = clone(diskBundle);
+    bBadMin.states[1].min_value = 0.25;
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadMin), /min_value .* does not match recomputed voxel minimum/);
+    assert.throws(() => S4D.selectTimeState(bBadMin, 1, { allowDisplayInterpolation: false }), /min_value mismatch/);
+
+    // 9q. Mutated max_value without changing values or sha256_f32_le
+    const bBadMax = clone(diskBundle);
+    bBadMax.states[2].max_value = 9.99;
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadMax), /max_value .* does not match recomputed voxel maximum/);
+    assert.throws(() => S4D.selectTimeState(bBadMax, 2, { allowDisplayInterpolation: false }), /max_value mismatch/);
+
+    // 9r. Mutated mean_value without changing values or sha256_f32_le
+    const bBadMean = clone(diskBundle);
+    bBadMean.states[3].mean_value = 0.75;
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadMean), /mean_value .* does not match recomputed voxel mean/);
+    assert.throws(() => S4D.selectTimeState(bBadMean, 3, { allowDisplayInterpolation: false }), /mean_value mismatch/);
+
+    // 9s. Mutated total_integrated_inventory_mol without changing values or sha256_f32_le
+    const bBadInventory = clone(diskBundle);
+    bBadInventory.states[1].total_integrated_inventory_mol = 500.0;
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(bBadInventory),
+      /total_integrated_inventory_mol .* does not match recomputed integrated voxel inventory/
+    );
+    assert.throws(
+      () => S4D.selectTimeState(bBadInventory, 1, { allowDisplayInterpolation: false }),
+      /total_integrated_inventory_mol mismatch/
+    );
+
+    // 9t. Mutated center_of_mass_m without changing values or sha256_f32_le
+    const bBadCom = clone(diskBundle);
+    bBadCom.states[4].center_of_mass_m = [8.0, 8.0, 2.5];
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(bBadCom),
+      /center_of_mass_m\[0\] .* does not match recomputed voxel center of mass/
+    );
+    assert.throws(
+      () => S4D.selectTimeState(bBadCom, 4, { allowDisplayInterpolation: false }),
+      /center_of_mass_m mismatch/
+    );
+
+    // 9u. Mutated analytical surviving/decayed reference diverging from M0*exp(-k_decay*t) while keeping algebraic closure
+    const bBadDecayRef = clone(diskBundle);
+    const led2 = bBadDecayRef.states[2].analytical_bookkeeping_ledger;
+    const m0 = led2.initial_discrete_inventory_mol;
+    const ret = led2.retained_discrete_inventory_mol;
+    const fakeSurv = Number((m0 * 0.95).toFixed(6));
+    led2.analytical_surviving_reference_mol = fakeSurv;
+    led2.analytical_decayed_reference_mol = Number((m0 - fakeSurv).toFixed(6));
+    led2.unmodeled_boundary_and_quadrature_gap_mol = Number((fakeSurv - ret).toFixed(6));
+    led2.relative_quadrature_and_tail_gap = Number((Math.abs(fakeSurv - ret) / m0).toFixed(6));
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(bBadDecayRef),
+      /analytical_surviving_reference_mol .* does not match M0 \* exp\(-k_decay \* simulation_time\)/
+    );
   });
 
   // Test 10: 4D projection (including extreme hyperplane angles), orthogonal slices, offline HTML, and typography audit

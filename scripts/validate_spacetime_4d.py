@@ -2,7 +2,7 @@
 """Stage 0 validator and negative-control test runner for spacetime_geochemistry_v0.
 
 Validates data/spacetime/synthetic_tracer_pulse_4d_v0.json against
-data/spacetime/schema_4d_v0.json and executes 17 negative-control rejection checks.
+data/spacetime/schema_4d_v0.json and executes 23 negative-control rejection checks.
 Strictly zero em-dashes and zero en-dashes.
 """
 
@@ -48,6 +48,66 @@ def compute_f32_le_sha256(values: list[float]) -> str:
     except (struct.error, OverflowError, ValueError) as exc:
         raise SpacetimeValidationError(f"Failed to pack float32 buffer: {exc}") from exc
     return hashlib.sha256(packed).hexdigest()
+
+
+def compute_voxel_summary_statistics(values: list[float], spatial_frame: dict[str, Any]) -> dict[str, Any]:
+    dims = spatial_frame["dimensions_voxels"]
+    nx, ny, nz = int(dims[0]), int(dims[1]), int(dims[2])
+    bounds_m = spatial_frame["domain_bounds_m"]
+    x_min, x_max = float(bounds_m["x"][0]), float(bounds_m["x"][1])
+    y_min, y_max = float(bounds_m["y"][0]), float(bounds_m["y"][1])
+    z_min, z_max = float(bounds_m["z_up"][0]), float(bounds_m["z_up"][1])
+
+    dx = (x_max - x_min) / float(nx)
+    dy = (y_max - y_min) / float(ny)
+    dz = (z_max - z_min) / float(nz)
+    voxel_volume_m3 = dx * dy * dz
+
+    min_v = float("inf")
+    max_v = float("-inf")
+    voxel_sum = 0.0
+    sx = 0.0
+    sy = 0.0
+    sz = 0.0
+
+    for k in range(nz):
+        z = z_min + (float(k) + 0.5) * dz
+        for j in range(ny):
+            y = y_min + (float(j) + 0.5) * dy
+            base_idx = nx * (j + ny * k)
+            for i in range(nx):
+                x = x_min + (float(i) + 0.5) * dx
+                v = float(values[base_idx + i])
+                if v < min_v:
+                    min_v = v
+                if v > max_v:
+                    max_v = v
+                voxel_sum += v
+                sx += x * v
+                sy += y * v
+                sz += z * v
+
+    voxel_count = nx * ny * nz
+    mean_v = voxel_sum / float(voxel_count)
+    total_inventory_mol = voxel_sum * voxel_volume_m3
+    if voxel_sum > 0.0:
+        com = [round(sx / voxel_sum, 6), round(sy / voxel_sum, 6), round(sz / voxel_sum, 6)]
+    else:
+        com = [
+            round(0.5 * (x_min + x_max), 6),
+            round(0.5 * (y_min + y_max), 6),
+            round(0.5 * (z_min + z_max), 6),
+        ]
+
+    return {
+        "min_value": min_v,
+        "max_value": max_v,
+        "mean_value": mean_v,
+        "voxel_sum": voxel_sum,
+        "voxel_volume_m3": voxel_volume_m3,
+        "total_integrated_inventory_mol": total_inventory_mol,
+        "center_of_mass_m": com,
+    }
 
 
 def _check_exact_keys(obj: dict[str, Any], required_keys: set[str], context: str) -> None:
@@ -175,6 +235,33 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
                 f"spatial_frame.domain_bounds_m.{axis_name} must be [min, max] with finite min < max"
             )
 
+    # Governing parameters validation
+    gov = bundle.get("governing_parameters")
+    gov_req = set(schema["properties"]["governing_parameters"]["required"])
+    _check_exact_keys(gov, gov_req, "governing_parameters")
+    if not isinstance(gov.get("equation_summary"), str) or not gov["equation_summary"].strip():
+        raise SpacetimeValidationError("governing_parameters.equation_summary must be a non-empty string")
+    for gp_num in (
+        "initial_peak_concentration_mol_m3",
+        "initial_sigma_m",
+        "diffusion_coefficient_m2_s",
+        "decay_rate_s_inv",
+    ):
+        gval = gov.get(gp_num)
+        if not isinstance(gval, (int, float)) or isinstance(gval, bool) or not math.isfinite(float(gval)):
+            raise SpacetimeValidationError(f"governing_parameters.{gp_num} must be a finite number")
+    if float(gov["decay_rate_s_inv"]) < 0.0:
+        raise SpacetimeValidationError("governing_parameters.decay_rate_s_inv must be >= 0")
+    k_decay = float(gov["decay_rate_s_inv"])
+    for gp_vec in ("advection_velocity_m_s", "initial_center_m"):
+        vec = gov.get(gp_vec)
+        if (
+            not isinstance(vec, list)
+            or len(vec) != 3
+            or any(not isinstance(x, (int, float)) or isinstance(x, bool) or not math.isfinite(float(x)) for x in vec)
+        ):
+            raise SpacetimeValidationError(f"governing_parameters.{gp_vec} must be a 3-number list")
+
     # Temporal axis validation (Finding 4: fixed-step seconds grid)
     temporal = bundle["temporal_axis"]
     temporal_req = set(schema["properties"]["temporal_axis"]["required"])
@@ -213,6 +300,7 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     )
     prev_time: float | None = None
     seen_hashes: set[str] = set()
+    initial_integrated_inventory = 0.0
 
     for idx, st in enumerate(states):
         _check_exact_keys(st, state_req, f"states[{idx}]")
@@ -314,16 +402,55 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"states[{idx}].values length={len(vals) if isinstance(vals, list) else 'non-list'} != {expected_voxels}"
             )
-        state_voxel_sum = 0.0
         for v_i, v in enumerate(vals):
             if not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(float(v)):
                 raise SpacetimeValidationError(
                     f"states[{idx}].values[{v_i}] is not a finite number: {v!r}"
                 )
-            state_voxel_sum += float(v)
 
+        # Independently recompute derived summary statistics from hashed voxel array and spatial_frame
+        recomputed = compute_voxel_summary_statistics(vals, spatial)
+
+        for sum_field in ("min_value", "max_value", "mean_value", "total_integrated_inventory_mol"):
+            sval = st.get(sum_field)
+            if not isinstance(sval, (int, float)) or isinstance(sval, bool) or not math.isfinite(float(sval)):
+                raise SpacetimeValidationError(f"states[{idx}].{sum_field} must be a finite number")
+
+        if abs(float(st["min_value"]) - recomputed["min_value"]) > 1e-6:
+            raise SpacetimeValidationError(
+                f"states[{idx}].min_value ({st['min_value']}) does not match recomputed voxel minimum ({recomputed['min_value']})"
+            )
+        if abs(float(st["max_value"]) - recomputed["max_value"]) > 1e-6:
+            raise SpacetimeValidationError(
+                f"states[{idx}].max_value ({st['max_value']}) does not match recomputed voxel maximum ({recomputed['max_value']})"
+            )
+        if abs(float(st["mean_value"]) - recomputed["mean_value"]) > 1e-6:
+            raise SpacetimeValidationError(
+                f"states[{idx}].mean_value ({st['mean_value']}) does not match recomputed voxel mean ({recomputed['mean_value']})"
+            )
+        if abs(float(st["total_integrated_inventory_mol"]) - recomputed["total_integrated_inventory_mol"]) > 1e-4:
+            raise SpacetimeValidationError(
+                f"states[{idx}].total_integrated_inventory_mol ({st['total_integrated_inventory_mol']}) "
+                f"does not match recomputed integrated voxel inventory ({recomputed['total_integrated_inventory_mol']:.6f})"
+            )
+
+        com = st.get("center_of_mass_m")
+        if (
+            not isinstance(com, list)
+            or len(com) != 3
+            or any(not isinstance(c, (int, float)) or isinstance(c, bool) or not math.isfinite(float(c)) for c in com)
+        ):
+            raise SpacetimeValidationError(f"states[{idx}].center_of_mass_m must be 3 finite numbers")
+        for axis_i, axis_label in enumerate(("x", "y", "z_up")):
+            if abs(float(com[axis_i]) - recomputed["center_of_mass_m"][axis_i]) > 1e-5:
+                raise SpacetimeValidationError(
+                    f"states[{idx}].center_of_mass_m[{axis_i}] ({axis_label}={com[axis_i]}) "
+                    f"does not match recomputed voxel center of mass ({recomputed['center_of_mass_m'][axis_i]:.6f})"
+                )
+
+        state_integrated_inventory = recomputed["total_integrated_inventory_mol"]
         if idx == 0:
-            initial_voxel_sum = state_voxel_sum
+            initial_integrated_inventory = state_integrated_inventory
 
         init_inv = float(ledger["initial_discrete_inventory_mol"])
         ret_inv = float(ledger["retained_discrete_inventory_mol"])
@@ -332,16 +459,30 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         gap_mol = float(ledger["unmodeled_boundary_and_quadrature_gap_mol"])
         rel_gap = float(ledger["relative_quadrature_and_tail_gap"])
 
-        if init_inv <= 0.0 or abs(init_inv - initial_voxel_sum) > 1e-3:
+        if init_inv <= 0.0 or abs(init_inv - initial_integrated_inventory) > 1e-3:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.initial_discrete_inventory_mol ({init_inv}) "
-                f"does not match states[0] discrete voxel sum ({initial_voxel_sum:.6f})"
+                f"does not match states[0] discrete integrated inventory ({initial_integrated_inventory:.6f})"
             )
-        if abs(ret_inv - state_voxel_sum) > 1e-3:
+        if abs(ret_inv - state_integrated_inventory) > 1e-3:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.retained_discrete_inventory_mol ({ret_inv}) "
-                f"does not match discrete voxel sum ({state_voxel_sum:.6f})"
+                f"does not match discrete integrated inventory ({state_integrated_inventory:.6f})"
             )
+
+        expected_surv_ref = initial_integrated_inventory * math.exp(-k_decay * t_float)
+        expected_dec_ref = initial_integrated_inventory * (1.0 - math.exp(-k_decay * t_float))
+        if abs(surv_ref - expected_surv_ref) > 1e-4:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.analytical_surviving_reference_mol ({surv_ref}) "
+                f"does not match M0 * exp(-k_decay * simulation_time) ({expected_surv_ref:.6f})"
+            )
+        if abs(dec_ref - expected_dec_ref) > 1e-4:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.analytical_decayed_reference_mol ({dec_ref}) "
+                f"does not match M0 * (1 - exp(-k_decay * simulation_time)) ({expected_dec_ref:.6f})"
+            )
+
         if abs((surv_ref + dec_ref) - init_inv) > 1e-3:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger surviving + decayed ({surv_ref + dec_ref:.6f}) "
@@ -591,6 +732,67 @@ def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, An
     expect_rejection(
         "17. Reject source_provenance.generator_script_sha256 mismatch with generator script on disk",
         mut_bad_generator_sha,
+    )
+
+    # 18. Mutated min_value contradicting hashed voxel array (Derived metadata integrity)
+    def mut_bad_min_value(b: dict[str, Any]) -> None:
+        b["states"][1]["min_value"] = 0.25
+
+    expect_rejection(
+        "18. Reject mutated min_value contradicting hashed voxel buffer",
+        mut_bad_min_value,
+    )
+
+    # 19. Mutated max_value contradicting hashed voxel array (Derived metadata integrity)
+    def mut_bad_max_value(b: dict[str, Any]) -> None:
+        b["states"][2]["max_value"] = 9.99
+
+    expect_rejection(
+        "19. Reject mutated max_value contradicting hashed voxel buffer",
+        mut_bad_max_value,
+    )
+
+    # 20. Mutated mean_value contradicting hashed voxel array (Derived metadata integrity)
+    def mut_bad_mean_value(b: dict[str, Any]) -> None:
+        b["states"][3]["mean_value"] = 0.75
+
+    expect_rejection(
+        "20. Reject mutated mean_value contradicting hashed voxel buffer",
+        mut_bad_mean_value,
+    )
+
+    # 21. Mutated total_integrated_inventory_mol contradicting hashed voxel array (Derived metadata integrity)
+    def mut_bad_total_inventory(b: dict[str, Any]) -> None:
+        b["states"][1]["total_integrated_inventory_mol"] = 500.0
+
+    expect_rejection(
+        "21. Reject mutated total_integrated_inventory_mol contradicting hashed voxel buffer",
+        mut_bad_total_inventory,
+    )
+
+    # 22. Mutated center_of_mass_m contradicting hashed voxel array (Derived metadata integrity)
+    def mut_bad_center_of_mass(b: dict[str, Any]) -> None:
+        b["states"][4]["center_of_mass_m"] = [8.0, 8.0, 2.5]
+
+    expect_rejection(
+        "22. Reject mutated center_of_mass_m contradicting hashed voxel buffer",
+        mut_bad_center_of_mass,
+    )
+
+    # 23. Mutated analytical surviving/decayed reference diverging from M0*exp(-k_decay*t) while algebraically closed
+    def mut_bad_exponential_decay_ref(b: dict[str, Any]) -> None:
+        led = b["states"][2]["analytical_bookkeeping_ledger"]
+        m0 = float(led["initial_discrete_inventory_mol"])
+        ret = float(led["retained_discrete_inventory_mol"])
+        fake_surv = round(m0 * 0.95, 6)
+        led["analytical_surviving_reference_mol"] = fake_surv
+        led["analytical_decayed_reference_mol"] = round(m0 - fake_surv, 6)
+        led["unmodeled_boundary_and_quadrature_gap_mol"] = round(fake_surv - ret, 6)
+        led["relative_quadrature_and_tail_gap"] = round(abs(fake_surv - ret) / m0, 6)
+
+    expect_rejection(
+        "23. Reject analytical surviving/decayed reference diverging from M0*exp(-k_decay*t) despite algebraic closure",
+        mut_bad_exponential_decay_ref,
     )
 
     return results

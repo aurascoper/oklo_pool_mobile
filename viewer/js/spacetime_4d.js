@@ -146,17 +146,40 @@
     return i + nx * (j + ny * k);
   }
 
-  function computeCenterOfMass(valuesArray, nx, ny, nz) {
+  function computeCenterOfMass(valuesArray, nx, ny, nz, domainBoundsM) {
+    var xMin = 0.0;
+    var xMax = nx;
+    var yMin = 0.0;
+    var yMax = ny;
+    var zMin = 0.0;
+    var zMax = nz;
+    if (domainBoundsM && typeof domainBoundsM === "object") {
+      if (Array.isArray(domainBoundsM.x) && domainBoundsM.x.length === 2) {
+        xMin = domainBoundsM.x[0];
+        xMax = domainBoundsM.x[1];
+      }
+      if (Array.isArray(domainBoundsM.y) && domainBoundsM.y.length === 2) {
+        yMin = domainBoundsM.y[0];
+        yMax = domainBoundsM.y[1];
+      }
+      if (Array.isArray(domainBoundsM.z_up) && domainBoundsM.z_up.length === 2) {
+        zMin = domainBoundsM.z_up[0];
+        zMax = domainBoundsM.z_up[1];
+      }
+    }
+    var dx = (xMax - xMin) / nx;
+    var dy = (yMax - yMin) / ny;
+    var dz = (zMax - zMin) / nz;
     var total = 0.0;
     var sx = 0.0;
     var sy = 0.0;
     var sz = 0.0;
     for (var k = 0; k < nz; k++) {
-      var z = k + 0.5;
+      var z = zMin + (k + 0.5) * dz;
       for (var j = 0; j < ny; j++) {
-        var y = j + 0.5;
+        var y = yMin + (j + 0.5) * dy;
         for (var i = 0; i < nx; i++) {
-          var x = i + 0.5;
+          var x = xMin + (i + 0.5) * dx;
           var v = valuesArray[voxelIndex(i, j, k, nx, ny)];
           total += v;
           sx += x * v;
@@ -166,13 +189,84 @@
       }
     }
     if (total <= 0.0) {
-      return [8.0, 8.0, 8.0];
+      return [
+        Number((0.5 * (xMin + xMax)).toFixed(6)),
+        Number((0.5 * (yMin + yMax)).toFixed(6)),
+        Number((0.5 * (zMin + zMax)).toFixed(6))
+      ];
     }
     return [
       Number((sx / total).toFixed(6)),
       Number((sy / total).toFixed(6)),
       Number((sz / total).toFixed(6))
     ];
+  }
+
+  function computeVoxelSummaryStatistics(valuesArray, spatialFrame) {
+    var dims = spatialFrame.dimensions_voxels;
+    var nx = dims[0];
+    var ny = dims[1];
+    var nz = dims[2];
+    var dBounds = spatialFrame.domain_bounds_m;
+    var xMin = dBounds.x[0];
+    var xMax = dBounds.x[1];
+    var yMin = dBounds.y[0];
+    var yMax = dBounds.y[1];
+    var zMin = dBounds.z_up[0];
+    var zMax = dBounds.z_up[1];
+    var dx = (xMax - xMin) / nx;
+    var dy = (yMax - yMin) / ny;
+    var dz = (zMax - zMin) / nz;
+    var voxelVolumeM3 = dx * dy * dz;
+
+    var minV = Infinity;
+    var maxV = -Infinity;
+    var sumV = 0.0;
+    var sx = 0.0;
+    var sy = 0.0;
+    var sz = 0.0;
+
+    for (var k = 0; k < nz; k++) {
+      var z = zMin + (k + 0.5) * dz;
+      for (var j = 0; j < ny; j++) {
+        var y = yMin + (j + 0.5) * dy;
+        var baseIdx = nx * (j + ny * k);
+        for (var i = 0; i < nx; i++) {
+          var x = xMin + (i + 0.5) * dx;
+          var v = valuesArray[baseIdx + i];
+          if (v < minV) minV = v;
+          if (v > maxV) maxV = v;
+          sumV += v;
+          sx += x * v;
+          sy += y * v;
+          sz += z * v;
+        }
+      }
+    }
+
+    var voxelCount = nx * ny * nz;
+    var com =
+      sumV > 0.0
+        ? [
+            Number((sx / sumV).toFixed(6)),
+            Number((sy / sumV).toFixed(6)),
+            Number((sz / sumV).toFixed(6))
+          ]
+        : [
+            Number((0.5 * (xMin + xMax)).toFixed(6)),
+            Number((0.5 * (yMin + yMax)).toFixed(6)),
+            Number((0.5 * (zMin + zMax)).toFixed(6))
+          ];
+
+    return {
+      min_value: minV,
+      max_value: maxV,
+      mean_value: sumV / voxelCount,
+      voxel_sum: sumV,
+      voxel_volume_m3: voxelVolumeM3,
+      total_integrated_inventory_mol: sumV * voxelVolumeM3,
+      center_of_mass_m: com
+    };
   }
 
   // Deterministic synchronous fallback generator matching scripts/generate_synthetic_4d_bundle.py
@@ -557,6 +651,46 @@
       }
     }
 
+    var gov = bundle.governing_parameters;
+    if (!gov || typeof gov !== "object") {
+      throw new Error("SpacetimeContractError: Missing governing_parameters");
+    }
+    if (typeof gov.equation_summary !== "string" || gov.equation_summary.trim().length === 0) {
+      throw new Error("SpacetimeContractError: governing_parameters.equation_summary must be a non-empty string");
+    }
+    var govNums = [
+      "initial_peak_concentration_mol_m3",
+      "initial_sigma_m",
+      "diffusion_coefficient_m2_s",
+      "decay_rate_s_inv"
+    ];
+    for (var gIdx = 0; gIdx < govNums.length; gIdx++) {
+      var gKey = govNums[gIdx];
+      if (typeof gov[gKey] !== "number" || !Number.isFinite(gov[gKey])) {
+        throw new Error("SpacetimeContractError: governing_parameters." + gKey + " must be a finite number");
+      }
+    }
+    if (gov.decay_rate_s_inv < 0) {
+      throw new Error("SpacetimeContractError: governing_parameters.decay_rate_s_inv must be >= 0");
+    }
+    var kDecay = gov.decay_rate_s_inv;
+    var govVecs = ["advection_velocity_m_s", "initial_center_m"];
+    for (var gvIdx = 0; gvIdx < govVecs.length; gvIdx++) {
+      var gv = gov[govVecs[gvIdx]];
+      if (
+        !Array.isArray(gv) ||
+        gv.length !== 3 ||
+        typeof gv[0] !== "number" ||
+        typeof gv[1] !== "number" ||
+        typeof gv[2] !== "number" ||
+        !Number.isFinite(gv[0]) ||
+        !Number.isFinite(gv[1]) ||
+        !Number.isFinite(gv[2])
+      ) {
+        throw new Error("SpacetimeContractError: governing_parameters." + govVecs[gvIdx] + " must be 3 finite numbers");
+      }
+    }
+
     var temporal = bundle.temporal_axis;
     if (!temporal || typeof temporal !== "object") {
       throw new Error("SpacetimeContractError: Missing temporal_axis");
@@ -599,7 +733,7 @@
 
     var prevTime = null;
     var seenHashes = {};
-    var initialVoxelSum = 0.0;
+    var initialIntegratedInventory = 0.0;
 
     for (var idx = 0; idx < states.length; idx++) {
       var st = states[idx];
@@ -728,7 +862,6 @@
       if (!Array.isArray(st.values) || st.values.length !== expectedVoxels) {
         throw new Error("SpacetimeContractError: states[" + idx + "].values length mismatch");
       }
-      var stateVoxelSum = 0.0;
       for (var v = 0; v < expectedVoxels; v++) {
         var val = st.values[v];
         if (typeof val !== "number" || !Number.isFinite(val)) {
@@ -736,22 +869,133 @@
             "SpacetimeContractError: Non-finite voxel value at states[" + idx + "].values[" + v + "]"
           );
         }
-        stateVoxelSum += val;
       }
+
+      // Independently recompute derived summary statistics from hashed voxel array and spatial_frame
+      var recomputed = computeVoxelSummaryStatistics(st.values, spatial);
+      var sumNumFields = [
+        "min_value",
+        "max_value",
+        "mean_value",
+        "total_integrated_inventory_mol"
+      ];
+      for (var sf = 0; sf < sumNumFields.length; sf++) {
+        var sfKey = sumNumFields[sf];
+        if (typeof st[sfKey] !== "number" || !Number.isFinite(st[sfKey])) {
+          throw new Error("SpacetimeContractError: states[" + idx + "]." + sfKey + " must be a finite number");
+        }
+      }
+      if (Math.abs(st.min_value - recomputed.min_value) > 1e-6) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].min_value (" +
+            st.min_value +
+            ") does not match recomputed voxel minimum (" +
+            recomputed.min_value +
+            ")"
+        );
+      }
+      if (Math.abs(st.max_value - recomputed.max_value) > 1e-6) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].max_value (" +
+            st.max_value +
+            ") does not match recomputed voxel maximum (" +
+            recomputed.max_value +
+            ")"
+        );
+      }
+      if (Math.abs(st.mean_value - recomputed.mean_value) > 1e-6) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].mean_value (" +
+            st.mean_value +
+            ") does not match recomputed voxel mean (" +
+            recomputed.mean_value +
+            ")"
+        );
+      }
+      if (Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-4) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].total_integrated_inventory_mol (" +
+            st.total_integrated_inventory_mol +
+            ") does not match recomputed integrated voxel inventory (" +
+            recomputed.total_integrated_inventory_mol +
+            ")"
+        );
+      }
+      if (
+        !Array.isArray(st.center_of_mass_m) ||
+        st.center_of_mass_m.length !== 3 ||
+        typeof st.center_of_mass_m[0] !== "number" ||
+        typeof st.center_of_mass_m[1] !== "number" ||
+        typeof st.center_of_mass_m[2] !== "number" ||
+        !Number.isFinite(st.center_of_mass_m[0]) ||
+        !Number.isFinite(st.center_of_mass_m[1]) ||
+        !Number.isFinite(st.center_of_mass_m[2])
+      ) {
+        throw new Error("SpacetimeContractError: states[" + idx + "].center_of_mass_m must be 3 finite numbers");
+      }
+      for (var cAxis = 0; cAxis < 3; cAxis++) {
+        if (Math.abs(st.center_of_mass_m[cAxis] - recomputed.center_of_mass_m[cAxis]) > 1e-5) {
+          throw new Error(
+            "SpacetimeContractError: states[" +
+              idx +
+              "].center_of_mass_m[" +
+              cAxis +
+              "] (" +
+              st.center_of_mass_m[cAxis] +
+              ") does not match recomputed voxel center of mass (" +
+              recomputed.center_of_mass_m[cAxis] +
+              ")"
+          );
+        }
+      }
+
+      var stateIntegratedInventory = recomputed.total_integrated_inventory_mol;
       if (idx === 0) {
-        initialVoxelSum = stateVoxelSum;
+        initialIntegratedInventory = stateIntegratedInventory;
       }
       if (
         ledger.initial_discrete_inventory_mol <= 0 ||
-        Math.abs(ledger.initial_discrete_inventory_mol - initialVoxelSum) > 1e-3
+        Math.abs(ledger.initial_discrete_inventory_mol - initialIntegratedInventory) > 1e-3
       ) {
         throw new Error(
-          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.initial_discrete_inventory_mol mismatch with state 0 voxel sum"
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.initial_discrete_inventory_mol mismatch with state 0 integrated inventory"
         );
       }
-      if (Math.abs(ledger.retained_discrete_inventory_mol - stateVoxelSum) > 1e-3) {
+      if (Math.abs(ledger.retained_discrete_inventory_mol - stateIntegratedInventory) > 1e-3) {
         throw new Error(
-          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.retained_discrete_inventory_mol mismatch with discrete voxel sum"
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.retained_discrete_inventory_mol mismatch with discrete integrated inventory"
+        );
+      }
+      var expectedSurvRef = initialIntegratedInventory * Math.exp(-kDecay * st.simulation_time);
+      var expectedDecRef = initialIntegratedInventory * (1.0 - Math.exp(-kDecay * st.simulation_time));
+      if (Math.abs(ledger.analytical_surviving_reference_mol - expectedSurvRef) > 1e-4) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].analytical_bookkeeping_ledger.analytical_surviving_reference_mol (" +
+            ledger.analytical_surviving_reference_mol +
+            ") does not match M0 * exp(-k_decay * simulation_time) (" +
+            expectedSurvRef.toFixed(6) +
+            ")"
+        );
+      }
+      if (Math.abs(ledger.analytical_decayed_reference_mol - expectedDecRef) > 1e-4) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            idx +
+            "].analytical_bookkeeping_ledger.analytical_decayed_reference_mol (" +
+            ledger.analytical_decayed_reference_mol +
+            ") does not match M0 * (1 - exp(-k_decay * simulation_time)) (" +
+            expectedDecRef.toFixed(6) +
+            ")"
         );
       }
       if (
@@ -939,6 +1183,33 @@
             ")"
         );
       }
+      var recomputed = computeVoxelSummaryStatistics(f32, bundle.spatial_frame);
+      if (typeof st.min_value !== "number" || Math.abs(st.min_value - recomputed.min_value) > 1e-6) {
+        throw new Error("SpacetimeContractError: states[" + rounded + "].min_value mismatch with voxel buffer");
+      }
+      if (typeof st.max_value !== "number" || Math.abs(st.max_value - recomputed.max_value) > 1e-6) {
+        throw new Error("SpacetimeContractError: states[" + rounded + "].max_value mismatch with voxel buffer");
+      }
+      if (typeof st.mean_value !== "number" || Math.abs(st.mean_value - recomputed.mean_value) > 1e-6) {
+        throw new Error("SpacetimeContractError: states[" + rounded + "].mean_value mismatch with voxel buffer");
+      }
+      if (
+        typeof st.total_integrated_inventory_mol !== "number" ||
+        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-4
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" + rounded + "].total_integrated_inventory_mol mismatch with voxel buffer"
+        );
+      }
+      if (
+        !Array.isArray(st.center_of_mass_m) ||
+        st.center_of_mass_m.length !== 3 ||
+        Math.abs(st.center_of_mass_m[0] - recomputed.center_of_mass_m[0]) > 1e-5 ||
+        Math.abs(st.center_of_mass_m[1] - recomputed.center_of_mass_m[1]) > 1e-5 ||
+        Math.abs(st.center_of_mass_m[2] - recomputed.center_of_mass_m[2]) > 1e-5
+      ) {
+        throw new Error("SpacetimeContractError: states[" + rounded + "].center_of_mass_m mismatch with voxel buffer");
+      }
       return {
         state_index: st.state_index,
         simulation_time: st.simulation_time,
@@ -949,11 +1220,11 @@
         run_receipt: st.run_receipt,
         voxel_count: st.voxel_count,
         sha256_f32_le: actualSha,
-        min_value: st.min_value,
-        max_value: st.max_value,
-        mean_value: st.mean_value,
-        total_integrated_inventory_mol: st.total_integrated_inventory_mol,
-        center_of_mass_m: st.center_of_mass_m.slice(),
+        min_value: recomputed.min_value,
+        max_value: recomputed.max_value,
+        mean_value: recomputed.mean_value,
+        total_integrated_inventory_mol: recomputed.total_integrated_inventory_mol,
+        center_of_mass_m: recomputed.center_of_mass_m.slice(),
         analytical_bookkeeping_ledger: Object.assign({}, st.analytical_bookkeeping_ledger),
         display_warning: null,
         float32Values: f32
@@ -995,18 +1266,11 @@
     }
 
     var interpF32 = new Float32Array(expectedVoxels);
-    var minV = Infinity;
-    var maxV = -Infinity;
-    var sumV = 0.0;
     for (var k = 0; k < expectedVoxels; k++) {
-      var valInterp = (1.0 - alpha) * stLow.float32Values[k] + alpha * stHigh.float32Values[k];
-      interpF32[k] = valInterp;
-      sumV += valInterp;
-      if (valInterp < minV) minV = valInterp;
-      if (valInterp > maxV) maxV = valInterp;
+      interpF32[k] = (1.0 - alpha) * stLow.float32Values[k] + alpha * stHigh.float32Values[k];
     }
 
-    var comInterp = computeCenterOfMass(interpF32, dims[0], dims[1], dims[2]);
+    var interpSummary = computeVoxelSummaryStatistics(interpF32, bundle.spatial_frame);
     var tInterp = (1.0 - alpha) * stLow.simulation_time + alpha * stHigh.simulation_time;
 
     return {
@@ -1021,11 +1285,11 @@
       run_receipt: null,
       voxel_count: expectedVoxels,
       sha256_f32_le: "unverified_display_interpolation",
-      min_value: minV,
-      max_value: maxV,
-      mean_value: sumV / expectedVoxels,
-      total_integrated_inventory_mol: sumV,
-      center_of_mass_m: comInterp,
+      min_value: interpSummary.min_value,
+      max_value: interpSummary.max_value,
+      mean_value: interpSummary.mean_value,
+      total_integrated_inventory_mol: interpSummary.total_integrated_inventory_mol,
+      center_of_mass_m: interpSummary.center_of_mass_m,
       analytical_bookkeeping_ledger: null,
       display_warning:
         "INTERPOLATED FOR DISPLAY ONLY: Linear visual blend between states " +
@@ -1267,6 +1531,7 @@
     sha256Float32LE: sha256Float32LE,
     voxelIndex: voxelIndex,
     computeCenterOfMass: computeCenterOfMass,
+    computeVoxelSummaryStatistics: computeVoxelSummaryStatistics,
     buildEmbeddedSyntheticBundle: buildEmbeddedSyntheticBundle,
     verifyBundleIntegrity: verifyBundleIntegrity,
     selectTimeState: selectTimeState,

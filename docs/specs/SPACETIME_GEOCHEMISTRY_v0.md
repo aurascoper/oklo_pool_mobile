@@ -71,6 +71,7 @@ Every bundle must explicitly define the fourth dimension $w = t$ on a uniform fi
 - Within each entry of `states[]`:
   - `voxel_count` must equal $n_x \times n_y \times n_z = 4096$.
   - `values` must be a flat array of length `voxel_count` containing only finite IEEE-754 numbers (`NaN`, `+Infinity`, and `-Infinity` are rejected).
+  - Derived summary statistics (`min_value`, `max_value`, `mean_value`, `total_integrated_inventory_mol`, and `center_of_mass_m`) are independently recomputed from the hashed `Float32LE` voxel array and `spatial_frame` cell centers/volume ($\Delta V = \Delta x \Delta y \Delta z$) by both `scripts/validate_spacetime_4d.py` and `viewer/js/spacetime_4d.js` (`verifyBundleIntegrity()` and `selectTimeState()`), rejecting any bundle whose stored summary metadata diverges from the voxel buffer.
 
 ### 3.4 Provenance Separation, Epistemic Evidence Class, and Per-Frame Checksums
 
