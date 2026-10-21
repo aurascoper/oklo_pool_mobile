@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-10-21T01:38:00Z",
+  "timestamp": "2026-10-21T02:02:00Z",
   "requirement": "R10: spacetime_geochemistry_v0 (Stage 0 4D Data Contract and Stage 1 Synthetic Temporal Renderer Proof)",
   "branch": "spacetime-geochemistry/v0-slice",
   "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
-  "tested_source_commit": "919c6f28fe6f1235db1c07c4ab037e261cd5d0ef",
+  "tested_source_commit": "32d8c28665789de5a6992366e2346e61499829f8",
   "worktree_clean_at_test": true,
   "source_provenance": {
     "target_branch": "spacetime-geochemistry/v0-slice",
     "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
     "generator_script": "scripts/generate_synthetic_4d_bundle.py",
     "generator_version": "spacetime_geochemistry_v0_gen_0.2.0",
-    "generator_script_sha256": "9b86f1dfd9acd3666bcc953d123c1eb8ce0dd3130b87a23aae4b9afa491bc4a0",
+    "generator_script_sha256": "d8a78d21351d8ee0c1c791adbec48e6e48c11e032ec93c6fb30eb91b815962e7",
     "tested_source_commit_policy": "recorded_in_external_verification_receipt"
   },
   "commit_provenance_policy": "baseline_commit records the main branch parent from which the R10 slice branched; tested_source_commit records the clean R10 source commit under test; receipt_head is the follow-on commit binding this receipt and screenshots without modifying tested source files.",
@@ -87,32 +87,32 @@
       "view": "State 0 (t = 0.0 s, lower zone k = 5)",
       "path": "receipts/screenshots/r10_spacetime_t0.png",
       "resolution": "1920x1080",
-      "sha256": "af90196d91f48ae439e3dfdb592c8532704d369108c59215382d9483b69d92ad"
+      "sha256": "fdb1176b32771d93e64c9e7bfb90b8735be13c379388b558c911fc7eb533e306"
     },
     {
       "view": "State 3 (t = 750.0 s, upper zone k = 9)",
       "path": "receipts/screenshots/r10_spacetime_t750.png",
       "resolution": "1920x1080",
-      "sha256": "edd9e9e609e5bf9b14e883bae30223df6c4d9de5f186faaa4a1ed732ad25f85e"
+      "sha256": "3c5fea4079f6b7513848610ebe6243901bbf2ac05afd138c063589ba3a640009"
     },
     {
       "view": "Dual-Time Comparison dF(x; t_A = 0 s, t_B = 750 s)",
       "path": "receipts/screenshots/r10_spacetime_diff_t0_t750.png",
       "resolution": "1920x1080",
-      "sha256": "9621764413fdcf5f792891aae103df4de3c1edc2ceddc908e6e789307149256d"
+      "sha256": "1c94292ed8a3c277b8c16c371066b76dd7a8fec56ad12f271375659f69e1f766"
     },
     {
       "view": "Display Interpolation Mode (?interp=1&state=1.5, t = 375.0 s)",
       "path": "receipts/screenshots/r10_spacetime_interp_t375.png",
       "resolution": "1920x1080",
-      "sha256": "b99615096443a4b98fdd8d2bf22c8377e96785ef277a5bdd070dd02d6b3e0629"
+      "sha256": "90f12e415d879d0e6c1094a634374a88f197a02164d1934ddc30a64ccf4d97b1"
     }
   ],
   "verification_suites": {
     "validate_spacetime_4d_py": {
       "command": "python3 scripts/validate_spacetime_4d.py",
       "primary_bundle_valid": true,
-      "negative_controls_passed": 15,
+      "negative_controls_passed": 17,
       "negative_controls_failed": 0,
       "status": "PASS"
     },
