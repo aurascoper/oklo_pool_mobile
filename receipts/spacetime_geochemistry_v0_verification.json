@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-21T02:42:00Z",
+  "timestamp": "2026-10-21T03:02:11Z",
   "requirement": "R10: spacetime_geochemistry_v0 (Stage 0 4D Data Contract and Stage 1 Synthetic Temporal Renderer Proof)",
   "branch": "spacetime-geochemistry/v0-slice",
   "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
-  "tested_source_commit": "23e95da70ed0d8e5971c29c87771b2f3ab2243e1",
+  "tested_source_commit": "d868075d78a13b14459d524350343ccc21de67a8",
   "worktree_clean_at_test": true,
   "source_provenance": {
     "target_branch": "spacetime-geochemistry/v0-slice",
