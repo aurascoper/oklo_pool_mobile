@@ -1,0 +1,139 @@
+{
+  "timestamp": "2026-10-21T03:02:11Z",
+  "requirement": "R10: spacetime_geochemistry_v0 (Stage 0 4D Data Contract and Stage 1 Synthetic Temporal Renderer Proof)",
+  "branch": "spacetime-geochemistry/v0-slice",
+  "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
+  "tested_source_commit": "d868075d78a13b14459d524350343ccc21de67a8",
+  "worktree_clean_at_test": true,
+  "source_provenance": {
+    "target_branch": "spacetime-geochemistry/v0-slice",
+    "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
+    "generator_script": "scripts/generate_synthetic_4d_bundle.py",
+    "generator_version": "spacetime_geochemistry_v0_gen_0.2.0",
+    "generator_script_sha256": "d8a78d21351d8ee0c1c791adbec48e6e48c11e032ec93c6fb30eb91b815962e7",
+    "tested_source_commit_policy": "recorded_in_external_verification_receipt"
+  },
+  "commit_provenance_policy": "baseline_commit records the main branch parent from which the R10 slice branched; tested_source_commit records the clean R10 source commit under test; receipt_head is the follow-on commit binding this receipt and screenshots without modifying tested source files.",
+  "scientific_status_disclaimer": "Passing viewer and data-contract tests establishes rendering and data-contract correctness only, not geological validity, radiation transport accuracy, or empirical calibration. Stage 1 analytical_bookkeeping_ledger is illustrative analytical bookkeeping (closes_by_algebraic_definition: true, is_finite_volume_conservation_test: false) and not an independent PDE conservation proof.",
+  "environment": {
+    "os": "Darwin 27.0.0 arm64 (macOS Apple Silicon)",
+    "python_version": "Python 3.15.0",
+    "node_version": "v26.11.1",
+    "rust_version": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo_version": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "chrome_version": "Google Chrome 155.0.8059.85",
+    "execution_context": "local_workstation",
+    "ci_pipeline_status": "not_configured_in_github_actions"
+  },
+  "state_frame_digests_f32_le": [
+    {
+      "state_index": 0,
+      "simulation_time_s": 0.0,
+      "state_derivation": "prescribed_analytically",
+      "criterial_status": "verified_accepted",
+      "center_of_mass_m": [8.0, 8.0, 4.529607],
+      "closes_by_algebraic_definition": true,
+      "is_finite_volume_conservation_test": false,
+      "relative_quadrature_and_tail_gap": 0.0,
+      "sha256_f32_le": "906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e"
+    },
+    {
+      "state_index": 1,
+      "simulation_time_s": 250.0,
+      "state_derivation": "prescribed_analytically",
+      "criterial_status": "verified_accepted",
+      "center_of_mass_m": [8.374724, 7.750175, 6.13037],
+      "closes_by_algebraic_definition": true,
+      "is_finite_volume_conservation_test": false,
+      "relative_quadrature_and_tail_gap": 0.004363,
+      "sha256_f32_le": "279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30"
+    },
+    {
+      "state_index": 2,
+      "simulation_time_s": 500.0,
+      "state_derivation": "prescribed_analytically",
+      "criterial_status": "verified_accepted",
+      "center_of_mass_m": [8.74809, 7.501123, 7.750518],
+      "closes_by_algebraic_definition": true,
+      "is_finite_volume_conservation_test": false,
+      "relative_quadrature_and_tail_gap": 0.00418,
+      "sha256_f32_le": "8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9"
+    },
+    {
+      "state_index": 3,
+      "simulation_time_s": 750.0,
+      "state_derivation": "prescribed_analytically",
+      "criterial_status": "verified_accepted",
+      "center_of_mass_m": [9.117517, 7.254103, 9.36432],
+      "closes_by_algebraic_definition": true,
+      "is_finite_volume_conservation_test": false,
+      "relative_quadrature_and_tail_gap": 0.001913,
+      "sha256_f32_le": "1fcb13a289ea3592e79188536280d6c05400b5f5fe516262ddf91f06e7be88d2"
+    },
+    {
+      "state_index": 4,
+      "simulation_time_s": 1000.0,
+      "state_derivation": "prescribed_analytically",
+      "criterial_status": "verified_accepted",
+      "center_of_mass_m": [9.478902, 7.01098, 10.897636],
+      "closes_by_algebraic_definition": true,
+      "is_finite_volume_conservation_test": false,
+      "relative_quadrature_and_tail_gap": 0.010587,
+      "sha256_f32_le": "6cd8bc7c53a40702565a4d19904e6c240c48eeed5bafa1e3208bf3a598a3267f"
+    }
+  ],
+  "screenshots": [
+    {
+      "view": "State 0 (t = 0.0 s, lower zone k = 5)",
+      "path": "receipts/screenshots/r10_spacetime_t0.png",
+      "resolution": "1920x1080",
+      "sha256": "fdb1176b32771d93e64c9e7bfb90b8735be13c379388b558c911fc7eb533e306"
+    },
+    {
+      "view": "State 3 (t = 750.0 s, upper zone k = 9)",
+      "path": "receipts/screenshots/r10_spacetime_t750.png",
+      "resolution": "1920x1080",
+      "sha256": "3c5fea4079f6b7513848610ebe6243901bbf2ac05afd138c063589ba3a640009"
+    },
+    {
+      "view": "Dual-Time Comparison dF(x; t_A = 0 s, t_B = 750 s)",
+      "path": "receipts/screenshots/r10_spacetime_diff_t0_t750.png",
+      "resolution": "1920x1080",
+      "sha256": "1c94292ed8a3c277b8c16c371066b76dd7a8fec56ad12f271375659f69e1f766"
+    },
+    {
+      "view": "Display Interpolation Mode (?interp=1&state=1.5, t = 375.0 s)",
+      "path": "receipts/screenshots/r10_spacetime_interp_t375.png",
+      "resolution": "1920x1080",
+      "sha256": "90f12e415d879d0e6c1094a634374a88f197a02164d1934ddc30a64ccf4d97b1"
+    }
+  ],
+  "verification_suites": {
+    "validate_spacetime_4d_py": {
+      "command": "python3 scripts/validate_spacetime_4d.py",
+      "primary_bundle_valid": true,
+      "negative_controls_passed": 23,
+      "negative_controls_failed": 0,
+      "status": "PASS"
+    },
+    "test_spacetime_4d_v0_js": {
+      "command": "node tests/test_spacetime_4d_v0.js",
+      "passed": 11,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "cargo_conformance": {
+      "command": "cargo test -p oklo_core --locked --test conformance",
+      "passed": 7,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "text_audit": {
+      "command": "bash scripts/text_audit.sh",
+      "em_dashes": 0,
+      "en_dashes": 0,
+      "quarantined_terms": 0,
+      "status": "PASS"
+    }
+  }
+}
