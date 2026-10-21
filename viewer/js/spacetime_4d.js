@@ -233,7 +233,7 @@
         var baseIdx = nx * (j + ny * k);
         for (var i = 0; i < nx; i++) {
           var x = xMin + (i + 0.5) * dx;
-          var v = valuesArray[baseIdx + i];
+          var v = Math.fround(valuesArray[baseIdx + i]);
           if (v < minV) minV = v;
           if (v > maxV) maxV = v;
           sumV += v;
@@ -722,6 +722,12 @@
     ) {
       throw new Error("SpacetimeContractError: Invalid temporal_axis.interpolation_policy");
     }
+    if (
+      typeof temporal.initial_condition_summary !== "string" ||
+      temporal.initial_condition_summary.trim().length === 0
+    ) {
+      throw new Error("SpacetimeContractError: temporal_axis.initial_condition_summary must be a non-empty string");
+    }
 
     var states = bundle.states;
     if (!Array.isArray(states) || states.length < 2) {
@@ -864,7 +870,7 @@
       }
       for (var v = 0; v < expectedVoxels; v++) {
         var val = st.values[v];
-        if (typeof val !== "number" || !Number.isFinite(val)) {
+        if (typeof val !== "number" || !Number.isFinite(val) || !Number.isFinite(Math.fround(val))) {
           throw new Error(
             "SpacetimeContractError: Non-finite voxel value at states[" + idx + "].values[" + v + "]"
           );
@@ -918,7 +924,7 @@
             ")"
         );
       }
-      if (Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-4) {
+      if (Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-5) {
         throw new Error(
           "SpacetimeContractError: states[" +
             idx +
@@ -963,20 +969,20 @@
       }
       if (
         ledger.initial_discrete_inventory_mol <= 0 ||
-        Math.abs(ledger.initial_discrete_inventory_mol - initialIntegratedInventory) > 1e-3
+        Math.abs(ledger.initial_discrete_inventory_mol - initialIntegratedInventory) > 1e-5
       ) {
         throw new Error(
           "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.initial_discrete_inventory_mol mismatch with state 0 integrated inventory"
         );
       }
-      if (Math.abs(ledger.retained_discrete_inventory_mol - stateIntegratedInventory) > 1e-3) {
+      if (Math.abs(ledger.retained_discrete_inventory_mol - stateIntegratedInventory) > 1e-5) {
         throw new Error(
           "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.retained_discrete_inventory_mol mismatch with discrete integrated inventory"
         );
       }
       var expectedSurvRef = initialIntegratedInventory * Math.exp(-kDecay * st.simulation_time);
       var expectedDecRef = initialIntegratedInventory * (1.0 - Math.exp(-kDecay * st.simulation_time));
-      if (Math.abs(ledger.analytical_surviving_reference_mol - expectedSurvRef) > 1e-4) {
+      if (Math.abs(ledger.analytical_surviving_reference_mol - expectedSurvRef) > 1e-5) {
         throw new Error(
           "SpacetimeContractError: states[" +
             idx +
@@ -987,7 +993,7 @@
             ")"
         );
       }
-      if (Math.abs(ledger.analytical_decayed_reference_mol - expectedDecRef) > 1e-4) {
+      if (Math.abs(ledger.analytical_decayed_reference_mol - expectedDecRef) > 1e-5) {
         throw new Error(
           "SpacetimeContractError: states[" +
             idx +
@@ -1003,14 +1009,14 @@
           ledger.analytical_surviving_reference_mol +
             ledger.analytical_decayed_reference_mol -
             ledger.initial_discrete_inventory_mol
-        ) > 1e-3
+        ) > 1e-5
       ) {
         throw new Error(
           "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger surviving + decayed does not close algebraically"
         );
       }
       var expectedGapMol = ledger.analytical_surviving_reference_mol - ledger.retained_discrete_inventory_mol;
-      if (Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGapMol) > 1e-3) {
+      if (Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGapMol) > 1e-5) {
         throw new Error(
           "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol contradicts M_surv - M_retained"
         );
@@ -1051,6 +1057,26 @@
       );
     }
 
+    var evMarkers = temporal.event_markers;
+    if (!Array.isArray(evMarkers) || evMarkers.length !== states.length) {
+      throw new Error("SpacetimeContractError: temporal_axis.event_markers must be an array matching states.length");
+    }
+    for (var emIdx = 0; emIdx < evMarkers.length; emIdx++) {
+      var em = evMarkers[emIdx];
+      if (
+        !em ||
+        typeof em !== "object" ||
+        em.state_index !== emIdx ||
+        em.simulation_time !== states[emIdx].simulation_time ||
+        typeof em.label !== "string" ||
+        em.label.trim().length === 0 ||
+        typeof em.event_type !== "string" ||
+        em.event_type.trim().length === 0
+      ) {
+        throw new Error("SpacetimeContractError: Invalid temporal_axis.event_markers[" + emIdx + "]");
+      }
+    }
+
     var v2Comp = bundle.v2_compatibility;
     if (
       !v2Comp ||
@@ -1089,8 +1115,20 @@
         throw new Error("SpacetimeContractError: Invalid criterial_pruned_branches[" + b + "]");
       }
       if (
+        typeof br.branch_id !== "string" ||
+        br.branch_id.trim().length === 0 ||
+        typeof br.label !== "string" ||
+        br.label.trim().length === 0 ||
+        typeof br.prune_reason !== "string" ||
+        br.prune_reason.trim().length === 0
+      ) {
+        throw new Error("SpacetimeContractError: criterial_pruned_branches[" + b + "] missing required string fields");
+      }
+      if (
         typeof br.max_relative_analytical_drift !== "number" ||
+        !Number.isFinite(br.max_relative_analytical_drift) ||
         typeof br.criterial_threshold_exceeded !== "number" ||
+        !Number.isFinite(br.criterial_threshold_exceeded) ||
         br.criterial_threshold_exceeded <= 0 ||
         br.max_relative_analytical_drift <= br.criterial_threshold_exceeded
       ) {
@@ -1108,6 +1146,26 @@
         if (!tp || tp.state_index !== tpIdx || tp.simulation_time !== states[tpIdx].simulation_time) {
           throw new Error(
             "SpacetimeContractError: criterial_pruned_branches[" + b + "].time_points[" + tpIdx + "] time grid mismatch"
+          );
+        }
+        if (
+          !Array.isArray(tp.center_of_mass_m) ||
+          tp.center_of_mass_m.length !== 3 ||
+          typeof tp.center_of_mass_m[0] !== "number" ||
+          typeof tp.center_of_mass_m[1] !== "number" ||
+          typeof tp.center_of_mass_m[2] !== "number" ||
+          !Number.isFinite(tp.center_of_mass_m[0]) ||
+          !Number.isFinite(tp.center_of_mass_m[1]) ||
+          !Number.isFinite(tp.center_of_mass_m[2]) ||
+          typeof tp.probe_voxel_8_8_5_value !== "number" ||
+          !Number.isFinite(tp.probe_voxel_8_8_5_value) ||
+          typeof tp.probe_voxel_8_8_11_value !== "number" ||
+          !Number.isFinite(tp.probe_voxel_8_8_11_value) ||
+          typeof tp.relative_analytical_drift !== "number" ||
+          !Number.isFinite(tp.relative_analytical_drift)
+        ) {
+          throw new Error(
+            "SpacetimeContractError: criterial_pruned_branches[" + b + "].time_points[" + tpIdx + "] invalid numeric values"
           );
         }
       }
@@ -1166,7 +1224,7 @@
       var f32 = new Float32Array(expectedVoxels);
       for (var i = 0; i < expectedVoxels; i++) {
         var v = st.values[i];
-        if (typeof v !== "number" || !Number.isFinite(v)) {
+        if (typeof v !== "number" || !Number.isFinite(v) || !Number.isFinite(Math.fround(v))) {
           throw new Error("SpacetimeContractError: Non-finite voxel in state " + rounded);
         }
         f32[i] = v;
@@ -1195,7 +1253,7 @@
       }
       if (
         typeof st.total_integrated_inventory_mol !== "number" ||
-        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-4
+        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-5
       ) {
         throw new Error(
           "SpacetimeContractError: states[" + rounded + "].total_integrated_inventory_mol mismatch with voxel buffer"
@@ -1210,6 +1268,61 @@
       ) {
         throw new Error("SpacetimeContractError: states[" + rounded + "].center_of_mass_m mismatch with voxel buffer");
       }
+
+      var stLedger = st.analytical_bookkeeping_ledger;
+      if (
+        !stLedger ||
+        typeof stLedger !== "object" ||
+        stLedger.closes_by_algebraic_definition !== true ||
+        stLedger.is_finite_volume_conservation_test !== false
+      ) {
+        throw new Error(
+          "SpacetimeContractError: Invalid analytical_bookkeeping_ledger flags at states[" + rounded + "]"
+        );
+      }
+      if (
+        !bundle.governing_parameters ||
+        typeof bundle.governing_parameters.decay_rate_s_inv !== "number" ||
+        !Number.isFinite(bundle.governing_parameters.decay_rate_s_inv) ||
+        bundle.governing_parameters.decay_rate_s_inv < 0
+      ) {
+        throw new Error("SpacetimeContractError: Invalid governing_parameters.decay_rate_s_inv in selectTimeState");
+      }
+      var m0Recomputed =
+        rounded === 0
+          ? recomputed.total_integrated_inventory_mol
+          : computeVoxelSummaryStatistics(bundle.states[0].values, bundle.spatial_frame).total_integrated_inventory_mol;
+      var kDec = bundle.governing_parameters.decay_rate_s_inv;
+      var expSurv = m0Recomputed * Math.exp(-kDec * st.simulation_time);
+      var expDec = m0Recomputed * (1.0 - Math.exp(-kDec * st.simulation_time));
+      var expGap = stLedger.analytical_surviving_reference_mol - stLedger.retained_discrete_inventory_mol;
+      var expRelGap = Math.abs(expGap) / m0Recomputed;
+      if (
+        typeof stLedger.initial_discrete_inventory_mol !== "number" ||
+        Math.abs(stLedger.initial_discrete_inventory_mol - m0Recomputed) > 1e-5 ||
+        typeof stLedger.retained_discrete_inventory_mol !== "number" ||
+        Math.abs(stLedger.retained_discrete_inventory_mol - recomputed.total_integrated_inventory_mol) > 1e-5 ||
+        typeof stLedger.analytical_surviving_reference_mol !== "number" ||
+        Math.abs(stLedger.analytical_surviving_reference_mol - expSurv) > 1e-5 ||
+        typeof stLedger.analytical_decayed_reference_mol !== "number" ||
+        Math.abs(stLedger.analytical_decayed_reference_mol - expDec) > 1e-5 ||
+        Math.abs(
+          stLedger.analytical_surviving_reference_mol +
+            stLedger.analytical_decayed_reference_mol -
+            stLedger.initial_discrete_inventory_mol
+        ) > 1e-5 ||
+        typeof stLedger.unmodeled_boundary_and_quadrature_gap_mol !== "number" ||
+        Math.abs(stLedger.unmodeled_boundary_and_quadrature_gap_mol - expGap) > 1e-5 ||
+        typeof stLedger.relative_quadrature_and_tail_gap !== "number" ||
+        Math.abs(stLedger.relative_quadrature_and_tail_gap - expRelGap) > 1e-5
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" +
+            rounded +
+            "].analytical_bookkeeping_ledger mismatch with recomputed voxel inventory or exponential decay reference"
+        );
+      }
+
       return {
         state_index: st.state_index,
         simulation_time: st.simulation_time,
@@ -1243,14 +1356,16 @@
     var idxLow = Math.floor(stateIndexOrPos);
     var idxHigh = Math.ceil(stateIndexOrPos);
     var alpha = stateIndexOrPos - idxLow;
-    var stLow = selectTimeState(bundle, idxLow, { allowDisplayInterpolation: false });
-    var stHigh = selectTimeState(bundle, idxHigh, { allowDisplayInterpolation: false });
+    var rawLow = bundle.states[idxLow];
+    var rawHigh = bundle.states[idxHigh];
     var dtRes = bundle.temporal_axis.temporal_resolution_s;
     if (
+      !rawLow ||
+      !rawHigh ||
       typeof dtRes !== "number" ||
       !Number.isFinite(dtRes) ||
       dtRes <= 0 ||
-      Math.abs((stHigh.simulation_time - stLow.simulation_time) - dtRes) > 1e-6
+      Math.abs((rawHigh.simulation_time - rawLow.simulation_time) - dtRes) > 1e-6
     ) {
       throw new Error(
         "SpacetimeContractError: Inconsistent time step interval for display interpolation between states " +
@@ -1258,12 +1373,14 @@
           " and " +
           idxHigh +
           " (dt=" +
-          (stHigh.simulation_time - stLow.simulation_time) +
+          (rawHigh && rawLow ? rawHigh.simulation_time - rawLow.simulation_time : NaN) +
           " != temporal_resolution_s=" +
           dtRes +
           ")"
       );
     }
+    var stLow = selectTimeState(bundle, idxLow, { allowDisplayInterpolation: false });
+    var stHigh = selectTimeState(bundle, idxHigh, { allowDisplayInterpolation: false });
 
     var interpF32 = new Float32Array(expectedVoxels);
     for (var k = 0; k < expectedVoxels; k++) {

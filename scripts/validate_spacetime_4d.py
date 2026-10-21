@@ -58,6 +58,12 @@ def compute_voxel_summary_statistics(values: list[float], spatial_frame: dict[st
     y_min, y_max = float(bounds_m["y"][0]), float(bounds_m["y"][1])
     z_min, z_max = float(bounds_m["z_up"][0]), float(bounds_m["z_up"][1])
 
+    try:
+        packed = struct.pack(f"<{len(values)}f", *values)
+        f32_values = struct.unpack(f"<{len(values)}f", packed)
+    except (struct.error, OverflowError, ValueError) as exc:
+        raise SpacetimeValidationError(f"Failed to pack float32 buffer for summary statistics: {exc}") from exc
+
     dx = (x_max - x_min) / float(nx)
     dy = (y_max - y_min) / float(ny)
     dz = (z_max - z_min) / float(nz)
@@ -77,7 +83,7 @@ def compute_voxel_summary_statistics(values: list[float], spatial_frame: dict[st
             base_idx = nx * (j + ny * k)
             for i in range(nx):
                 x = x_min + (float(i) + 0.5) * dx
-                v = float(values[base_idx + i])
+                v = float(f32_values[base_idx + i])
                 if v < min_v:
                     min_v = v
                 if v > max_v:
@@ -286,6 +292,9 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     interp_policy = temporal.get("interpolation_policy")
     if interp_policy not in {"none_discrete_states_only", "explicit_display_only_when_toggled"}:
         raise SpacetimeValidationError(f"Invalid temporal_axis.interpolation_policy: {interp_policy!r}")
+    init_cond = temporal.get("initial_condition_summary")
+    if not isinstance(init_cond, str) or not init_cond.strip():
+        raise SpacetimeValidationError("temporal_axis.initial_condition_summary must be a non-empty string")
 
     # States validation
     states = bundle.get("states")
@@ -428,7 +437,7 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"states[{idx}].mean_value ({st['mean_value']}) does not match recomputed voxel mean ({recomputed['mean_value']})"
             )
-        if abs(float(st["total_integrated_inventory_mol"]) - recomputed["total_integrated_inventory_mol"]) > 1e-4:
+        if abs(float(st["total_integrated_inventory_mol"]) - recomputed["total_integrated_inventory_mol"]) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].total_integrated_inventory_mol ({st['total_integrated_inventory_mol']}) "
                 f"does not match recomputed integrated voxel inventory ({recomputed['total_integrated_inventory_mol']:.6f})"
@@ -459,12 +468,12 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         gap_mol = float(ledger["unmodeled_boundary_and_quadrature_gap_mol"])
         rel_gap = float(ledger["relative_quadrature_and_tail_gap"])
 
-        if init_inv <= 0.0 or abs(init_inv - initial_integrated_inventory) > 1e-3:
+        if init_inv <= 0.0 or abs(init_inv - initial_integrated_inventory) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.initial_discrete_inventory_mol ({init_inv}) "
                 f"does not match states[0] discrete integrated inventory ({initial_integrated_inventory:.6f})"
             )
-        if abs(ret_inv - state_integrated_inventory) > 1e-3:
+        if abs(ret_inv - state_integrated_inventory) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.retained_discrete_inventory_mol ({ret_inv}) "
                 f"does not match discrete integrated inventory ({state_integrated_inventory:.6f})"
@@ -472,24 +481,24 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
 
         expected_surv_ref = initial_integrated_inventory * math.exp(-k_decay * t_float)
         expected_dec_ref = initial_integrated_inventory * (1.0 - math.exp(-k_decay * t_float))
-        if abs(surv_ref - expected_surv_ref) > 1e-4:
+        if abs(surv_ref - expected_surv_ref) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.analytical_surviving_reference_mol ({surv_ref}) "
                 f"does not match M0 * exp(-k_decay * simulation_time) ({expected_surv_ref:.6f})"
             )
-        if abs(dec_ref - expected_dec_ref) > 1e-4:
+        if abs(dec_ref - expected_dec_ref) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.analytical_decayed_reference_mol ({dec_ref}) "
                 f"does not match M0 * (1 - exp(-k_decay * simulation_time)) ({expected_dec_ref:.6f})"
             )
 
-        if abs((surv_ref + dec_ref) - init_inv) > 1e-3:
+        if abs((surv_ref + dec_ref) - init_inv) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger surviving + decayed ({surv_ref + dec_ref:.6f}) "
                 f"does not close algebraically to initial inventory ({init_inv:.6f})"
             )
         expected_gap_mol = surv_ref - ret_inv
-        if abs(gap_mol - expected_gap_mol) > 1e-3:
+        if abs(gap_mol - expected_gap_mol) > 1e-5:
             raise SpacetimeValidationError(
                 f"states[{idx}].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol ({gap_mol}) "
                 f"contradicts M_surv - M_retained ({expected_gap_mol:.6f})"
@@ -524,16 +533,22 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         )
 
     ev_markers = temporal.get("event_markers")
-    if not isinstance(ev_markers, list) or len(ev_markers) < 1:
-        raise SpacetimeValidationError("temporal_axis.event_markers must be a non-empty list")
+    if not isinstance(ev_markers, list) or len(ev_markers) != len(states):
+        raise SpacetimeValidationError("temporal_axis.event_markers must be a list matching len(states)")
+    em_req = set(schema["properties"]["temporal_axis"]["properties"]["event_markers"]["items"]["required"])
     for em_idx, em in enumerate(ev_markers):
+        _check_exact_keys(em, em_req, f"temporal_axis.event_markers[{em_idx}]")
         s_i = em.get("state_index")
-        if not isinstance(s_i, int) or isinstance(s_i, bool) or s_i < 0 or s_i >= len(states):
-            raise SpacetimeValidationError(f"event_markers[{em_idx}].state_index out of range")
+        if not isinstance(s_i, int) or isinstance(s_i, bool) or s_i != em_idx:
+            raise SpacetimeValidationError(f"event_markers[{em_idx}].state_index mismatch: got {s_i}")
         if float(em.get("simulation_time", -1.0)) != float(states[s_i]["simulation_time"]):
             raise SpacetimeValidationError(
                 f"event_markers[{em_idx}].simulation_time does not match states[{s_i}].simulation_time"
             )
+        for em_str in ("label", "event_type"):
+            eval_s = em.get(em_str)
+            if not isinstance(eval_s, str) or not eval_s.strip():
+                raise SpacetimeValidationError(f"event_markers[{em_idx}].{em_str} must be a non-empty string")
 
     # v2 compatibility block check
     v2_comp = bundle["v2_compatibility"]
@@ -568,13 +583,19 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"criterial_pruned_branches[{b_idx}] must have criterial_status='criterial_pruned'"
             )
-        if not isinstance(br.get("prune_reason"), str) or not br["prune_reason"].strip():
-            raise SpacetimeValidationError(f"criterial_pruned_branches[{b_idx}] requires non-empty prune_reason")
+        for br_str in ("branch_id", "label", "prune_reason"):
+            bval = br.get(br_str)
+            if not isinstance(bval, str) or not bval.strip():
+                raise SpacetimeValidationError(f"criterial_pruned_branches[{b_idx}] requires non-empty {br_str}")
         max_drift = br.get("max_relative_analytical_drift")
         thresh = br.get("criterial_threshold_exceeded")
         if (
             not isinstance(max_drift, (int, float))
+            or isinstance(max_drift, bool)
             or not isinstance(thresh, (int, float))
+            or isinstance(thresh, bool)
+            or not math.isfinite(float(max_drift))
+            or not math.isfinite(float(thresh))
             or float(thresh) <= 0.0
             or float(max_drift) <= float(thresh)
         ):
@@ -596,6 +617,21 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
                 raise SpacetimeValidationError(
                     f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}].simulation_time mismatch"
                 )
+            tp_com = tp.get("center_of_mass_m")
+            if (
+                not isinstance(tp_com, list)
+                or len(tp_com) != 3
+                or any(not isinstance(c, (int, float)) or isinstance(c, bool) or not math.isfinite(float(c)) for c in tp_com)
+            ):
+                raise SpacetimeValidationError(
+                    f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}].center_of_mass_m must be 3 finite numbers"
+                )
+            for tp_num in ("probe_voxel_8_8_5_value", "probe_voxel_8_8_11_value", "relative_analytical_drift"):
+                tnval = tp.get(tp_num)
+                if not isinstance(tnval, (int, float)) or isinstance(tnval, bool) or not math.isfinite(float(tnval)):
+                    raise SpacetimeValidationError(
+                        f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}].{tp_num} must be a finite number"
+                    )
 
 
 def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, Any]) -> list[tuple[str, bool, str]]:

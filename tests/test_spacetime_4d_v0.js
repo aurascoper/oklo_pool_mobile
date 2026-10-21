@@ -76,7 +76,7 @@ function independentRecomputeVoxelSummary(valuesBuffer, spatialFrame) {
       const y = yMin + (j + 0.5) * dy;
       for (let i = 0; i < nx; i++) {
         const x = xMin + (i + 0.5) * dx;
-        const v = valuesBuffer[i + nx * (j + ny * k)];
+        const v = Math.fround(valuesBuffer[i + nx * (j + ny * k)]);
         if (v < minV) minV = v;
         if (v > maxV) maxV = v;
         sumV += v;
@@ -178,7 +178,7 @@ function runSuite() {
       assert(Math.abs(st.max_value - recomputed.max_value) < 1e-6, "max_value must match voxel buffer");
       assert(Math.abs(st.mean_value - recomputed.mean_value) < 1e-6, "mean_value must match voxel buffer");
       assert(
-        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-4,
+        Math.abs(st.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-5,
         "total_integrated_inventory_mol must match integrated voxel buffer"
       );
       for (let c = 0; c < 3; c++) {
@@ -199,15 +199,15 @@ function runSuite() {
       const expectedDecayed = m0 * (1.0 - Math.exp(-kDecay * st.simulation_time));
       const expectedGap = expectedSurviving - recomputed.total_integrated_inventory_mol;
       assert(
-        Math.abs(ledger.analytical_surviving_reference_mol - expectedSurviving) < 1e-4,
+        Math.abs(ledger.analytical_surviving_reference_mol - expectedSurviving) < 1e-5,
         "State " + s + " analytical_surviving_reference_mol must equal M0*exp(-k_decay*t)"
       );
       assert(
-        Math.abs(ledger.analytical_decayed_reference_mol - expectedDecayed) < 1e-4,
+        Math.abs(ledger.analytical_decayed_reference_mol - expectedDecayed) < 1e-5,
         "State " + s + " analytical_decayed_reference_mol must equal M0*(1 - exp(-k_decay*t))"
       );
       assert(
-        Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGap) < 1e-4,
+        Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGap) < 1e-5,
         "State " + s + " unmodeled_boundary_and_quadrature_gap_mol must equal M0*exp(-k*t) - M_retained"
       );
       if (s > 0) {
@@ -285,7 +285,7 @@ function runSuite() {
       assert(Math.abs(sel.min_value - recomputed.min_value) < 1e-6);
       assert(Math.abs(sel.max_value - recomputed.max_value) < 1e-6);
       assert(Math.abs(sel.mean_value - recomputed.mean_value) < 1e-6);
-      assert(Math.abs(sel.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-4);
+      assert(Math.abs(sel.total_integrated_inventory_mol - recomputed.total_integrated_inventory_mol) < 1e-5);
 
       const zCmRecomputed = recomputed.center_of_mass_m[2];
       assert(
@@ -448,15 +448,22 @@ function runSuite() {
     bShortVoxels.states[0].values.pop();
     assert.throws(() => S4D.verifyBundleIntegrity(bShortVoxels), /values length mismatch/);
 
-    // 9e. Non-finite voxel value
+    // 9e. Non-finite voxel value (NaN and Float32 overflow > 3.4e38)
     const bNan = clone(diskBundle);
     bNan.states[1].values[42] = NaN;
     assert.throws(() => S4D.verifyBundleIntegrity(bNan), /Non-finite voxel/);
+    assert.throws(() => S4D.selectTimeState(bNan, 1, { allowDisplayInterpolation: false }), /Non-finite voxel/);
+
+    const bOverflowF32 = clone(diskBundle);
+    bOverflowF32.states[1].values[42] = 1e300;
+    assert.throws(() => S4D.verifyBundleIntegrity(bOverflowF32), /Non-finite voxel/);
+    assert.throws(() => S4D.selectTimeState(bOverflowF32, 1, { allowDisplayInterpolation: false }), /Non-finite voxel/);
 
     // 9f. Corrupted SHA-256 digest
     const bBadSha = clone(diskBundle);
     bBadSha.states[4].sha256_f32_le = "f".repeat(64);
     assert.throws(() => S4D.verifyBundleIntegrity(bBadSha), /SHA-256 checksum mismatch/);
+    assert.throws(() => S4D.selectTimeState(bBadSha, 4, { allowDisplayInterpolation: false }), /SHA-256 checksum verification failed/);
 
     // 9g. Unauthorized empirically_calibrated_model claim
     const bCalib = clone(diskBundle);
@@ -487,12 +494,20 @@ function runSuite() {
     const bFalseConservation = clone(diskBundle);
     bFalseConservation.states[0].analytical_bookkeeping_ledger.is_finite_volume_conservation_test = true;
     assert.throws(() => S4D.verifyBundleIntegrity(bFalseConservation), /is_finite_volume_conservation_test must be false/);
+    assert.throws(
+      () => S4D.selectTimeState(bFalseConservation, 0, { allowDisplayInterpolation: false }),
+      /Invalid analytical_bookkeeping_ledger flags/
+    );
 
     // 9m. Fabricated zero quadrature/tail gap contradicting discrete voxel sum (Finding 2)
     const bFakeZeroGap = clone(diskBundle);
     bFakeZeroGap.states[1].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol = 0.0;
     bFakeZeroGap.states[1].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap = 0.0;
     assert.throws(() => S4D.verifyBundleIntegrity(bFakeZeroGap), /contradicts M_surv - M_retained/);
+    assert.throws(
+      () => S4D.selectTimeState(bFakeZeroGap, 1, { allowDisplayInterpolation: false }),
+      /analytical_bookkeeping_ledger mismatch/
+    );
 
     // 9n. Conflated baseline_commit or short prefix in source_provenance / v2_compatibility (Finding 1)
     const bConflatedProv = clone(diskBundle);
@@ -563,6 +578,32 @@ function runSuite() {
     assert.throws(
       () => S4D.verifyBundleIntegrity(bBadDecayRef),
       /analytical_surviving_reference_mol .* does not match M0 \* exp\(-k_decay \* simulation_time\)/
+    );
+    assert.throws(
+      () => S4D.selectTimeState(bBadDecayRef, 2, { allowDisplayInterpolation: false }),
+      /analytical_bookkeeping_ledger mismatch/
+    );
+
+    const bBadDecayedOnly = clone(diskBundle);
+    bBadDecayedOnly.states[2].analytical_bookkeeping_ledger.analytical_decayed_reference_mol += 5.0;
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(bBadDecayedOnly),
+      /analytical_decayed_reference_mol .* does not match M0 \* \(1 - exp\(-k_decay \* simulation_time\)\)/
+    );
+    assert.throws(
+      () => S4D.selectTimeState(bBadDecayedOnly, 2, { allowDisplayInterpolation: false }),
+      /analytical_bookkeeping_ledger mismatch/
+    );
+
+    const bBadDecayRate = clone(diskBundle);
+    bBadDecayRate.governing_parameters.decay_rate_s_inv = 0.0012;
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(bBadDecayRate),
+      /analytical_surviving_reference_mol .* does not match M0 \* exp\(-k_decay \* simulation_time\)/
+    );
+    assert.throws(
+      () => S4D.selectTimeState(bBadDecayRate, 1, { allowDisplayInterpolation: false }),
+      /analytical_bookkeeping_ledger mismatch/
     );
   });
 
