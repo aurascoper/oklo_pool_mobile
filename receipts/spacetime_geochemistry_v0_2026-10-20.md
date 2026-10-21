@@ -6,10 +6,10 @@
 - **Branch:** `spacetime-geochemistry/v0-slice`
 - **Baseline Commit (`main` parent):** `636b7d7bb41999b80278d90046da893ee1044f20`
 - **Generator Provenance (`source_provenance`):** `scripts/generate_synthetic_4d_bundle.py` (`spacetime_geochemistry_v0_gen_0.2.0`, SHA-256 `d8a78d21351d8ee0c1c791adbec48e6e48c11e032ec93c6fb30eb91b815962e7`)
-- **Tested Source Commit (`tested_source_commit`):** `32d8c28665789de5a6992366e2346e61499829f8`
+- **Tested Source Commit (`tested_source_commit`):** `23e95da70ed0d8e5971c29c87771b2f3ab2243e1`
 - **Worktree Clean at Test:** `true` (`worktree_clean_at_test: true`)
 - **Execution Context:** Local workstation execution (`execution_context: "local_workstation"`); GitHub Actions CI is not configured in this repository (`ci_pipeline_status: "not_configured_in_github_actions"`).
-- **Commit Provenance Separation:** `baseline_commit` (`636b7d7bb41999b80278d90046da893ee1044f20`) records the `main` branch commit from which `spacetime-geochemistry/v0-slice` branched and is never used to claim that `636b7d7...` generated the R10 bundle. All Stage 0/1 validators, Node.js semantic tests, Rust conformance checks, text audits, and `1920x1080` headless browser screenshots were executed against the clean `tested_source_commit` (`32d8c28665789de5a6992366e2346e61499829f8`). This receipt and the companion JSON receipt are committed in the immediately following `receipt_head` commit without modifying any tested source or data files. `baseline_commit`, `tested_source_commit`, and `receipt_head` are distinct and never treated as interchangeable.
+- **Commit Provenance Separation:** `baseline_commit` (`636b7d7bb41999b80278d90046da893ee1044f20`) records the `main` branch commit from which `spacetime-geochemistry/v0-slice` branched and is never used to claim that `636b7d7...` generated the R10 bundle. All Stage 0/1 validators, Node.js semantic tests, Rust conformance checks, text audits, and `1920x1080` headless browser screenshots were executed against the clean `tested_source_commit` (`23e95da70ed0d8e5971c29c87771b2f3ab2243e1`). This receipt and the companion JSON receipt are committed in the immediately following `receipt_head` commit without modifying any tested source or data files. `baseline_commit`, `tested_source_commit`, and `receipt_head` are distinct and never treated as interchangeable.
 - **Scientific Status and Bookkeeping Disclaimer:** Passing viewer and data-contract tests establishes rendering and data-contract correctness only, not geological validity, radiation transport accuracy, or empirical calibration. In Stage 1 (`prescribed_analytically`), `analytical_bookkeeping_ledger` records illustrative analytical decay bookkeeping (`closes_by_algebraic_definition: true`, `is_finite_volume_conservation_test: false`) together with the non-zero discrete quadrature/boundary tail gap (`relative_quadrature_and_tail_gap`). Independent finite-volume PDE mass conservation is a Stage 2 gate requirement.
 - **Overall Disposition:** `PASS`
 
@@ -29,19 +29,19 @@
 ## 2. Stage 0: 4D Spatiotemporal Data Contract Verification
 
 **Command:** `python3 scripts/validate_spacetime_4d.py`
-**Result:** `PASS` (1 primary bundle + 17/17 negative-control rejection checks passed, exit code 0)
+**Result:** `PASS` (1 primary bundle + 23/23 negative-control rejection checks passed, exit code 0)
 
 ### 2.1 Verified Discrete Time States (`data/spacetime/synthetic_tracer_pulse_4d_v0.json`)
 
 | State ID Anchor | `state_index` | `simulation_time` (`s`) | `state_derivation` | `criterial_status` | Center of Mass $(x, y, z)\text{ m}$ | Peak Value (`mol/m^3`) | Quadrature / Tail Gap (`relative_quadrature_and_tail_gap`) | `sha256_f32_le` (IEEE-754 Little-Endian Float32) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :--- |
 | <a id="state_0"></a>`#state_0` | 0 | `0.0` | `prescribed_analytically` | `verified_accepted` | `(8.0000, 8.0000, 4.5296)` | `9.2574` | `0.000000` | `906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e` |
-| <a id="state_1"></a>`#state_1` | 1 | `250.0` | `prescribed_analytically` | `verified_accepted` | `(8.3749, 7.7501, 6.1304)` | `6.8159` | `0.004363` | `279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30` |
-| <a id="state_2"></a>`#state_2` | 2 | `500.0` | `prescribed_analytically` | `verified_accepted` | `(8.7495, 7.5003, 7.7505)` | `5.0323` | `0.004180` | `8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9` |
-| <a id="state_3"></a>`#state_3` | 3 | `750.0` | `prescribed_analytically` | `verified_accepted` | `(9.1235, 7.2509, 9.3643)` | `3.7364` | `0.001913` | `1fcb13a289ea3592e79188536280d6c05400b5f5fe516262ddf91f06e7be88d2` |
-| <a id="state_4"></a>`#state_4` | 4 | `1000.0` | `prescribed_analytically` | `verified_accepted` | `(9.4959, 7.0025, 10.8976)` | `2.7921` | `0.010587` | `6cd8bc7c53a40702565a4d19904e6c240c48eeed5bafa1e3208bf3a598a3267f` |
+| <a id="state_1"></a>`#state_1` | 1 | `250.0` | `prescribed_analytically` | `verified_accepted` | `(8.3747, 7.7502, 6.1304)` | `6.8159` | `0.004363` | `279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30` |
+| <a id="state_2"></a>`#state_2` | 2 | `500.0` | `prescribed_analytically` | `verified_accepted` | `(8.7481, 7.5011, 7.7505)` | `5.0323` | `0.004180` | `8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9` |
+| <a id="state_3"></a>`#state_3` | 3 | `750.0` | `prescribed_analytically` | `verified_accepted` | `(9.1175, 7.2541, 9.3643)` | `3.7364` | `0.001913` | `1fcb13a289ea3592e79188536280d6c05400b5f5fe516262ddf91f06e7be88d2` |
+| <a id="state_4"></a>`#state_4` | 4 | `1000.0` | `prescribed_analytically` | `verified_accepted` | `(9.4789, 7.0110, 10.8976)` | `2.7921` | `0.010587` | `6cd8bc7c53a40702565a4d19904e6c240c48eeed5bafa1e3208bf3a598a3267f` |
 
-### 2.2 Stage 0 Negative-Control Rejection Checks (`17/17 PASS`)
+### 2.2 Stage 0 Negative-Control Rejection Checks (`23/23 PASS`)
 
 1. Reject non-monotonic `simulation_time` ($t_2 = 200.0 \le t_1 = 250.0$): `PASS`
 2. Reject non-`"s"` `temporal_axis.time_units` (`"minutes" != "s"`): `PASS`
@@ -60,6 +60,12 @@
 15. Reject `source_provenance` conflating `generator_version` with `baseline_commit` or prefix: `PASS`
 16. Reject fabricated `0.0` quadrature/tail gap contradicting discrete voxel sum: `PASS`
 17. Reject `source_provenance.generator_script_sha256` mismatch with generator script on disk: `PASS`
+18. Reject mutated `min_value` contradicting hashed voxel buffer (`values` and `sha256_f32_le` unchanged): `PASS`
+19. Reject mutated `max_value` contradicting hashed voxel buffer (`values` and `sha256_f32_le` unchanged): `PASS`
+20. Reject mutated `mean_value` contradicting hashed voxel buffer (`values` and `sha256_f32_le` unchanged): `PASS`
+21. Reject mutated `total_integrated_inventory_mol` contradicting hashed voxel buffer (`values` and `sha256_f32_le` unchanged): `PASS`
+22. Reject mutated `center_of_mass_m` contradicting hashed voxel buffer (`values` and `sha256_f32_le` unchanged): `PASS`
+23. Reject analytical surviving/decayed reference diverging from $M_0 \exp(-k_{\mathrm{decay}} t)$ despite algebraic closure (`M_surv + M_decay == M_0` and `gap == M_surv - M_ret`): `PASS`
 
 ---
 
@@ -69,14 +75,14 @@
 **Result:** `PASS` (`11/11` passed, `0` failed, exit code 0)
 
 - **Test 1:** Fixed-step seconds time grid (`time_units: "s"`, uniform $\Delta t = 250.0\text{ s}$), separated `baseline_commit` vs `source_provenance`, `+k` up-axis frame, and strict `assert.deepStrictEqual` embedded bundle bit-parity -> `PASS`
-- **Test 2:** `16x16x16` voxel dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping (`closes_by_algebraic_definition: true`, `is_finite_volume_conservation_test: false`, non-zero discrete quadrature/boundary tail gap) -> `PASS`
+- **Test 2:** `16x16x16` voxel dimensions, finite values, derived summary statistics (`min_value`, `max_value`, `mean_value`, `total_integrated_inventory_mol`, `center_of_mass_m`), and analytical decay reference checks ($M_0 e^{-k_{\mathrm{decay}} t}$ and $M_0 (1 - e^{-k_{\mathrm{decay}} t})$) -> `PASS`
 - **Test 3:** Per-frame `Float32LE` SHA-256 checksums verified against Node crypto, independently pinned test manifest (`PINNED_EXPECTED_FRAME_DIGESTS_F32_LE`), and external receipt files (`spacetime_geochemistry_v0_verification.json` and `spacetime_geochemistry_v0_2026-10-20.md#state_k`) -> `PASS`
-- **Test 4:** Changing time state mutates underlying `Float32Array` and shifts $z_{\mathrm{cm}}$ monotonically along `+k` -> `PASS`
+- **Test 4:** Changing time state mutates underlying `Float32Array`, independently recomputes 3D center of mass $[x_{\mathrm{cm}}, y_{\mathrm{cm}}, z_{\mathrm{cm}}]$ from each state's raw `Float32Array` buffer and `spatial_frame`, verifies monotonic upward motion along `+k`, and verifies agreement with `center_of_mass_m` -> `PASS`
 - **Test 5:** Dual-time comparator $\Delta F(\mathbf{x}; t_A, t_B)$ zero-identity at $t_A = t_B$ and dipolar shift at $t_A \ne t_B$ -> `PASS`
 - **Test 6:** Selected-voxel time series and criterial separation (`verified_accepted` vs `criterial_pruned` synthetic amplitude drift control) -> `PASS`
 - **Test 7:** Missing or out-of-range frames and unauthorized fractional steps fail closed -> `PASS`
 - **Test 8:** Display interpolation marks frame `"interpolated_for_display"` with `run_receipt: null` on fixed-step grids and rejects fractional interpolation on non-uniform time steps -> `PASS`
-- **Test 9:** `verifyBundleIntegrity` rejects non-monotonic/non-uniform time steps, non-`"s"` `time_units`, `NaN`, bad SHA-256, calibrated claims, null `run_receipt`, bad `time_bounds`, bad `domain_bounds_m`, false Stage 1 finite-volume conservation claims, fabricated `0.0` quadrature gaps, conflated provenance, and mismatched `criterial_pruned_branches` time points -> `PASS`
+- **Test 9:** `verifyBundleIntegrity` and `selectTimeState` reject non-monotonic/non-uniform time steps, non-`"s"` `time_units`, `NaN`, bad SHA-256, calibrated claims, null `run_receipt`, bad `time_bounds`, bad `domain_bounds_m`, false Stage 1 finite-volume conservation claims, fabricated `0.0` quadrature gaps, conflated provenance, mismatched `criterial_pruned_branches` time points, mutated `min_value`/`max_value`/`mean_value`/`total_integrated_inventory_mol`/`center_of_mass_m`, and algebraically closed surviving/decayed references diverging from $M_0 \exp(-k_{\mathrm{decay}} t)$ -> `PASS`
 - **Test 10:** 4D projection (`+k` up, $w = t$, extreme rotation angles), orthogonal slices, offline HTML, and zero em/en-dashes -> `PASS`
 - **Test 11:** Interactive DOM harness (`?interp=1&state=1.5` policy/event banners, separated provenance readout, analytical bookkeeping readout, `Step -1`/`+1`, fail-closed invalid URL params, and PNG export header) -> `PASS`
 
