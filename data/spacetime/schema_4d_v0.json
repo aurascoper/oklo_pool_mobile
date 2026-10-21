@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aurascoper.github.io/oklo_pool_mobile/schemas/spacetime_4d_v0.json",
   "title": "SpacetimeFieldBundleV0",
-  "description": "Stage 0 4D Spatiotemporal Data Contract governing time-indexed 3D scalar fields, spatial coordinate frames, monotonic time ordering, per-frame SHA-256 receipts, missing-frame fail-closed policy, display interpolation tagging, and criterial separation.",
+  "description": "Stage 0 4D Spatiotemporal Data Contract governing time-indexed 3D scalar fields, spatial coordinate frames, fixed-step seconds monotonic time grids, separated baseline vs. generator provenance, per-frame Float32LE SHA-256 checksums, illustrative analytical bookkeeping, missing-frame fail-closed policy, display interpolation tagging, and criterial separation.",
   "type": "object",
   "required": [
     "schema_version",
@@ -12,7 +12,8 @@
     "specification_version",
     "evidence_class",
     "source_repository",
-    "source_commit",
+    "baseline_commit",
+    "source_provenance",
     "run_id",
     "run_receipt",
     "parameter_set_id",
@@ -64,9 +65,47 @@
       "type": "string",
       "minLength": 1
     },
-    "source_commit": {
+    "baseline_commit": {
       "type": "string",
       "pattern": "^[0-9a-f]{7,40}$"
+    },
+    "source_provenance": {
+      "type": "object",
+      "required": [
+        "target_branch",
+        "baseline_commit",
+        "generator_script",
+        "generator_version",
+        "generator_script_sha256",
+        "tested_source_commit_policy"
+      ],
+      "properties": {
+        "target_branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$"
+        },
+        "generator_script": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generator_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generator_script_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "tested_source_commit_policy": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     },
     "run_id": {
       "type": "string",
@@ -184,7 +223,7 @@
         },
         "time_units": {
           "type": "string",
-          "minLength": 1
+          "const": "s"
         },
         "state_count": {
           "type": "integer",
@@ -284,7 +323,8 @@
             "model_version",
             "evidence_class",
             "source_repository",
-            "source_commit",
+            "baseline_commit",
+            "source_revision",
             "specification_version",
             "run_receipt",
             "parameter_set_id",
@@ -298,7 +338,8 @@
             "model_version": { "type": "string" },
             "evidence_class": { "type": "string" },
             "source_repository": { "type": "string" },
-            "source_commit": { "type": "string" },
+            "baseline_commit": { "type": "string" },
+            "source_revision": { "type": "string" },
             "specification_version": { "type": "string" },
             "run_receipt": { "type": ["string", "null"] },
             "parameter_set_id": { "type": "string" },
@@ -332,13 +373,13 @@
           "mean_value",
           "total_integrated_inventory_mol",
           "center_of_mass_m",
-          "conservation_ledger",
+          "analytical_bookkeeping_ledger",
           "values"
         ],
         "properties": {
           "state_index": { "type": "integer", "minimum": 0 },
           "simulation_time": { "type": "number" },
-          "time_units": { "type": "string", "minLength": 1 },
+          "time_units": { "type": "string", "const": "s" },
           "state_derivation": {
             "type": "string",
             "enum": [
@@ -369,21 +410,29 @@
             "minItems": 3,
             "maxItems": 3
           },
-          "conservation_ledger": {
+          "analytical_bookkeeping_ledger": {
             "type": "object",
             "required": [
-              "initial_mass_mol",
-              "retained_mass_mol",
-              "cumulative_decayed_mass_mol",
-              "boundary_leak_mass_mol",
-              "relative_mass_balance_residual"
+              "initial_discrete_inventory_mol",
+              "retained_discrete_inventory_mol",
+              "analytical_surviving_reference_mol",
+              "analytical_decayed_reference_mol",
+              "unmodeled_boundary_and_quadrature_gap_mol",
+              "relative_quadrature_and_tail_gap",
+              "closes_by_algebraic_definition",
+              "is_finite_volume_conservation_test",
+              "analytical_bookkeeping_note"
             ],
             "properties": {
-              "initial_mass_mol": { "type": "number" },
-              "retained_mass_mol": { "type": "number" },
-              "cumulative_decayed_mass_mol": { "type": "number" },
-              "boundary_leak_mass_mol": { "type": "number" },
-              "relative_mass_balance_residual": { "type": "number" }
+              "initial_discrete_inventory_mol": { "type": "number" },
+              "retained_discrete_inventory_mol": { "type": "number" },
+              "analytical_surviving_reference_mol": { "type": "number" },
+              "analytical_decayed_reference_mol": { "type": "number" },
+              "unmodeled_boundary_and_quadrature_gap_mol": { "type": "number" },
+              "relative_quadrature_and_tail_gap": { "type": "number" },
+              "closes_by_algebraic_definition": { "type": "boolean", "const": true },
+              "is_finite_volume_conservation_test": { "type": "boolean", "const": false },
+              "analytical_bookkeeping_note": { "type": "string", "minLength": 1 }
             },
             "additionalProperties": false
           },
@@ -405,7 +454,7 @@
           "label",
           "criterial_status",
           "prune_reason",
-          "max_relative_mass_balance_residual",
+          "max_relative_analytical_drift",
           "criterial_threshold_exceeded",
           "time_points"
         ],
@@ -417,7 +466,7 @@
             "const": "criterial_pruned"
           },
           "prune_reason": { "type": "string", "minLength": 1 },
-          "max_relative_mass_balance_residual": { "type": "number" },
+          "max_relative_analytical_drift": { "type": "number" },
           "criterial_threshold_exceeded": { "type": "number" },
           "time_points": {
             "type": "array",
@@ -430,7 +479,7 @@
                 "center_of_mass_m",
                 "probe_voxel_8_8_5_value",
                 "probe_voxel_8_8_11_value",
-                "relative_mass_balance_residual"
+                "relative_analytical_drift"
               ],
               "properties": {
                 "state_index": { "type": "integer", "minimum": 0 },
@@ -443,7 +492,7 @@
                 },
                 "probe_voxel_8_8_5_value": { "type": "number" },
                 "probe_voxel_8_8_11_value": { "type": "number" },
-                "relative_mass_balance_residual": { "type": "number" }
+                "relative_analytical_drift": { "type": "number" }
               },
               "additionalProperties": false
             }

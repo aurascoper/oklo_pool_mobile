@@ -2,7 +2,7 @@
 """Stage 0 validator and negative-control test runner for spacetime_geochemistry_v0.
 
 Validates data/spacetime/synthetic_tracer_pulse_4d_v0.json against
-data/spacetime/schema_4d_v0.json and executes 9 negative-control rejection checks.
+data/spacetime/schema_4d_v0.json and executes 15 negative-control rejection checks.
 Strictly zero em-dashes and zero en-dashes.
 """
 
@@ -74,7 +74,7 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         "model_version",
         "specification_version",
         "source_repository",
-        "source_commit",
+        "baseline_commit",
         "run_id",
         "parameter_set_id",
         "field_name",
@@ -86,6 +86,42 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         val = bundle.get(str_field)
         if not isinstance(val, str) or not val.strip():
             raise SpacetimeValidationError(f"{str_field} must be a non-empty string")
+
+    baseline_commit = bundle["baseline_commit"]
+    if len(baseline_commit) < 7 or any(c not in "0123456789abcdef" for c in baseline_commit):
+        raise SpacetimeValidationError("baseline_commit must be a lowercase hexadecimal git commit hash")
+
+    # Source provenance validation (Finding 1: separate baseline from R10 generator revision)
+    src_prov = bundle.get("source_provenance")
+    src_prov_req = set(schema["properties"]["source_provenance"]["required"])
+    _check_exact_keys(src_prov, src_prov_req, "source_provenance")
+    for prov_field in (
+        "target_branch",
+        "baseline_commit",
+        "generator_script",
+        "generator_version",
+        "generator_script_sha256",
+        "tested_source_commit_policy",
+    ):
+        pval = src_prov.get(prov_field)
+        if not isinstance(pval, str) or not pval.strip():
+            raise SpacetimeValidationError(f"source_provenance.{prov_field} must be a non-empty string")
+
+    if src_prov["baseline_commit"] != baseline_commit:
+        raise SpacetimeValidationError("source_provenance.baseline_commit must match top-level baseline_commit")
+    if src_prov["generator_version"] == baseline_commit:
+        raise SpacetimeValidationError(
+            "source_provenance.generator_version must not conflate generator revision with baseline_commit"
+        )
+    gen_script_path = REPO_ROOT / src_prov["generator_script"]
+    if not gen_script_path.is_file():
+        raise SpacetimeValidationError(f"source_provenance.generator_script not found: {src_prov['generator_script']}")
+    expected_gen_sha = hashlib.sha256(gen_script_path.read_bytes()).hexdigest()
+    if src_prov["generator_script_sha256"] != expected_gen_sha:
+        raise SpacetimeValidationError(
+            f"source_provenance.generator_script_sha256 mismatch: expected {expected_gen_sha}, "
+            f"got {src_prov['generator_script_sha256']}"
+        )
 
     ev_class = bundle.get("evidence_class")
     if ev_class not in ALLOWED_EVIDENCE_CLASSES:
@@ -134,7 +170,7 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
                 f"spatial_frame.domain_bounds_m.{axis_name} must be [min, max] with finite min < max"
             )
 
-    # Temporal axis validation
+    # Temporal axis validation (Finding 4: fixed-step seconds grid)
     temporal = bundle["temporal_axis"]
     temporal_req = set(schema["properties"]["temporal_axis"]["required"])
     _check_exact_keys(temporal, temporal_req, "temporal_axis")
@@ -142,8 +178,13 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     if temporal.get("fourth_dimension_symbol") != "t":
         raise SpacetimeValidationError("temporal_axis.fourth_dimension_symbol must equal 't'")
     time_units = temporal.get("time_units")
-    if not isinstance(time_units, str) or not time_units.strip():
-        raise SpacetimeValidationError("temporal_axis.time_units must be a non-empty string")
+    if time_units != "s":
+        raise SpacetimeValidationError("temporal_axis.time_units must equal 's' in spacetime_4d_v0")
+    dt_res = temporal.get("temporal_resolution_s")
+    if not isinstance(dt_res, (int, float)) or isinstance(dt_res, bool) or not math.isfinite(float(dt_res)) or float(dt_res) <= 0.0:
+        raise SpacetimeValidationError("temporal_axis.temporal_resolution_s must be a finite positive number")
+    dt_res_float = float(dt_res)
+
     if temporal.get("strict_monotonic_ordering") is not True:
         raise SpacetimeValidationError("temporal_axis.strict_monotonic_ordering must be True")
     if temporal.get("missing_frame_policy") != "fail_closed_no_invented_states":
@@ -162,6 +203,9 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         raise SpacetimeValidationError("len(states) does not match temporal_axis.state_count")
 
     state_req = set(schema["properties"]["states"]["items"]["required"])
+    ledger_req = set(
+        schema["properties"]["states"]["items"]["properties"]["analytical_bookkeeping_ledger"]["required"]
+    )
     prev_time: float | None = None
     seen_hashes: set[str] = set()
 
@@ -175,14 +219,20 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         if not isinstance(t_val, (int, float)) or isinstance(t_val, bool) or not math.isfinite(float(t_val)):
             raise SpacetimeValidationError(f"states[{idx}].simulation_time must be a finite number")
         t_float = float(t_val)
-        if prev_time is not None and t_float <= prev_time:
-            raise SpacetimeValidationError(
-                f"Non-monotonic simulation_time at states[{idx}]: {t_float} <= {prev_time}"
-            )
+        if prev_time is not None:
+            if t_float <= prev_time:
+                raise SpacetimeValidationError(
+                    f"Non-monotonic simulation_time at states[{idx}]: {t_float} <= {prev_time}"
+                )
+            dt_step = t_float - prev_time
+            if abs(dt_step - dt_res_float) > 1e-6:
+                raise SpacetimeValidationError(
+                    f"Inconsistent time step at states[{idx}]: dt={dt_step} != temporal_resolution_s={dt_res_float}"
+                )
         prev_time = t_float
 
-        if st.get("time_units") != time_units:
-            raise SpacetimeValidationError(f"states[{idx}].time_units mismatch with temporal_axis.time_units")
+        if st.get("time_units") != "s":
+            raise SpacetimeValidationError(f"states[{idx}].time_units must equal 's'")
 
         derivation = st.get("state_derivation")
         if derivation not in ALLOWED_STATE_DERIVATIONS:
@@ -214,6 +264,40 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         if st.get("criterial_status") != "verified_accepted":
             raise SpacetimeValidationError(
                 f"states[{idx}] in primary states[] must have criterial_status='verified_accepted'"
+            )
+
+        # Analytical bookkeeping ledger validation (Finding 2)
+        ledger = st.get("analytical_bookkeeping_ledger")
+        _check_exact_keys(ledger, ledger_req, f"states[{idx}].analytical_bookkeeping_ledger")
+        if ledger.get("closes_by_algebraic_definition") is not True:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.closes_by_algebraic_definition must be True"
+            )
+        if ledger.get("is_finite_volume_conservation_test") is not False:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.is_finite_volume_conservation_test must be False in Stage 1"
+            )
+        note = ledger.get("analytical_bookkeeping_note")
+        if not isinstance(note, str) or not note.strip():
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.analytical_bookkeeping_note must be non-empty"
+            )
+        for num_field in (
+            "initial_discrete_inventory_mol",
+            "retained_discrete_inventory_mol",
+            "analytical_surviving_reference_mol",
+            "analytical_decayed_reference_mol",
+            "unmodeled_boundary_and_quadrature_gap_mol",
+            "relative_quadrature_and_tail_gap",
+        ):
+            nval = ledger.get(num_field)
+            if not isinstance(nval, (int, float)) or isinstance(nval, bool) or not math.isfinite(float(nval)):
+                raise SpacetimeValidationError(
+                    f"states[{idx}].analytical_bookkeeping_ledger.{num_field} must be a finite number"
+                )
+        if float(ledger["relative_quadrature_and_tail_gap"]) < 0.0:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap must be >= 0"
             )
 
         if st.get("voxel_count") != expected_voxels:
@@ -268,10 +352,18 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     # v2 compatibility block check
     v2_comp = bundle["v2_compatibility"]
     v2_ep = v2_comp.get("epistemic_record", {})
+    v2_ep_req = set(schema["properties"]["v2_compatibility"]["properties"]["epistemic_record"]["required"])
+    _check_exact_keys(v2_ep, v2_ep_req, "v2_compatibility.epistemic_record")
     if v2_ep.get("evidence_class") != bundle["evidence_class"]:
         raise SpacetimeValidationError("v2_compatibility.epistemic_record.evidence_class mismatch")
     if v2_ep.get("coordinate_system") != spatial["coordinate_system"]:
         raise SpacetimeValidationError("v2_compatibility.epistemic_record.coordinate_system mismatch")
+    if v2_ep.get("baseline_commit") != baseline_commit:
+        raise SpacetimeValidationError("v2_compatibility.epistemic_record.baseline_commit mismatch")
+    if not isinstance(v2_ep.get("source_revision"), str) or v2_ep["source_revision"] == baseline_commit:
+        raise SpacetimeValidationError(
+            "v2_compatibility.epistemic_record.source_revision must be a non-empty string distinct from baseline_commit"
+        )
 
     # Criterial pruned branches check
     pruned = bundle.get("criterial_pruned_branches")
@@ -284,16 +376,16 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             )
         if not isinstance(br.get("prune_reason"), str) or not br["prune_reason"].strip():
             raise SpacetimeValidationError(f"criterial_pruned_branches[{b_idx}] requires non-empty prune_reason")
-        max_res = br.get("max_relative_mass_balance_residual")
+        max_drift = br.get("max_relative_analytical_drift")
         thresh = br.get("criterial_threshold_exceeded")
         if (
-            not isinstance(max_res, (int, float))
+            not isinstance(max_drift, (int, float))
             or not isinstance(thresh, (int, float))
             or float(thresh) <= 0.0
-            or float(max_res) <= float(thresh)
+            or float(max_drift) <= float(thresh)
         ):
             raise SpacetimeValidationError(
-                f"criterial_pruned_branches[{b_idx}] must have max_relative_mass_balance_residual > criterial_threshold_exceeded > 0"
+                f"criterial_pruned_branches[{b_idx}] must have max_relative_analytical_drift > criterial_threshold_exceeded > 0"
             )
 
 
@@ -316,11 +408,11 @@ def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, An
 
     expect_rejection("1. Reject non-monotonic simulation_time (t_2 = 200.0 < t_1 = 250.0)", mut_non_monotonic)
 
-    # 2. Empty or missing time_units / field_units
-    def mut_empty_units(b: dict[str, Any]) -> None:
-        b["temporal_axis"]["time_units"] = "   "
+    # 2. Non-'s' or empty time_units
+    def mut_invalid_units(b: dict[str, Any]) -> None:
+        b["temporal_axis"]["time_units"] = "minutes"
 
-    expect_rejection("2. Reject empty/whitespace temporal_axis.time_units", mut_empty_units)
+    expect_rejection("2. Reject non-'s' temporal_axis.time_units ('minutes' != 's')", mut_invalid_units)
 
     # 3. Invalid fourth_dimension_symbol
     def mut_wrong_4d_symbol(b: dict[str, Any]) -> None:
@@ -385,6 +477,34 @@ def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, An
         b["spatial_frame"]["domain_bounds_m"]["x"] = [16.0, 0.0]
 
     expect_rejection("12. Reject inverted spatial_frame.domain_bounds_m (x_min >= x_max)", mut_inverted_domain_bounds)
+
+    # 13. Inconsistent time step interval vs temporal_resolution_s (Finding 4)
+    def mut_non_uniform_step(b: dict[str, Any]) -> None:
+        b["states"][2]["simulation_time"] = 600.0
+        b["temporal_axis"]["event_markers"][2]["simulation_time"] = 600.0
+
+    expect_rejection(
+        "13. Reject inconsistent time step interval vs temporal_axis.temporal_resolution_s",
+        mut_non_uniform_step,
+    )
+
+    # 14. False finite-volume conservation claim in Stage 1 ledger (Finding 2)
+    def mut_false_fv_conservation_claim(b: dict[str, Any]) -> None:
+        b["states"][0]["analytical_bookkeeping_ledger"]["is_finite_volume_conservation_test"] = True
+
+    expect_rejection(
+        "14. Reject false Stage 1 is_finite_volume_conservation_test=True claim",
+        mut_false_fv_conservation_claim,
+    )
+
+    # 15. Conflated baseline_commit and generator revision / bad script SHA-256 (Finding 1)
+    def mut_conflated_provenance(b: dict[str, Any]) -> None:
+        b["source_provenance"]["generator_version"] = b["baseline_commit"]
+
+    expect_rejection(
+        "15. Reject source_provenance conflating generator_version with baseline_commit",
+        mut_conflated_provenance,
+    )
 
     return results
 

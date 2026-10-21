@@ -3,8 +3,10 @@
  * Stage 1 Semantic & Data-Contract Verification Suite (test_spacetime_4d_v0.js)
  *
  * Tests Requirement R10 (spacetime_geochemistry_v0) Stage 0 and Stage 1 invariants:
- * - Strict monotonic time ordering and explicit units
- * - Bit-exact IEEE-754 little-endian Float32Array SHA-256 verification
+ * - Strict monotonic fixed-step seconds time grid (time_units = "s", dt = temporal_resolution_s)
+ * - Separated baseline_commit vs R10 source_provenance (generator_script_sha256 verified on disk)
+ * - Per-frame Float32LE SHA-256 checksum verification AND external receipt / pinned-manifest cross-check
+ * - Illustrative analytical bookkeeping ledger (closes_by_algebraic_definition: true, is_finite_volume_conservation_test: false)
  * - Semantic proof that changing time mutates the underlying 3D Float32Array and shifts z_cm(+k)
  * - Dual-time comparison dF(x; t_A, t_B) identity and dipolar shift
  * - Selected-voxel time series and criterial separation (verified_accepted vs criterial_pruned)
@@ -25,6 +27,18 @@ const S4D = require("../viewer/js/spacetime_4d.js");
 const REPO_ROOT = path.resolve(__dirname, "..");
 const BUNDLE_PATH = path.join(REPO_ROOT, "data", "spacetime", "synthetic_tracer_pulse_4d_v0.json");
 const SCHEMA_PATH = path.join(REPO_ROOT, "data", "spacetime", "schema_4d_v0.json");
+const GENERATOR_PATH = path.join(REPO_ROOT, "scripts", "generate_synthetic_4d_bundle.py");
+const RECEIPT_JSON_PATH = path.join(REPO_ROOT, "receipts", "spacetime_geochemistry_v0_verification.json");
+const RECEIPT_MD_PATH = path.join(REPO_ROOT, "receipts", "spacetime_geochemistry_v0_2026-10-20.md");
+
+// Independently pinned expected Float32LE SHA-256 frame digests for Stage 1 verification (Finding 3)
+const PINNED_EXPECTED_FRAME_DIGESTS_F32_LE = [
+  "906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e",
+  "279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30",
+  "8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9",
+  "1fcb13a289ea3592e79188536280d6c05400b5f5fe516262ddf91f06e7be88d2",
+  "6cd8bc7c53a40702565a4d19904e6c240c48eeed5bafa1e3208bf3a598a3267f"
+];
 
 function nodeFloat32Sha256(values) {
   const f32 = new Float32Array(values.length);
@@ -56,8 +70,8 @@ function runSuite() {
     }
   }
 
-  // Test 1: Temporal axis, spatial coordinate frame, and embedded bundle parity
-  test("Test 1: Temporal axis monotonicity, +k up-axis frame, and embedded bundle bit-parity", () => {
+  // Test 1: Temporal axis fixed-step seconds grid, provenance separation, +k up-axis frame, and embedded bundle parity
+  test("Test 1: Fixed-step seconds time grid, separated baseline/generator provenance, +k up-axis, and embedded bundle parity", () => {
     const check = S4D.verifyBundleIntegrity(diskBundle);
     assert.strictEqual(check.valid, true);
     assert.strictEqual(check.state_count, 5);
@@ -65,17 +79,39 @@ function runSuite() {
 
     assert.strictEqual(diskBundle.temporal_axis.fourth_dimension_symbol, "t");
     assert.strictEqual(diskBundle.temporal_axis.time_units, "s");
+    assert.strictEqual(diskBundle.temporal_axis.temporal_resolution_s, 250.0);
     assert.strictEqual(diskBundle.spatial_frame.up_axis, "+k");
     assert.strictEqual(diskBundle.spatial_frame.geometry_provenance, "schematic");
+
+    // Finding 1: verify baseline_commit is separated from R10 source_provenance and generator SHA-256 matches script on disk
+    assert.strictEqual(diskBundle.baseline_commit, "636b7d7bb41999b80278d90046da893ee1044f20");
+    assert.strictEqual(diskBundle.source_provenance.baseline_commit, diskBundle.baseline_commit);
+    assert.strictEqual(diskBundle.source_provenance.target_branch, "spacetime-geochemistry/v0-slice");
+    assert.notStrictEqual(diskBundle.source_provenance.generator_version, diskBundle.baseline_commit);
+    const genScriptSha = crypto.createHash("sha256").update(fs.readFileSync(GENERATOR_PATH)).digest("hex");
+    assert.strictEqual(
+      diskBundle.source_provenance.generator_script_sha256,
+      genScriptSha,
+      "source_provenance.generator_script_sha256 must match scripts/generate_synthetic_4d_bundle.py on disk"
+    );
 
     const times = diskBundle.states.map((s) => s.simulation_time);
     assert.deepStrictEqual(times, [0.0, 250.0, 500.0, 750.0, 1000.0]);
     for (let i = 1; i < times.length; i++) {
       assert(times[i] > times[i - 1], "Time steps must be strictly increasing");
+      assert(
+        Math.abs((times[i] - times[i - 1]) - diskBundle.temporal_axis.temporal_resolution_s) < 1e-6,
+        "Adjacent time steps must match temporal_axis.temporal_resolution_s"
+      );
     }
 
     const embedded = S4D.buildEmbeddedSyntheticBundle();
     S4D.verifyBundleIntegrity(embedded);
+    assert.strictEqual(
+      embedded.source_provenance.generator_script_sha256,
+      diskBundle.source_provenance.generator_script_sha256,
+      "Embedded bundle generator_script_sha256 must match disk bundle"
+    );
     for (let s = 0; s < 5; s++) {
       assert.strictEqual(
         embedded.states[s].sha256_f32_le,
@@ -85,39 +121,79 @@ function runSuite() {
     }
   });
 
-  // Test 2: 3D field dimensions, finite values, non-zero variance, and conservation closure
-  test("Test 2: 16x16x16 voxel dimensions, finite values, non-zero variance, and ledger closure", () => {
+  // Test 2: 3D field dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping
+  test("Test 2: 16x16x16 voxel dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping", () => {
     assert.deepStrictEqual(diskBundle.spatial_frame.dimensions_voxels, [16, 16, 16]);
+    const kDecay = diskBundle.governing_parameters.decay_rate_s_inv;
+    const m0 = diskBundle.states[0].total_integrated_inventory_mol;
     for (let s = 0; s < diskBundle.states.length; s++) {
       const st = diskBundle.states[s];
       assert.strictEqual(st.voxel_count, 4096);
       assert.strictEqual(st.values.length, 4096);
       let minV = Infinity;
       let maxV = -Infinity;
+      let sumV = 0.0;
       for (let i = 0; i < st.values.length; i++) {
         const v = st.values[i];
         assert(Number.isFinite(v), "Voxel value must be finite");
         assert(v >= 0.0, "Synthetic concentration must be non-negative");
         if (v < minV) minV = v;
         if (v > maxV) maxV = v;
+        sumV += v;
       }
       assert(maxV - minV > 2.0, "State " + s + " must have non-trivial spatial variance");
+
+      // Finding 2: Verify illustrative analytical bookkeeping ledger and discrete quadrature/tail gap
+      const ledger = st.analytical_bookkeeping_ledger;
+      assert(ledger && typeof ledger === "object", "State " + s + " must include analytical_bookkeeping_ledger");
+      assert.strictEqual(ledger.closes_by_algebraic_definition, true);
+      assert.strictEqual(ledger.is_finite_volume_conservation_test, false);
+      assert(ledger.analytical_bookkeeping_note.includes("not test finite-volume numerical conservation"));
+
+      const expectedSurviving = m0 * Math.exp(-kDecay * st.simulation_time);
+      const expectedGap = expectedSurviving - sumV;
       assert(
-        st.conservation_ledger.relative_mass_balance_residual < 1e-12,
-        "State " + s + " closed mass balance residual must be < 1e-12"
+        Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGap) < 1e-4,
+        "State " + s + " unmodeled_boundary_and_quadrature_gap_mol must equal M0*exp(-k*t) - M_retained"
       );
+      if (s > 0) {
+        assert(
+          ledger.relative_quadrature_and_tail_gap > 0.0 && ledger.relative_quadrature_and_tail_gap < 0.02,
+          "State " + s + " must record a realistic non-zero discrete quadrature/boundary tail gap"
+        );
+      }
     }
   });
 
-  // Test 3: Per-frame IEEE-754 little-endian Float32Array SHA-256 verification
-  test("Test 3: Bit-exact Float32LE SHA-256 digests verified against Node crypto and mutually distinct", () => {
+  // Test 3: Per-frame Float32LE SHA-256 checksums AND independent external receipt / pinned manifest verification (Finding 3)
+  test("Test 3: Per-frame Float32LE checksums verified against Node crypto, pinned manifest, and external receipt files", () => {
+    const receiptJson = JSON.parse(fs.readFileSync(RECEIPT_JSON_PATH, "utf8"));
+    const receiptMd = fs.readFileSync(RECEIPT_MD_PATH, "utf8");
+    assert.strictEqual(receiptJson.state_frame_digests_f32_le.length, 5);
+
     const hashes = new Set();
     for (let s = 0; s < diskBundle.states.length; s++) {
       const st = diskBundle.states[s];
       const jsSha = S4D.sha256Float32LE(st.values);
       const nodeSha = nodeFloat32Sha256(st.values);
       assert.strictEqual(jsSha, nodeSha, "Pure-JS SHA-256 must match Node crypto SHA-256");
-      assert.strictEqual(jsSha, st.sha256_f32_le, "Recomputed SHA-256 must match recorded receipt digest");
+      assert.strictEqual(jsSha, st.sha256_f32_le, "Recomputed SHA-256 must match bundle metadata checksum");
+      assert.strictEqual(
+        jsSha,
+        PINNED_EXPECTED_FRAME_DIGESTS_F32_LE[s],
+        "Frame digest must match independently pinned test manifest at state " + s
+      );
+      assert.strictEqual(
+        jsSha,
+        receiptJson.state_frame_digests_f32_le[s].sha256_f32_le,
+        "Frame digest must match external verification receipt JSON record at state " + s
+      );
+      const anchor = "#state_" + s;
+      assert(st.run_receipt.endsWith(anchor), "State run_receipt must reference " + anchor);
+      assert(
+        receiptMd.includes('id="state_' + s + '"') && receiptMd.includes(jsSha),
+        "External Markdown receipt must contain anchor #state_" + s + " and frame digest " + jsSha
+      );
       hashes.add(jsSha);
     }
     assert.strictEqual(hashes.size, 5, "All 5 time states must have distinct SHA-256 digests");
@@ -189,24 +265,26 @@ function runSuite() {
 
     assert.strictEqual(tsLower.criterial_pruned_series.length, 1);
     const prunedBranch = tsLower.criterial_pruned_series[0];
+    assert.strictEqual(prunedBranch.branch_id, "synthetic_amplitude_drift_control");
     assert.strictEqual(prunedBranch.criterial_status, "criterial_pruned");
-    assert.strictEqual(prunedBranch.max_relative_mass_balance_residual, 0.38);
+    assert.strictEqual(prunedBranch.max_relative_analytical_drift, 0.38);
+    assert(prunedBranch.prune_reason.includes("not finite-volume PDE conservation"));
     assert.strictEqual(prunedBranch.series.length, 5);
     assert(
       Math.abs(prunedBranch.series[4].value - tsLower.verified_series[4].value * 1.38) < 1e-6,
-      "Pruned branch at t=1000s must reflect +38% uncompensated mass leak"
+      "Pruned branch at t=1000s must reflect +38% synthetic amplitude drift"
     );
 
-    // Non-probe voxel (6, 7, 9) must derive pruned value from recorded tp.relative_mass_balance_residual
-    const customResidualBundle = clone(diskBundle);
-    customResidualBundle.criterial_pruned_branches[0].time_points[4].relative_mass_balance_residual = 0.21;
-    const tsNonProbe = S4D.extractVoxelTimeSeries(customResidualBundle, 6, 7, 9);
+    // Non-probe voxel (6, 7, 9) must derive pruned value from recorded tp.relative_analytical_drift
+    const customDriftBundle = clone(diskBundle);
+    customDriftBundle.criterial_pruned_branches[0].time_points[4].relative_analytical_drift = 0.21;
+    const tsNonProbe = S4D.extractVoxelTimeSeries(customDriftBundle, 6, 7, 9);
     assert(
       Math.abs(
         tsNonProbe.criterial_pruned_series[0].series[4].value -
           tsNonProbe.verified_series[4].value * 1.21
       ) < 1e-6,
-      "Non-probe voxel pruned series must use recorded tp.relative_mass_balance_residual dynamically"
+      "Non-probe voxel pruned series must use recorded tp.relative_analytical_drift dynamically"
     );
 
     // Out-of-bounds voxel coordinates must throw
@@ -241,12 +319,13 @@ function runSuite() {
     );
   });
 
-  // Test 8: Display interpolation explicit labeling ("interpolated_for_display") and non-uniform dt
-  test("Test 8: Display interpolation marks frame 'interpolated_for_display' with run_receipt: null (including non-uniform dt)", () => {
+  // Test 8: Display interpolation explicit labeling ("interpolated_for_display") and fixed-step grid consistency
+  test("Test 8: Display interpolation marks frame 'interpolated_for_display' with run_receipt: null on fixed-step grids", () => {
     const interpSel = S4D.selectTimeState(diskBundle, 1.5, { allowDisplayInterpolation: true });
     assert.strictEqual(interpSel.state_derivation, "interpolated_for_display");
     assert.strictEqual(interpSel.is_simulated_state, false);
     assert.strictEqual(interpSel.run_receipt, null);
+    assert.strictEqual(interpSel.analytical_bookkeeping_ledger, null);
     assert.strictEqual(interpSel.sha256_f32_le, "unverified_display_interpolation");
     assert.strictEqual(interpSel.simulation_time, 375.0);
     assert(interpSel.display_warning && interpSel.display_warning.includes("INTERPOLATED FOR DISPLAY ONLY"));
@@ -257,31 +336,30 @@ function runSuite() {
     const expectedMid = Math.fround(0.5 * st1.float32Values[probeIdx] + 0.5 * st2.float32Values[probeIdx]);
     assert(Math.abs(interpSel.float32Values[probeIdx] - expectedMid) < 1e-6);
 
-    // Non-uniform dt bundle (e.g., t = [0, 100, 250, 750, 1000] s)
+    // Finding 4: Non-uniform dt bundle (e.g., t = [0, 100, 250, 750, 1000] s with temporal_resolution_s = 250.0) must be rejected
     const nonUniformBundle = clone(diskBundle);
     const nonUniformTimes = [0.0, 100.0, 250.0, 750.0, 1000.0];
     for (let i = 0; i < 5; i++) {
       nonUniformBundle.states[i].simulation_time = nonUniformTimes[i];
       nonUniformBundle.temporal_axis.event_markers[i].simulation_time = nonUniformTimes[i];
     }
-    S4D.verifyBundleIntegrity(nonUniformBundle);
-    const nonUniInterp = S4D.selectTimeState(nonUniformBundle, 1.5, { allowDisplayInterpolation: true });
-    assert.strictEqual(nonUniInterp.simulation_time, 175.0);
-    assert.strictEqual(nonUniInterp.state_derivation, "interpolated_for_display");
-    assert.strictEqual(nonUniInterp.run_receipt, null);
+    assert.throws(
+      () => S4D.verifyBundleIntegrity(nonUniformBundle),
+      /Inconsistent time step/
+    );
   });
 
   // Test 9: Negative-control rejection of corrupted/invalid bundles
-  test("Test 9: verifyBundleIntegrity rejects non-monotonic time, NaN, bad SHA-256, calibrated claims, and missing receipts", () => {
+  test("Test 9: verifyBundleIntegrity rejects non-monotonic/non-uniform time, non-'s' units, NaN, bad SHA-256, false FV claims, and bad provenance", () => {
     // 9a. Non-monotonic time
     const bNonMono = clone(diskBundle);
     bNonMono.states[3].simulation_time = 400.0;
     assert.throws(() => S4D.verifyBundleIntegrity(bNonMono), /Non-monotonic simulation_time/);
 
-    // 9b. Empty time_units
-    const bEmptyUnits = clone(diskBundle);
-    bEmptyUnits.temporal_axis.time_units = "";
-    assert.throws(() => S4D.verifyBundleIntegrity(bEmptyUnits), /time_units/);
+    // 9b. Non-'s' time_units (Finding 4)
+    const bBadUnits = clone(diskBundle);
+    bBadUnits.temporal_axis.time_units = "minutes";
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadUnits), /time_units must equal 's'/);
 
     // 9c. Invalid 4th dimension symbol
     const bBad4D = clone(diskBundle);
@@ -301,7 +379,7 @@ function runSuite() {
     // 9f. Corrupted SHA-256 digest
     const bBadSha = clone(diskBundle);
     bBadSha.states[4].sha256_f32_le = "f".repeat(64);
-    assert.throws(() => S4D.verifyBundleIntegrity(bBadSha), /SHA-256 mismatch/);
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadSha), /SHA-256 checksum mismatch/);
 
     // 9g. Unauthorized empirically_calibrated_model claim
     const bCalib = clone(diskBundle);
@@ -327,6 +405,16 @@ function runSuite() {
     const bBadDomainBounds = clone(diskBundle);
     bBadDomainBounds.spatial_frame.domain_bounds_m.x = [16.0, 0.0];
     assert.throws(() => S4D.verifyBundleIntegrity(bBadDomainBounds), /domain_bounds_m/);
+
+    // 9l. False Stage 1 finite-volume conservation claim (Finding 2)
+    const bFalseConservation = clone(diskBundle);
+    bFalseConservation.states[0].analytical_bookkeeping_ledger.is_finite_volume_conservation_test = true;
+    assert.throws(() => S4D.verifyBundleIntegrity(bFalseConservation), /is_finite_volume_conservation_test must be false/);
+
+    // 9m. Conflated baseline_commit and generator_version in source_provenance (Finding 1)
+    const bConflatedProv = clone(diskBundle);
+    bConflatedProv.source_provenance.generator_version = bConflatedProv.baseline_commit;
+    assert.throws(() => S4D.verifyBundleIntegrity(bConflatedProv), /generator_version must not conflate/);
   });
 
   // Test 10: 4D projection (including extreme hyperplane angles), orthogonal slices, offline HTML, and typography audit
@@ -385,7 +473,7 @@ function runSuite() {
   });
 
   // Test 11: Interactive DOM harness test for viewer/spacetime_explorer_4d.html
-  test("Test 11: Interactive DOM harness verifies ?interp=1&state=1.5, fail-closed URL error, Step -1/+1, and Export PNG labels", () => {
+  test("Test 11: Interactive DOM harness verifies ?interp=1&state=1.5, separated provenance, analytical bookkeeping readout, Step -1/+1, and Export PNG labels", () => {
     const vm = require("vm");
     const htmlText = fs.readFileSync(path.join(REPO_ROOT, "viewer/spacetime_explorer_4d.html"), "utf8");
     const inlineScripts = [...htmlText.matchAll(/<script>([\s\S]*?)<\/script>/g)];
@@ -516,6 +604,13 @@ function runSuite() {
       "unverified_display_interpolation (run_receipt = null)"
     );
     assert(domInterp.elements["meta-event-banner"].innerHTML.includes("Interpolated Display Frame (Not Simulated)"));
+    assert.strictEqual(
+      domInterp.elements["meta-baseline-commit"].textContent,
+      "636b7d7bb41999b80278d90046da893ee1044f20"
+    );
+    assert(
+      domInterp.elements["meta-source-provenance"].textContent.includes("spacetime_geochemistry_v0_gen_0.2.0")
+    );
 
     // Click Export 1920x1080 PNG while on interpolated state 1.5
     domInterp.elements["btn-export-png"].trigger("click");
@@ -532,12 +627,16 @@ function runSuite() {
       "spacetime_geochemistry_v0_interpolated_display_1920x1080.png"
     );
 
-    // Step -1 from fractional state 1.5 must land on discrete State 1 (not 0)
+    // Step -1 from fractional state 1.5 must land on discrete State 1 (not 0) and display ALGEBRAIC (GAP 0.44%)
     domInterp.elements["btn-step-prev"].trigger("click");
     assert.strictEqual(domInterp.elements["active-time-readout"].textContent, "STATE 1 / 4 | t = 250.0 s");
     assert.strictEqual(
       domInterp.elements["badge-state-derivation"].textContent,
       "DERIVATION: PRESCRIBED_ANALYTICALLY"
+    );
+    assert.strictEqual(
+      domInterp.elements["ledger-residual"].textContent,
+      "ALGEBRAIC (GAP 0.44%)"
     );
 
     // Click Export 1920x1080 PNG on discrete State 1 -> must stamp green verified header

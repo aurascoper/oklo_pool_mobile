@@ -152,7 +152,7 @@
     /* Main 3-Column Grid */
     .workspace-grid {
       display: grid;
-      grid-template-columns: 560px 1fr 410px;
+      grid-template-columns: 550px 1fr 425px;
       gap: 10px;
       padding: 10px 16px;
       flex: 1;
@@ -628,10 +628,10 @@
       </div>
     </section>
 
-    <!-- Right Column: Provenance, Cryptographic Receipt & Conservation Ledger -->
+    <!-- Right Column: Provenance, Per-Frame Checksum & Analytical Bookkeeping -->
     <section class="panel-card">
       <div class="panel-header">
-        <span class="panel-title">3. State Provenance &amp; Receipt Binding</span>
+        <span class="panel-title">3. State Provenance &amp; Frame Checksum</span>
         <span class="panel-subtitle" id="meta-schema-ver">spacetime_4d_v0</span>
       </div>
 
@@ -645,8 +645,12 @@
           <span class="meta-val" id="meta-run-id">synth_adv_diff_decay_16x16x16_5state_v0</span>
         </div>
         <div class="meta-row">
-          <span class="meta-key">source_commit (base)</span>
-          <span class="meta-val" id="meta-source-commit">636b7d7bb41999b80278d90046da893ee1044f20</span>
+          <span class="meta-key">baseline_commit (main)</span>
+          <span class="meta-val" id="meta-baseline-commit">636b7d7bb41999b80278d90046da893ee1044f20</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">source_provenance (R10)</span>
+          <span class="meta-val" id="meta-source-provenance">spacetime_geochemistry_v0_gen_0.2.0 (sha256: 9b86f1dfd9ac...)</span>
         </div>
         <div class="meta-row">
           <span class="meta-key">coordinate_system</span>
@@ -672,7 +676,7 @@
 
       <div>
         <div style="font-size: 10.5px; font-family: var(--font-mono); color: var(--fg-secondary); margin-bottom: 3px;">
-          Active Frame Float32LE SHA-256 Digest (Verified Live on Selection):
+          Active Frame Float32LE SHA-256 Checksum (Verified Live Against Bundle Metadata):
         </div>
         <div class="sha-box" id="meta-sha256-box">
           906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e
@@ -681,11 +685,11 @@
 
       <div class="ledger-grid">
         <div class="ledger-cell">
-          <div class="lbl">Retained Inventory (mol)</div>
+          <div class="lbl">Discrete Voxel Sum M_ret (mol)</div>
           <div class="val" id="ledger-retained">913.303</div>
         </div>
         <div class="ledger-cell">
-          <div class="lbl">Cumulative Decayed (mol)</div>
+          <div class="lbl">Analytical Decay Ref (mol)</div>
           <div class="val" id="ledger-decayed">0.000</div>
         </div>
         <div class="ledger-cell">
@@ -693,8 +697,8 @@
           <div class="val" id="ledger-com">(8.00, 8.00, 4.53)</div>
         </div>
         <div class="ledger-cell">
-          <div class="lbl">Mass Balance Residual</div>
-          <div class="val" id="ledger-residual" style="color: var(--emerald);">0.00e+00 (CLOSED)</div>
+          <div class="lbl">Bookkeeping / Tail Gap</div>
+          <div class="val" id="ledger-residual" style="color: var(--cyan);">ALGEBRAIC (GAP 0.00%)</div>
         </div>
       </div>
 
@@ -703,7 +707,7 @@
       </div>
 
       <div class="pruned-banner" id="meta-pruned-banner">
-        <strong>Criterial-Pruned Control (Red Dashed):</strong> uncompensated_mass_leak_control rejected (relative mass-balance residual 0.38 &gt; gate 1.0e-4).
+        <strong>Criterial-Pruned Control (Red Dashed):</strong> synthetic_amplitude_drift_control rejected (+38% artificial drift &gt; analytical envelope 1.0e-4; visual criterial test only, not finite-volume conservation).
       </div>
     </section>
   </main>
@@ -1123,7 +1127,7 @@
         ctx.font = "10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
         ctx.fillText("Solid Green: Verified Accepted Trajectory", 16, hudY + 32);
         ctx.fillStyle = "#ef4444";
-        ctx.fillText("Dashed Red : Criterial-Pruned Mass-Leak Control", 16, hudY + 47);
+        ctx.fillText("Dashed Red : Criterial-Pruned Drift Control", 16, hudY + 47);
       }
 
       function renderSlice2D(canvasId, sliceObj, maxScale, probeX, probeY, invertY) {
@@ -1475,6 +1479,13 @@
         document.getElementById("proj-com-readout").textContent =
           "z_cm(t) = " + activeSelection.center_of_mass_m[2].toFixed(3) + " m (+k up)";
 
+        document.getElementById("meta-baseline-commit").textContent = bundle.baseline_commit;
+        document.getElementById("meta-source-provenance").textContent =
+          bundle.source_provenance.generator_version +
+          " (sha256: " +
+          bundle.source_provenance.generator_script_sha256.slice(0, 12) +
+          "...)";
+
         document.getElementById("meta-state-time").textContent =
           activeSelection.state_index + " (t = " + activeSelection.simulation_time.toFixed(1) + " " + activeSelection.time_units + ")";
         document.getElementById("meta-state-derivation").textContent =
@@ -1482,16 +1493,18 @@
         document.getElementById("meta-run-receipt").textContent =
           activeSelection.run_receipt !== null ? activeSelection.run_receipt : "null (interpolated_for_display)";
 
-        // Conservation ledger
+        // Illustrative analytical bookkeeping ledger (closes by algebraic definition; not a finite-volume PDE test)
         document.getElementById("ledger-retained").textContent =
           activeSelection.total_integrated_inventory_mol.toFixed(3);
-        if (activeSelection.conservation_ledger) {
+        if (activeSelection.analytical_bookkeeping_ledger) {
           document.getElementById("ledger-decayed").textContent =
-            activeSelection.conservation_ledger.cumulative_decayed_mass_mol.toFixed(3);
-          var res = activeSelection.conservation_ledger.relative_mass_balance_residual;
+            activeSelection.analytical_bookkeeping_ledger.analytical_decayed_reference_mol.toFixed(3);
+          var gapPct = (
+            activeSelection.analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap * 100.0
+          ).toFixed(2);
           var elRes = document.getElementById("ledger-residual");
-          elRes.textContent = res.toExponential(2) + " (CLOSED)";
-          elRes.style.color = "#10b981";
+          elRes.textContent = "ALGEBRAIC (GAP " + gapPct + "%)";
+          elRes.style.color = "#38bdf8";
         } else {
           document.getElementById("ledger-decayed").textContent = "N/A (Display Interp)";
           var elResInterp = document.getElementById("ledger-residual");

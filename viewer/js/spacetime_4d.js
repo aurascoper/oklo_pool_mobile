@@ -212,12 +212,12 @@
       [
         "t3_upper_zone_entry",
         "advection_diffusion_step",
-        "Upper compartment entry at z_c = 9.375 m; verified float32 frame digest recorded."
+        "Upper compartment entry at z_c = 9.375 m; per-frame float32 checksum recorded."
       ],
       [
         "t4_late_plume_dispersion",
         "terminal_benchmark_state",
-        "Late-stage dispersed plume at z_c = 11.00 m; cumulative decay and boundary accounting closed."
+        "Late-stage dispersed plume at z_c = 11.00 m; discrete voxel quadrature inventory and analytical decay bookkeeping recorded."
       ]
     ];
 
@@ -271,9 +271,8 @@
 
       var expectedSurviving = initialMassMol * Math.exp(-kDecay * tS);
       var cumulativeDecayed = initialMassMol * (1.0 - Math.exp(-kDecay * tS));
-      var boundaryLeak = expectedSurviving - retainedMass;
-      var closedSum = retainedMass + cumulativeDecayed + boundaryLeak;
-      var relResidual = Math.abs(closedSum - initialMassMol) / initialMassMol;
+      var quadratureGap = expectedSurviving - retainedMass;
+      var relQuadratureGap = Math.abs(quadratureGap) / initialMassMol;
 
       var com = computeCenterOfMass(values, nx, ny, nz);
       var shaHex = sha256Float32LE(f32);
@@ -300,18 +299,23 @@
         mean_value: retainedMass / voxelCount,
         total_integrated_inventory_mol: retainedMass,
         center_of_mass_m: com,
-        conservation_ledger: {
-          initial_mass_mol: initialMassMol,
-          retained_mass_mol: retainedMass,
-          cumulative_decayed_mass_mol: cumulativeDecayed,
-          boundary_leak_mass_mol: boundaryLeak,
-          relative_mass_balance_residual: relResidual
+        analytical_bookkeeping_ledger: {
+          initial_discrete_inventory_mol: Number(initialMassMol.toFixed(6)),
+          retained_discrete_inventory_mol: Number(retainedMass.toFixed(6)),
+          analytical_surviving_reference_mol: Number(expectedSurviving.toFixed(6)),
+          analytical_decayed_reference_mol: Number(cumulativeDecayed.toFixed(6)),
+          unmodeled_boundary_and_quadrature_gap_mol: Number(quadratureGap.toFixed(6)),
+          relative_quadrature_and_tail_gap: Number(relQuadratureGap.toFixed(6)),
+          closes_by_algebraic_definition: true,
+          is_finite_volume_conservation_test: false,
+          analytical_bookkeeping_note:
+            "Illustrative analytical bookkeeping only: M_surv = M0*exp(-k*t) and M_decay = M0*(1-exp(-k*t)) close by algebraic definition, while M_surv - M_retained reflects unmodeled Gaussian tail mass outside [0,16m]^3 and 1m voxel midpoint quadrature. Does not test finite-volume numerical conservation (deferred to Stage 2)."
         },
         values: values
       });
 
-      var leakMult = 1.0 + 0.38 * (tS / 1000.0);
-      var leakRes = Number((0.38 * (tS / 1000.0)).toFixed(6));
+      var driftMult = 1.0 + 0.38 * (tS / 1000.0);
+      var driftFrac = Number((0.38 * (tS / 1000.0)).toFixed(6));
       prunedPoints.push({
         state_index: sIdx,
         simulation_time: tS,
@@ -320,9 +324,9 @@
           Number((com[1] - 0.15 * (tS / 1000.0)).toFixed(6)),
           Number((com[2] - 0.85 * (tS / 1000.0)).toFixed(6))
         ],
-        probe_voxel_8_8_5_value: values[voxelIndex(8, 8, 5, nx, ny)] * leakMult,
-        probe_voxel_8_8_11_value: values[voxelIndex(8, 8, 11, nx, ny)] * leakMult,
-        relative_mass_balance_residual: leakRes
+        probe_voxel_8_8_5_value: values[voxelIndex(8, 8, 5, nx, ny)] * driftMult,
+        probe_voxel_8_8_11_value: values[voxelIndex(8, 8, 11, nx, ny)] * driftMult,
+        relative_analytical_drift: driftFrac
       });
     }
 
@@ -334,14 +338,22 @@
       specification_version: "docs/specs/SPACETIME_GEOCHEMISTRY_v0.md#v0.1.0",
       evidence_class: "numerically_verified_synthetic_model",
       source_repository: "https://github.com/aurascoper/oklo_pool_mobile",
-      source_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
+      baseline_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
+      source_provenance: {
+        target_branch: "spacetime-geochemistry/v0-slice",
+        baseline_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
+        generator_script: "scripts/generate_synthetic_4d_bundle.py",
+        generator_version: "spacetime_geochemistry_v0_gen_0.2.0",
+        generator_script_sha256: "9b86f1dfd9acd3666bcc953d123c1eb8ce0dd3130b87a23aae4b9afa491bc4a0",
+        tested_source_commit_policy: "recorded_in_external_verification_receipt"
+      },
       run_id: "synth_adv_diff_decay_16x16x16_5state_v0",
       run_receipt: "receipts/spacetime_geochemistry_v0_2026-10-20.md",
       parameter_set_id: "synthetic_advection_diffusion_decay_v0_default",
       field_name: "synthetic_tracer_concentration",
       field_units: "mol_m3_synthetic_tracer",
       uncertainty:
-        "Synthetic analytical benchmark; IEEE-754 float32 quantization residual < 1e-6; closed ledger residual < 1e-12.",
+        "Synthetic analytical benchmark sampled on a 1m voxel grid; IEEE-754 float32 quantization residual < 1e-6; analytical bookkeeping closes by algebraic identity (not a finite-volume PDE conservation test).",
       known_limitations:
         "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; not a geological, hydrothermal, or radiation-transport simulation.",
       scientific_status_disclaimer:
@@ -388,14 +400,15 @@
           model_version: "0.1.0",
           evidence_class: "numerically_verified_synthetic_model",
           source_repository: "https://github.com/aurascoper/oklo_pool_mobile",
-          source_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
+          baseline_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
+          source_revision: "spacetime-geochemistry/v0-slice@spacetime_geochemistry_v0_gen_0.2.0",
           specification_version: "docs/specs/SPACETIME_GEOCHEMISTRY_v0.md#v0.1.0",
           run_receipt: "receipts/spacetime_geochemistry_v0_2026-10-20.md",
           parameter_set_id: "synthetic_advection_diffusion_decay_v0_default",
           units: "mol_m3_synthetic_tracer; time_units=s",
           coordinate_system: "cartesian_local_16m_cube",
           uncertainty:
-            "Synthetic analytical benchmark; IEEE-754 float32 quantization residual < 1e-6; closed ledger residual < 1e-12.",
+            "Synthetic analytical benchmark sampled on a 1m voxel grid; IEEE-754 float32 quantization residual < 1e-6; analytical bookkeeping closes by algebraic identity (not a finite-volume PDE conservation test).",
           known_limitations:
             "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; not a geological, hydrothermal, or radiation-transport simulation."
         }
@@ -403,12 +416,12 @@
       states: states,
       criterial_pruned_branches: [
         {
-          branch_id: "uncompensated_mass_leak_control",
-          label: "Negative Control: Uncompensated Mass-Leak Candidate (Pruned)",
+          branch_id: "synthetic_amplitude_drift_control",
+          label: "Negative Control: Synthetic +38% Amplitude-Drift Candidate (Pruned)",
           criterial_status: "criterial_pruned",
           prune_reason:
-            "Violated mass-balance conservation gate: uncompensated +38% artificial source drift at t = 1000 s exceeds threshold 1.0e-4.",
-          max_relative_mass_balance_residual: 0.38,
+            "Synthetic negative-control candidate perturbed by an artificial +38% amplitude drift multiplier (1 + 0.38 * t / 1000 s) at t = 1000 s, exceeding the Stage 1 analytical reference envelope gate (0.38 > 1.0e-4). Demonstrates visual criterial separation only, not finite-volume PDE conservation.",
+          max_relative_analytical_drift: 0.38,
           criterial_threshold_exceeded: 0.0001,
           time_points: prunedPoints
         }
@@ -429,7 +442,7 @@
       "model_version",
       "specification_version",
       "source_repository",
-      "source_commit",
+      "baseline_commit",
       "run_id",
       "parameter_set_id",
       "field_name",
@@ -443,6 +456,39 @@
       if (typeof bundle[key] !== "string" || bundle[key].trim().length === 0) {
         throw new Error("SpacetimeContractError: Missing or empty required string '" + key + "'");
       }
+    }
+    if (!/^[0-9a-f]{7,40}$/.test(bundle.baseline_commit)) {
+      throw new Error("SpacetimeContractError: baseline_commit must be a lowercase hex commit hash");
+    }
+
+    var prov = bundle.source_provenance;
+    if (!prov || typeof prov !== "object") {
+      throw new Error("SpacetimeContractError: Missing source_provenance object");
+    }
+    var provStrings = [
+      "target_branch",
+      "baseline_commit",
+      "generator_script",
+      "generator_version",
+      "generator_script_sha256",
+      "tested_source_commit_policy"
+    ];
+    for (var pIdx = 0; pIdx < provStrings.length; pIdx++) {
+      var pKey = provStrings[pIdx];
+      if (typeof prov[pKey] !== "string" || prov[pKey].trim().length === 0) {
+        throw new Error("SpacetimeContractError: Missing or empty source_provenance." + pKey);
+      }
+    }
+    if (prov.baseline_commit !== bundle.baseline_commit) {
+      throw new Error("SpacetimeContractError: source_provenance.baseline_commit mismatch with baseline_commit");
+    }
+    if (prov.generator_version === bundle.baseline_commit) {
+      throw new Error(
+        "SpacetimeContractError: source_provenance.generator_version must not conflate generator revision with baseline_commit"
+      );
+    }
+    if (!/^[0-9a-f]{64}$/.test(prov.generator_script_sha256)) {
+      throw new Error("SpacetimeContractError: source_provenance.generator_script_sha256 must be a 64-hex SHA-256");
     }
 
     if (ALLOWED_EVIDENCE_CLASSES.indexOf(bundle.evidence_class) === -1) {
@@ -514,8 +560,15 @@
     if (temporal.fourth_dimension_symbol !== "t") {
       throw new Error("SpacetimeContractError: temporal_axis.fourth_dimension_symbol must equal 't'");
     }
-    if (typeof temporal.time_units !== "string" || temporal.time_units.trim().length === 0) {
-      throw new Error("SpacetimeContractError: temporal_axis.time_units must be a non-empty string");
+    if (temporal.time_units !== "s") {
+      throw new Error("SpacetimeContractError: temporal_axis.time_units must equal 's' in spacetime_4d_v0");
+    }
+    if (
+      typeof temporal.temporal_resolution_s !== "number" ||
+      !Number.isFinite(temporal.temporal_resolution_s) ||
+      temporal.temporal_resolution_s <= 0
+    ) {
+      throw new Error("SpacetimeContractError: temporal_axis.temporal_resolution_s must be a finite positive number");
     }
     if (temporal.strict_monotonic_ordering !== true) {
       throw new Error("SpacetimeContractError: temporal_axis.strict_monotonic_ordering must be true");
@@ -560,20 +613,33 @@
       if (typeof st.simulation_time !== "number" || !Number.isFinite(st.simulation_time)) {
         throw new Error("SpacetimeContractError: states[" + idx + "].simulation_time must be finite");
       }
-      if (prevTime !== null && st.simulation_time <= prevTime) {
-        throw new Error(
-          "SpacetimeContractError: Non-monotonic simulation_time at states[" +
-            idx +
-            "]: " +
-            st.simulation_time +
-            " <= " +
-            prevTime
-        );
+      if (prevTime !== null) {
+        if (st.simulation_time <= prevTime) {
+          throw new Error(
+            "SpacetimeContractError: Non-monotonic simulation_time at states[" +
+              idx +
+              "]: " +
+              st.simulation_time +
+              " <= " +
+              prevTime
+          );
+        }
+        var dtStep = st.simulation_time - prevTime;
+        if (Math.abs(dtStep - temporal.temporal_resolution_s) > 1e-6) {
+          throw new Error(
+            "SpacetimeContractError: Inconsistent time step at states[" +
+              idx +
+              "]: dt=" +
+              dtStep +
+              " != temporal_axis.temporal_resolution_s=" +
+              temporal.temporal_resolution_s
+          );
+        }
       }
       prevTime = st.simulation_time;
 
-      if (st.time_units !== temporal.time_units) {
-        throw new Error("SpacetimeContractError: states[" + idx + "].time_units mismatch");
+      if (st.time_units !== "s") {
+        throw new Error("SpacetimeContractError: states[" + idx + "].time_units must equal 's'");
       }
       if (ALLOWED_STATE_DERIVATIONS.indexOf(st.state_derivation) === -1) {
         throw new Error("SpacetimeContractError: Invalid state_derivation at states[" + idx + "]");
@@ -606,6 +672,39 @@
           "SpacetimeContractError: Primary states[" + idx + "] must have criterial_status='verified_accepted'"
         );
       }
+
+      var ledger = st.analytical_bookkeeping_ledger;
+      if (!ledger || typeof ledger !== "object") {
+        throw new Error("SpacetimeContractError: Missing analytical_bookkeeping_ledger at states[" + idx + "]");
+      }
+      if (ledger.closes_by_algebraic_definition !== true) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.closes_by_algebraic_definition must be true"
+        );
+      }
+      if (ledger.is_finite_volume_conservation_test !== false) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.is_finite_volume_conservation_test must be false in Stage 1"
+        );
+      }
+      if (
+        typeof ledger.analytical_bookkeeping_note !== "string" ||
+        ledger.analytical_bookkeeping_note.trim().length === 0
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.analytical_bookkeeping_note must be non-empty"
+        );
+      }
+      if (
+        typeof ledger.relative_quadrature_and_tail_gap !== "number" ||
+        !Number.isFinite(ledger.relative_quadrature_and_tail_gap) ||
+        ledger.relative_quadrature_and_tail_gap < 0
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap must be a non-negative finite number"
+        );
+      }
+
       if (st.voxel_count !== expectedVoxels) {
         throw new Error("SpacetimeContractError: states[" + idx + "].voxel_count mismatch");
       }
@@ -623,7 +722,7 @@
       var computedSha = sha256Float32LE(st.values);
       if (computedSha !== st.sha256_f32_le) {
         throw new Error(
-          "SpacetimeContractError: SHA-256 mismatch at states[" +
+          "SpacetimeContractError: Per-frame Float32LE SHA-256 checksum mismatch at states[" +
             idx +
             "]: expected " +
             st.sha256_f32_le +
@@ -658,10 +757,10 @@
         throw new Error("SpacetimeContractError: Invalid criterial_pruned_branches[" + b + "]");
       }
       if (
-        typeof br.max_relative_mass_balance_residual !== "number" ||
+        typeof br.max_relative_analytical_drift !== "number" ||
         typeof br.criterial_threshold_exceeded !== "number" ||
         br.criterial_threshold_exceeded <= 0 ||
-        br.max_relative_mass_balance_residual <= br.criterial_threshold_exceeded
+        br.max_relative_analytical_drift <= br.criterial_threshold_exceeded
       ) {
         throw new Error(
           "SpacetimeContractError: criterial_pruned_branches[" + b + "] must exceed positive criterial threshold"
@@ -724,7 +823,7 @@
       var actualSha = sha256Float32LE(f32);
       if (actualSha !== st.sha256_f32_le) {
         throw new Error(
-          "SpacetimeContractError: Frame SHA-256 verification failed at state " +
+          "SpacetimeContractError: Frame SHA-256 checksum verification failed at state " +
             rounded +
             " (expected " +
             st.sha256_f32_le +
@@ -748,7 +847,7 @@
         mean_value: st.mean_value,
         total_integrated_inventory_mol: st.total_integrated_inventory_mol,
         center_of_mass_m: st.center_of_mass_m.slice(),
-        conservation_ledger: Object.assign({}, st.conservation_ledger),
+        analytical_bookkeeping_ledger: Object.assign({}, st.analytical_bookkeeping_ledger),
         display_warning: null,
         float32Values: f32
       };
@@ -801,7 +900,7 @@
       mean_value: sumV / expectedVoxels,
       total_integrated_inventory_mol: sumV,
       center_of_mass_m: comInterp,
-      conservation_ledger: null,
+      analytical_bookkeeping_ledger: null,
       display_warning:
         "INTERPOLATED FOR DISPLAY ONLY: Linear visual blend between states " +
         idxLow +
@@ -900,9 +999,9 @@
       for (var p = 0; p < br.time_points.length; p++) {
         var tp = br.time_points[p];
         var baseVal = bundle.states[p].values[flatIdx];
-        var leakMult =
-          1.0 + (typeof tp.relative_mass_balance_residual === "number" ? tp.relative_mass_balance_residual : 0.0);
-        var prunedVal = baseVal * leakMult;
+        var driftMult =
+          1.0 + (typeof tp.relative_analytical_drift === "number" ? tp.relative_analytical_drift : 0.0);
+        var prunedVal = baseVal * driftMult;
         if (i === 8 && j === 8 && k === 5) {
           prunedVal = tp.probe_voxel_8_8_5_value;
         } else if (i === 8 && j === 8 && k === 11) {
@@ -912,7 +1011,7 @@
           state_index: tp.state_index,
           simulation_time: tp.simulation_time,
           value: prunedVal,
-          relative_mass_balance_residual: tp.relative_mass_balance_residual,
+          relative_analytical_drift: tp.relative_analytical_drift,
           criterial_status: "criterial_pruned"
         });
       }
@@ -921,7 +1020,7 @@
         label: br.label,
         criterial_status: br.criterial_status,
         prune_reason: br.prune_reason,
-        max_relative_mass_balance_residual: br.max_relative_mass_balance_residual,
+        max_relative_analytical_drift: br.max_relative_analytical_drift,
         series: pts
       });
     }

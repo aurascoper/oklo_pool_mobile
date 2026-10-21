@@ -19,6 +19,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = REPO_ROOT / "data" / "spacetime" / "synthetic_tracer_pulse_4d_v0.json"
 
 BASELINE_COMMIT = "636b7d7bb41999b80278d90046da893ee1044f20"
+TARGET_BRANCH = "spacetime-geochemistry/v0-slice"
+GENERATOR_SCRIPT_REL = "scripts/generate_synthetic_4d_bundle.py"
+GENERATOR_VERSION = "spacetime_geochemistry_v0_gen_0.2.0"
 NX, NY, NZ = 16, 16, 16
 VOXEL_COUNT = NX * NY * NZ
 
@@ -89,13 +92,14 @@ def generate_bundle() -> dict[str, Any]:
     pruned_points: list[dict[str, Any]] = []
 
     initial_mass_mol: float | None = None
+    generator_sha256 = hashlib.sha256(Path(__file__).resolve().read_bytes()).hexdigest()
 
     event_labels = [
         ("t0_injection_pulse", "initial_condition", "Initial 3D Gaussian tracer pulse centered at z = 4.50 m (+k upward axis)."),
         ("t1_lower_conduit_ascent", "advection_diffusion_step", "Upward +k advection to z_c = 6.125 m with isotropic diffusive spreading."),
         ("t2_mid_column_transit", "advection_diffusion_step", "Mid-domain transit at z_c = 7.75 m; peak amplitude attenuated by diffusion and decay."),
-        ("t3_upper_zone_entry", "advection_diffusion_step", "Upper compartment entry at z_c = 9.375 m; verified float32 frame digest recorded."),
-        ("t4_late_plume_dispersion", "terminal_benchmark_state", "Late-stage dispersed plume at z_c = 11.00 m; cumulative decay and boundary accounting closed."),
+        ("t3_upper_zone_entry", "advection_diffusion_step", "Upper compartment entry at z_c = 9.375 m; per-frame float32 checksum recorded."),
+        ("t4_late_plume_dispersion", "terminal_benchmark_state", "Late-stage dispersed plume at z_c = 11.00 m; discrete voxel quadrature inventory and analytical decay bookkeeping recorded."),
     ]
 
     event_markers: list[dict[str, Any]] = []
@@ -112,9 +116,8 @@ def generate_bundle() -> dict[str, Any]:
 
         expected_surviving = initial_mass_mol * math.exp(-DECAY_RATE_S_INV * t_s)
         cumulative_decayed = initial_mass_mol * (1.0 - math.exp(-DECAY_RATE_S_INV * t_s))
-        boundary_leak = expected_surviving - retained_mass
-        closed_sum = retained_mass + cumulative_decayed + boundary_leak
-        rel_residual = abs(closed_sum - initial_mass_mol) / initial_mass_mol
+        quadrature_gap = expected_surviving - retained_mass
+        rel_quadrature_gap = abs(quadrature_gap) / initial_mass_mol
 
         com = compute_center_of_mass(f32_vals)
         min_v = float(min(f32_vals))
@@ -147,22 +150,32 @@ def generate_bundle() -> dict[str, Any]:
                 "mean_value": mean_v,
                 "total_integrated_inventory_mol": retained_mass,
                 "center_of_mass_m": com,
-                "conservation_ledger": {
-                    "initial_mass_mol": initial_mass_mol,
-                    "retained_mass_mol": retained_mass,
-                    "cumulative_decayed_mass_mol": cumulative_decayed,
-                    "boundary_leak_mass_mol": boundary_leak,
-                    "relative_mass_balance_residual": rel_residual,
+                "analytical_bookkeeping_ledger": {
+                    "initial_discrete_inventory_mol": round(initial_mass_mol, 6),
+                    "retained_discrete_inventory_mol": round(retained_mass, 6),
+                    "analytical_surviving_reference_mol": round(expected_surviving, 6),
+                    "analytical_decayed_reference_mol": round(cumulative_decayed, 6),
+                    "unmodeled_boundary_and_quadrature_gap_mol": round(quadrature_gap, 6),
+                    "relative_quadrature_and_tail_gap": round(rel_quadrature_gap, 6),
+                    "closes_by_algebraic_definition": True,
+                    "is_finite_volume_conservation_test": False,
+                    "analytical_bookkeeping_note": (
+                        "Illustrative analytical bookkeeping only: M_surv = M0*exp(-k*t) and "
+                        "M_decay = M0*(1-exp(-k*t)) close by algebraic definition, while "
+                        "M_surv - M_retained reflects unmodeled Gaussian tail mass outside [0,16m]^3 "
+                        "and 1m voxel midpoint quadrature. Does not test finite-volume numerical "
+                        "conservation (deferred to Stage 2)."
+                    ),
                 },
                 "values": f32_vals,
             }
         )
 
-        # Negative-control criterial-pruned branch: uncompensated artificial mass leak (+38% drift at 1000s)
-        leak_multiplier = 1.0 + 0.38 * (t_s / 1000.0)
-        leak_residual = 0.38 * (t_s / 1000.0)
-        v_8_8_5 = f32_vals[voxel_index(8, 8, 5)] * leak_multiplier
-        v_8_8_11 = f32_vals[voxel_index(8, 8, 11)] * leak_multiplier
+        # Negative-control criterial-pruned branch: synthetic +38% amplitude drift at 1000s
+        drift_multiplier = 1.0 + 0.38 * (t_s / 1000.0)
+        drift_fraction = 0.38 * (t_s / 1000.0)
+        v_8_8_5 = f32_vals[voxel_index(8, 8, 5)] * drift_multiplier
+        v_8_8_11 = f32_vals[voxel_index(8, 8, 11)] * drift_multiplier
         pruned_com = [
             round(com[0] + 0.12 * (t_s / 1000.0), 6),
             round(com[1] - 0.15 * (t_s / 1000.0), 6),
@@ -175,7 +188,7 @@ def generate_bundle() -> dict[str, Any]:
                 "center_of_mass_m": pruned_com,
                 "probe_voxel_8_8_5_value": v_8_8_5,
                 "probe_voxel_8_8_11_value": v_8_8_11,
-                "relative_mass_balance_residual": round(leak_residual, 6),
+                "relative_analytical_drift": round(drift_fraction, 6),
             }
         )
 
@@ -187,15 +200,33 @@ def generate_bundle() -> dict[str, Any]:
         "specification_version": "docs/specs/SPACETIME_GEOCHEMISTRY_v0.md#v0.1.0",
         "evidence_class": "numerically_verified_synthetic_model",
         "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",
-        "source_commit": BASELINE_COMMIT,
+        "baseline_commit": BASELINE_COMMIT,
+        "source_provenance": {
+            "target_branch": TARGET_BRANCH,
+            "baseline_commit": BASELINE_COMMIT,
+            "generator_script": GENERATOR_SCRIPT_REL,
+            "generator_version": GENERATOR_VERSION,
+            "generator_script_sha256": generator_sha256,
+            "tested_source_commit_policy": "recorded_in_external_verification_receipt",
+        },
         "run_id": "synth_adv_diff_decay_16x16x16_5state_v0",
         "run_receipt": "receipts/spacetime_geochemistry_v0_2026-10-20.md",
         "parameter_set_id": "synthetic_advection_diffusion_decay_v0_default",
         "field_name": "synthetic_tracer_concentration",
         "field_units": "mol_m3_synthetic_tracer",
-        "uncertainty": "Synthetic analytical benchmark; IEEE-754 float32 quantization residual < 1e-6; closed ledger residual < 1e-12.",
-        "known_limitations": "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; not a geological, hydrothermal, or radiation-transport simulation.",
-        "scientific_status_disclaimer": "Passing viewer and data-contract tests establishes rendering and data-contract correctness only, not geological validity, radiation transport accuracy, or empirical calibration.",
+        "uncertainty": (
+            "Synthetic analytical benchmark sampled on a 1m voxel grid; IEEE-754 float32 "
+            "quantization residual < 1e-6; analytical bookkeeping closes by algebraic identity "
+            "(not a finite-volume PDE conservation test)."
+        ),
+        "known_limitations": (
+            "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; "
+            "not a geological, hydrothermal, or radiation-transport simulation."
+        ),
+        "scientific_status_disclaimer": (
+            "Passing viewer and data-contract tests establishes rendering and data-contract "
+            "correctness only, not geological validity, radiation transport accuracy, or empirical calibration."
+        ),
         "spatial_frame": {
             "coordinate_system": "cartesian_local_16m_cube",
             "geometry_provenance": "schematic",
@@ -236,24 +267,37 @@ def generate_bundle() -> dict[str, Any]:
                 "model_version": "0.1.0",
                 "evidence_class": "numerically_verified_synthetic_model",
                 "source_repository": "https://github.com/aurascoper/oklo_pool_mobile",
-                "source_commit": BASELINE_COMMIT,
+                "baseline_commit": BASELINE_COMMIT,
+                "source_revision": f"{TARGET_BRANCH}@{GENERATOR_VERSION}",
                 "specification_version": "docs/specs/SPACETIME_GEOCHEMISTRY_v0.md#v0.1.0",
                 "run_receipt": "receipts/spacetime_geochemistry_v0_2026-10-20.md",
                 "parameter_set_id": "synthetic_advection_diffusion_decay_v0_default",
                 "units": "mol_m3_synthetic_tracer; time_units=s",
                 "coordinate_system": "cartesian_local_16m_cube",
-                "uncertainty": "Synthetic analytical benchmark; IEEE-754 float32 quantization residual < 1e-6; closed ledger residual < 1e-12.",
-                "known_limitations": "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; not a geological, hydrothermal, or radiation-transport simulation.",
+                "uncertainty": (
+                    "Synthetic analytical benchmark sampled on a 1m voxel grid; IEEE-754 float32 "
+                    "quantization residual < 1e-6; analytical bookkeeping closes by algebraic identity "
+                    "(not a finite-volume PDE conservation test)."
+                ),
+                "known_limitations": (
+                    "Stage 1 synthetic 3D advection-diffusion-decay pulse on a schematic 16m cube; "
+                    "not a geological, hydrothermal, or radiation-transport simulation."
+                ),
             },
         },
         "states": states,
         "criterial_pruned_branches": [
             {
-                "branch_id": "uncompensated_mass_leak_control",
-                "label": "Negative Control: Uncompensated Mass-Leak Candidate (Pruned)",
+                "branch_id": "synthetic_amplitude_drift_control",
+                "label": "Negative Control: Synthetic +38% Amplitude-Drift Candidate (Pruned)",
                 "criterial_status": "criterial_pruned",
-                "prune_reason": "Violated mass-balance conservation gate: uncompensated +38% artificial source drift at t = 1000 s exceeds threshold 1.0e-4.",
-                "max_relative_mass_balance_residual": 0.38,
+                "prune_reason": (
+                    "Synthetic negative-control candidate perturbed by an artificial +38% "
+                    "amplitude drift multiplier (1 + 0.38 * t / 1000 s) at t = 1000 s, "
+                    "exceeding the Stage 1 analytical reference envelope gate (0.38 > 1.0e-4). "
+                    "Demonstrates visual criterial separation only, not finite-volume PDE conservation."
+                ),
+                "max_relative_analytical_drift": 0.38,
                 "criterial_threshold_exceeded": 0.0001,
                 "time_points": pruned_points,
             }
@@ -267,12 +311,15 @@ def main() -> None:
     bundle = generate_bundle()
     OUTPUT_PATH.write_text(json.dumps(bundle, indent=2) + "\n", encoding="utf-8")
     print(f"Generated {OUTPUT_PATH.relative_to(REPO_ROOT)} with {len(bundle['states'])} states.")
+    print(f"  generator_script_sha256={bundle['source_provenance']['generator_script_sha256']}")
     for st in bundle["states"]:
+        gap = st["analytical_bookkeeping_ledger"]["relative_quadrature_and_tail_gap"]
         print(
             f"  state[{st['state_index']}] t={st['simulation_time']:6.1f} {st['time_units']} "
             f"sha256_f32_le={st['sha256_f32_le']} "
             f"z_cm={st['center_of_mass_m'][2]:.4f} m "
-            f"max={st['max_value']:.4f}"
+            f"max={st['max_value']:.4f} "
+            f"quad_tail_gap={gap:.6f}"
         )
 
 
