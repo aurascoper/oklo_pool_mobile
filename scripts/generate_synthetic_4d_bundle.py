@@ -110,7 +110,9 @@ def generate_bundle() -> dict[str, Any]:
         f32_vals = list(struct.unpack(f"<{VOXEL_COUNT}f", packed))
         sha256_hex = hashlib.sha256(packed).hexdigest()
 
-        retained_mass = float(sum(f32_vals))
+        retained_mass = 0.0
+        for v in f32_vals:
+            retained_mass += float(v)
         if initial_mass_mol is None:
             initial_mass_mol = retained_mass
 

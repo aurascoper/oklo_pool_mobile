@@ -344,7 +344,7 @@
         baseline_commit: "636b7d7bb41999b80278d90046da893ee1044f20",
         generator_script: "scripts/generate_synthetic_4d_bundle.py",
         generator_version: "spacetime_geochemistry_v0_gen_0.2.0",
-        generator_script_sha256: "9b86f1dfd9acd3666bcc953d123c1eb8ce0dd3130b87a23aae4b9afa491bc4a0",
+        generator_script_sha256: "d8a78d21351d8ee0c1c791adbec48e6e48c11e032ec93c6fb30eb91b815962e7",
         tested_source_commit_policy: "recorded_in_external_verification_receipt"
       },
       run_id: "synth_adv_diff_decay_16x16x16_5state_v0",
@@ -482,9 +482,13 @@
     if (prov.baseline_commit !== bundle.baseline_commit) {
       throw new Error("SpacetimeContractError: source_provenance.baseline_commit mismatch with baseline_commit");
     }
-    if (prov.generator_version === bundle.baseline_commit) {
+    if (
+      prov.generator_version === bundle.baseline_commit ||
+      prov.generator_version.indexOf(bundle.baseline_commit.slice(0, 7)) === 0 ||
+      /^[0-9a-f]{7,40}$/.test(prov.generator_version)
+    ) {
       throw new Error(
-        "SpacetimeContractError: source_provenance.generator_version must not conflate generator revision with baseline_commit"
+        "SpacetimeContractError: source_provenance.generator_version must not conflate generator revision with baseline_commit or a raw commit hash"
       );
     }
     if (!/^[0-9a-f]{64}$/.test(prov.generator_script_sha256)) {
@@ -595,6 +599,7 @@
 
     var prevTime = null;
     var seenHashes = {};
+    var initialVoxelSum = 0.0;
 
     for (var idx = 0; idx < states.length; idx++) {
       var st = states[idx];
@@ -695,13 +700,25 @@
           "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.analytical_bookkeeping_note must be non-empty"
         );
       }
-      if (
-        typeof ledger.relative_quadrature_and_tail_gap !== "number" ||
-        !Number.isFinite(ledger.relative_quadrature_and_tail_gap) ||
-        ledger.relative_quadrature_and_tail_gap < 0
-      ) {
+      var ledgerNumFields = [
+        "initial_discrete_inventory_mol",
+        "retained_discrete_inventory_mol",
+        "analytical_surviving_reference_mol",
+        "analytical_decayed_reference_mol",
+        "unmodeled_boundary_and_quadrature_gap_mol",
+        "relative_quadrature_and_tail_gap"
+      ];
+      for (var lf = 0; lf < ledgerNumFields.length; lf++) {
+        var lfVal = ledger[ledgerNumFields[lf]];
+        if (typeof lfVal !== "number" || !Number.isFinite(lfVal)) {
+          throw new Error(
+            "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger." + ledgerNumFields[lf] + " must be finite"
+          );
+        }
+      }
+      if (ledger.relative_quadrature_and_tail_gap < 0) {
         throw new Error(
-          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap must be a non-negative finite number"
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap must be >= 0"
         );
       }
 
@@ -711,6 +728,7 @@
       if (!Array.isArray(st.values) || st.values.length !== expectedVoxels) {
         throw new Error("SpacetimeContractError: states[" + idx + "].values length mismatch");
       }
+      var stateVoxelSum = 0.0;
       for (var v = 0; v < expectedVoxels; v++) {
         var val = st.values[v];
         if (typeof val !== "number" || !Number.isFinite(val)) {
@@ -718,7 +736,48 @@
             "SpacetimeContractError: Non-finite voxel value at states[" + idx + "].values[" + v + "]"
           );
         }
+        stateVoxelSum += val;
       }
+      if (idx === 0) {
+        initialVoxelSum = stateVoxelSum;
+      }
+      if (
+        ledger.initial_discrete_inventory_mol <= 0 ||
+        Math.abs(ledger.initial_discrete_inventory_mol - initialVoxelSum) > 1e-3
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.initial_discrete_inventory_mol mismatch with state 0 voxel sum"
+        );
+      }
+      if (Math.abs(ledger.retained_discrete_inventory_mol - stateVoxelSum) > 1e-3) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.retained_discrete_inventory_mol mismatch with discrete voxel sum"
+        );
+      }
+      if (
+        Math.abs(
+          ledger.analytical_surviving_reference_mol +
+            ledger.analytical_decayed_reference_mol -
+            ledger.initial_discrete_inventory_mol
+        ) > 1e-3
+      ) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger surviving + decayed does not close algebraically"
+        );
+      }
+      var expectedGapMol = ledger.analytical_surviving_reference_mol - ledger.retained_discrete_inventory_mol;
+      if (Math.abs(ledger.unmodeled_boundary_and_quadrature_gap_mol - expectedGapMol) > 1e-3) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol contradicts M_surv - M_retained"
+        );
+      }
+      var expectedRelGap = Math.abs(expectedGapMol) / ledger.initial_discrete_inventory_mol;
+      if (Math.abs(ledger.relative_quadrature_and_tail_gap - expectedRelGap) > 1e-5) {
+        throw new Error(
+          "SpacetimeContractError: states[" + idx + "].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap contradicts |M_surv - M_retained| / M0"
+        );
+      }
+
       var computedSha = sha256Float32LE(st.values);
       if (computedSha !== st.sha256_f32_le) {
         throw new Error(
@@ -748,6 +807,35 @@
       );
     }
 
+    var v2Comp = bundle.v2_compatibility;
+    if (
+      !v2Comp ||
+      typeof v2Comp !== "object" ||
+      v2Comp.schema_target !== "https://aurascoper.github.io/oklo_pool_mobile/schemas/epistemic_record_v1.json" ||
+      !v2Comp.epistemic_record ||
+      typeof v2Comp.epistemic_record !== "object"
+    ) {
+      throw new Error("SpacetimeContractError: Missing or invalid v2_compatibility.epistemic_record");
+    }
+    var v2Ep = v2Comp.epistemic_record;
+    if (
+      v2Ep.evidence_class !== bundle.evidence_class ||
+      v2Ep.coordinate_system !== spatial.coordinate_system ||
+      v2Ep.baseline_commit !== bundle.baseline_commit
+    ) {
+      throw new Error("SpacetimeContractError: v2_compatibility.epistemic_record metadata mismatch");
+    }
+    if (
+      typeof v2Ep.source_revision !== "string" ||
+      v2Ep.source_revision.trim().length === 0 ||
+      v2Ep.source_revision === bundle.baseline_commit ||
+      v2Ep.source_revision.indexOf(bundle.baseline_commit.slice(0, 7)) === 0
+    ) {
+      throw new Error(
+        "SpacetimeContractError: v2_compatibility.epistemic_record.source_revision must be distinct from baseline_commit"
+      );
+    }
+
     if (!Array.isArray(bundle.criterial_pruned_branches) || bundle.criterial_pruned_branches.length < 1) {
       throw new Error("SpacetimeContractError: criterial_pruned_branches must contain at least 1 control branch");
     }
@@ -766,6 +854,19 @@
           "SpacetimeContractError: criterial_pruned_branches[" + b + "] must exceed positive criterial threshold"
         );
       }
+      if (!Array.isArray(br.time_points) || br.time_points.length !== states.length) {
+        throw new Error(
+          "SpacetimeContractError: criterial_pruned_branches[" + b + "].time_points length must match states.length"
+        );
+      }
+      for (var tpIdx = 0; tpIdx < br.time_points.length; tpIdx++) {
+        var tp = br.time_points[tpIdx];
+        if (!tp || tp.state_index !== tpIdx || tp.simulation_time !== states[tpIdx].simulation_time) {
+          throw new Error(
+            "SpacetimeContractError: criterial_pruned_branches[" + b + "].time_points[" + tpIdx + "] time grid mismatch"
+          );
+        }
+      }
     }
 
     return {
@@ -780,6 +881,9 @@
     var opts = options || {};
     if (!bundle || !Array.isArray(bundle.states) || bundle.states.length < 2) {
       throw new Error("SpacetimeContractError: Invalid bundle passed to selectTimeState");
+    }
+    if (!bundle.temporal_axis || bundle.temporal_axis.time_units !== "s") {
+      throw new Error("SpacetimeContractError: temporal_axis.time_units must equal 's' in selectTimeState");
     }
     if (typeof stateIndexOrPos !== "number" || !Number.isFinite(stateIndexOrPos)) {
       throw new Error("SpacetimeContractError: Requested state index must be a finite number");
@@ -808,6 +912,9 @@
             rounded +
             " (fail_closed_no_invented_states)"
         );
+      }
+      if (st.time_units !== "s") {
+        throw new Error("SpacetimeContractError: states[" + rounded + "].time_units must equal 's'");
       }
       if (!Array.isArray(st.values) || st.values.length !== expectedVoxels) {
         throw new Error("SpacetimeContractError: Corrupted voxel array at state " + rounded);
@@ -867,6 +974,25 @@
     var alpha = stateIndexOrPos - idxLow;
     var stLow = selectTimeState(bundle, idxLow, { allowDisplayInterpolation: false });
     var stHigh = selectTimeState(bundle, idxHigh, { allowDisplayInterpolation: false });
+    var dtRes = bundle.temporal_axis.temporal_resolution_s;
+    if (
+      typeof dtRes !== "number" ||
+      !Number.isFinite(dtRes) ||
+      dtRes <= 0 ||
+      Math.abs((stHigh.simulation_time - stLow.simulation_time) - dtRes) > 1e-6
+    ) {
+      throw new Error(
+        "SpacetimeContractError: Inconsistent time step interval for display interpolation between states " +
+          idxLow +
+          " and " +
+          idxHigh +
+          " (dt=" +
+          (stHigh.simulation_time - stLow.simulation_time) +
+          " != temporal_resolution_s=" +
+          dtRes +
+          ")"
+      );
+    }
 
     var interpF32 = new Float32Array(expectedVoxels);
     var minV = Infinity;

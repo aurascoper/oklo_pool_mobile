@@ -107,18 +107,11 @@ function runSuite() {
 
     const embedded = S4D.buildEmbeddedSyntheticBundle();
     S4D.verifyBundleIntegrity(embedded);
-    assert.strictEqual(
-      embedded.source_provenance.generator_script_sha256,
-      diskBundle.source_provenance.generator_script_sha256,
-      "Embedded bundle generator_script_sha256 must match disk bundle"
+    assert.deepStrictEqual(
+      embedded,
+      diskBundle,
+      "Embedded synthetic bundle must be 100% deep-strict-equal to disk JSON bundle"
     );
-    for (let s = 0; s < 5; s++) {
-      assert.strictEqual(
-        embedded.states[s].sha256_f32_le,
-        diskBundle.states[s].sha256_f32_le,
-        "Embedded bundle SHA-256 must match disk JSON at state " + s
-      );
-    }
   });
 
   // Test 2: 3D field dimensions, finite values, non-zero variance, and illustrative analytical bookkeeping
@@ -336,7 +329,7 @@ function runSuite() {
     const expectedMid = Math.fround(0.5 * st1.float32Values[probeIdx] + 0.5 * st2.float32Values[probeIdx]);
     assert(Math.abs(interpSel.float32Values[probeIdx] - expectedMid) < 1e-6);
 
-    // Finding 4: Non-uniform dt bundle (e.g., t = [0, 100, 250, 750, 1000] s with temporal_resolution_s = 250.0) must be rejected
+    // Finding 4: Non-uniform dt bundle (e.g., t = [0, 100, 250, 750, 1000] s with temporal_resolution_s = 250.0) must be rejected by both verifyBundleIntegrity and selectTimeState
     const nonUniformBundle = clone(diskBundle);
     const nonUniformTimes = [0.0, 100.0, 250.0, 750.0, 1000.0];
     for (let i = 0; i < 5; i++) {
@@ -347,10 +340,14 @@ function runSuite() {
       () => S4D.verifyBundleIntegrity(nonUniformBundle),
       /Inconsistent time step/
     );
+    assert.throws(
+      () => S4D.selectTimeState(nonUniformBundle, 1.5, { allowDisplayInterpolation: true }),
+      /Inconsistent time step interval for display interpolation/
+    );
   });
 
   // Test 9: Negative-control rejection of corrupted/invalid bundles
-  test("Test 9: verifyBundleIntegrity rejects non-monotonic/non-uniform time, non-'s' units, NaN, bad SHA-256, false FV claims, and bad provenance", () => {
+  test("Test 9: verifyBundleIntegrity rejects non-monotonic/non-uniform time, non-'s' units, NaN, bad SHA-256, false FV claims, fabricated 0.0 gap, and bad provenance", () => {
     // 9a. Non-monotonic time
     const bNonMono = clone(diskBundle);
     bNonMono.states[3].simulation_time = 400.0;
@@ -411,10 +408,25 @@ function runSuite() {
     bFalseConservation.states[0].analytical_bookkeeping_ledger.is_finite_volume_conservation_test = true;
     assert.throws(() => S4D.verifyBundleIntegrity(bFalseConservation), /is_finite_volume_conservation_test must be false/);
 
-    // 9m. Conflated baseline_commit and generator_version in source_provenance (Finding 1)
+    // 9m. Fabricated zero quadrature/tail gap contradicting discrete voxel sum (Finding 2)
+    const bFakeZeroGap = clone(diskBundle);
+    bFakeZeroGap.states[1].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol = 0.0;
+    bFakeZeroGap.states[1].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap = 0.0;
+    assert.throws(() => S4D.verifyBundleIntegrity(bFakeZeroGap), /contradicts M_surv - M_retained/);
+
+    // 9n. Conflated baseline_commit or short prefix in source_provenance / v2_compatibility (Finding 1)
     const bConflatedProv = clone(diskBundle);
-    bConflatedProv.source_provenance.generator_version = bConflatedProv.baseline_commit;
+    bConflatedProv.source_provenance.generator_version = bConflatedProv.baseline_commit.slice(0, 7);
     assert.throws(() => S4D.verifyBundleIntegrity(bConflatedProv), /generator_version must not conflate/);
+
+    const bBadV2 = clone(diskBundle);
+    bBadV2.v2_compatibility.epistemic_record.source_revision = bBadV2.baseline_commit;
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadV2), /source_revision must be distinct/);
+
+    // 9o. Mismatched criterial_pruned_branches time_points length
+    const bBadPruned = clone(diskBundle);
+    bBadPruned.criterial_pruned_branches[0].time_points.pop();
+    assert.throws(() => S4D.verifyBundleIntegrity(bBadPruned), /time_points length must match/);
   });
 
   // Test 10: 4D projection (including extreme hyperplane angles), orthogonal slices, offline HTML, and typography audit

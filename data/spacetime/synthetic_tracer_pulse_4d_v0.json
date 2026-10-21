@@ -12,7 +12,7 @@
     "baseline_commit": "636b7d7bb41999b80278d90046da893ee1044f20",
     "generator_script": "scripts/generate_synthetic_4d_bundle.py",
     "generator_version": "spacetime_geochemistry_v0_gen_0.2.0",
-    "generator_script_sha256": "9b86f1dfd9acd3666bcc953d123c1eb8ce0dd3130b87a23aae4b9afa491bc4a0",
+    "generator_script_sha256": "d8a78d21351d8ee0c1c791adbec48e6e48c11e032ec93c6fb30eb91b815962e7",
     "tested_source_commit_policy": "recorded_in_external_verification_receipt"
   },
   "run_id": "synth_adv_diff_decay_16x16x16_5state_v0",
@@ -142,8 +142,8 @@
       "sha256_f32_le": "906e083f513e4d63d0e1ce2771439f15a4e1747c23f68469b5ad90d9e854290e",
       "min_value": 2.2420953643491857e-15,
       "max_value": 9.257412910461426,
-      "mean_value": 0.22297444691704357,
-      "total_integrated_inventory_mol": 913.3033345722105,
+      "mean_value": 0.22297444691704363,
+      "total_integrated_inventory_mol": 913.3033345722107,
       "center_of_mass_m": [
         8.0,
         8.0,
@@ -4271,8 +4271,8 @@
       "sha256_f32_le": "279ddf8ae892310376a20b573afc7fd13f359a09fe8832f9f8b703bd10d7fa30",
       "min_value": 9.384662318090431e-12,
       "max_value": 6.815868377685547,
-      "mean_value": 0.20272838523179282,
-      "total_integrated_inventory_mol": 830.3754659094234,
+      "mean_value": 0.20272838523179273,
+      "total_integrated_inventory_mol": 830.375465909423,
       "center_of_mass_m": [
         8.374724,
         7.750175,
@@ -8400,8 +8400,8 @@
       "sha256_f32_le": "8949b42e116ee75e40ffcf55c8524905ac62e31847b9e044ac004a1c53c1e7c9",
       "min_value": 2.0493673424937242e-09,
       "max_value": 5.032349586486816,
-      "mean_value": 0.1834880993181336,
-      "total_integrated_inventory_mol": 751.5672548070752,
+      "mean_value": 0.1834880993181335,
+      "total_integrated_inventory_mol": 751.5672548070748,
       "center_of_mass_m": [
         8.74809,
         7.501123,

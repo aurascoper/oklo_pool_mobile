@@ -2,7 +2,7 @@
 """Stage 0 validator and negative-control test runner for spacetime_geochemistry_v0.
 
 Validates data/spacetime/synthetic_tracer_pulse_4d_v0.json against
-data/spacetime/schema_4d_v0.json and executes 15 negative-control rejection checks.
+data/spacetime/schema_4d_v0.json and executes 17 negative-control rejection checks.
 Strictly zero em-dashes and zero en-dashes.
 """
 
@@ -109,9 +109,14 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
 
     if src_prov["baseline_commit"] != baseline_commit:
         raise SpacetimeValidationError("source_provenance.baseline_commit must match top-level baseline_commit")
-    if src_prov["generator_version"] == baseline_commit:
+    gen_ver = src_prov["generator_version"]
+    if (
+        gen_ver == baseline_commit
+        or gen_ver.startswith(baseline_commit[:7])
+        or (len(gen_ver) >= 7 and all(c in "0123456789abcdef" for c in gen_ver))
+    ):
         raise SpacetimeValidationError(
-            "source_provenance.generator_version must not conflate generator revision with baseline_commit"
+            "source_provenance.generator_version must be a semantic generator identifier and must not conflate generator revision with baseline_commit or a raw commit hash"
         )
     gen_script_path = REPO_ROOT / src_prov["generator_script"]
     if not gen_script_path.is_file():
@@ -309,11 +314,51 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"states[{idx}].values length={len(vals) if isinstance(vals, list) else 'non-list'} != {expected_voxels}"
             )
+        state_voxel_sum = 0.0
         for v_i, v in enumerate(vals):
             if not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(float(v)):
                 raise SpacetimeValidationError(
                     f"states[{idx}].values[{v_i}] is not a finite number: {v!r}"
                 )
+            state_voxel_sum += float(v)
+
+        if idx == 0:
+            initial_voxel_sum = state_voxel_sum
+
+        init_inv = float(ledger["initial_discrete_inventory_mol"])
+        ret_inv = float(ledger["retained_discrete_inventory_mol"])
+        surv_ref = float(ledger["analytical_surviving_reference_mol"])
+        dec_ref = float(ledger["analytical_decayed_reference_mol"])
+        gap_mol = float(ledger["unmodeled_boundary_and_quadrature_gap_mol"])
+        rel_gap = float(ledger["relative_quadrature_and_tail_gap"])
+
+        if init_inv <= 0.0 or abs(init_inv - initial_voxel_sum) > 1e-3:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.initial_discrete_inventory_mol ({init_inv}) "
+                f"does not match states[0] discrete voxel sum ({initial_voxel_sum:.6f})"
+            )
+        if abs(ret_inv - state_voxel_sum) > 1e-3:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.retained_discrete_inventory_mol ({ret_inv}) "
+                f"does not match discrete voxel sum ({state_voxel_sum:.6f})"
+            )
+        if abs((surv_ref + dec_ref) - init_inv) > 1e-3:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger surviving + decayed ({surv_ref + dec_ref:.6f}) "
+                f"does not close algebraically to initial inventory ({init_inv:.6f})"
+            )
+        expected_gap_mol = surv_ref - ret_inv
+        if abs(gap_mol - expected_gap_mol) > 1e-3:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.unmodeled_boundary_and_quadrature_gap_mol ({gap_mol}) "
+                f"contradicts M_surv - M_retained ({expected_gap_mol:.6f})"
+            )
+        expected_rel_gap = abs(expected_gap_mol) / init_inv
+        if abs(rel_gap - expected_rel_gap) > 1e-5:
+            raise SpacetimeValidationError(
+                f"states[{idx}].analytical_bookkeeping_ledger.relative_quadrature_and_tail_gap ({rel_gap}) "
+                f"contradicts |M_surv - M_retained| / M0 ({expected_rel_gap:.6f})"
+            )
 
         actual_sha = compute_f32_le_sha256(vals)
         if actual_sha != st.get("sha256_f32_le"):
@@ -351,6 +396,8 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
 
     # v2 compatibility block check
     v2_comp = bundle["v2_compatibility"]
+    if not isinstance(v2_comp, dict) or v2_comp.get("schema_target") != "https://aurascoper.github.io/oklo_pool_mobile/schemas/epistemic_record_v1.json":
+        raise SpacetimeValidationError("v2_compatibility.schema_target mismatch")
     v2_ep = v2_comp.get("epistemic_record", {})
     v2_ep_req = set(schema["properties"]["v2_compatibility"]["properties"]["epistemic_record"]["required"])
     _check_exact_keys(v2_ep, v2_ep_req, "v2_compatibility.epistemic_record")
@@ -360,7 +407,8 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
         raise SpacetimeValidationError("v2_compatibility.epistemic_record.coordinate_system mismatch")
     if v2_ep.get("baseline_commit") != baseline_commit:
         raise SpacetimeValidationError("v2_compatibility.epistemic_record.baseline_commit mismatch")
-    if not isinstance(v2_ep.get("source_revision"), str) or v2_ep["source_revision"] == baseline_commit:
+    src_rev = v2_ep.get("source_revision")
+    if not isinstance(src_rev, str) or not src_rev.strip() or src_rev == baseline_commit or src_rev.startswith(baseline_commit[:7]):
         raise SpacetimeValidationError(
             "v2_compatibility.epistemic_record.source_revision must be a non-empty string distinct from baseline_commit"
         )
@@ -369,7 +417,12 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
     pruned = bundle.get("criterial_pruned_branches")
     if not isinstance(pruned, list) or len(pruned) < 1:
         raise SpacetimeValidationError("criterial_pruned_branches must contain at least 1 control branch")
+    branch_req = set(schema["properties"]["criterial_pruned_branches"]["items"]["required"])
+    tp_req = set(
+        schema["properties"]["criterial_pruned_branches"]["items"]["properties"]["time_points"]["items"]["required"]
+    )
     for b_idx, br in enumerate(pruned):
+        _check_exact_keys(br, branch_req, f"criterial_pruned_branches[{b_idx}]")
         if br.get("criterial_status") != "criterial_pruned":
             raise SpacetimeValidationError(
                 f"criterial_pruned_branches[{b_idx}] must have criterial_status='criterial_pruned'"
@@ -387,6 +440,21 @@ def validate_bundle(bundle: dict[str, Any], schema: dict[str, Any]) -> None:
             raise SpacetimeValidationError(
                 f"criterial_pruned_branches[{b_idx}] must have max_relative_analytical_drift > criterial_threshold_exceeded > 0"
             )
+        tps = br.get("time_points")
+        if not isinstance(tps, list) or len(tps) != len(states):
+            raise SpacetimeValidationError(
+                f"criterial_pruned_branches[{b_idx}].time_points length must match len(states)={len(states)}"
+            )
+        for p_idx, tp in enumerate(tps):
+            _check_exact_keys(tp, tp_req, f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}]")
+            if tp.get("state_index") != p_idx:
+                raise SpacetimeValidationError(
+                    f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}].state_index mismatch"
+                )
+            if float(tp.get("simulation_time", -1.0)) != float(states[p_idx]["simulation_time"]):
+                raise SpacetimeValidationError(
+                    f"criterial_pruned_branches[{b_idx}].time_points[{p_idx}].simulation_time mismatch"
+                )
 
 
 def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, Any]) -> list[tuple[str, bool, str]]:
@@ -497,13 +565,32 @@ def run_negative_control_suite(base_bundle: dict[str, Any], schema: dict[str, An
         mut_false_fv_conservation_claim,
     )
 
-    # 15. Conflated baseline_commit and generator revision / bad script SHA-256 (Finding 1)
+    # 15. Conflated baseline_commit and generator revision (Finding 1)
     def mut_conflated_provenance(b: dict[str, Any]) -> None:
-        b["source_provenance"]["generator_version"] = b["baseline_commit"]
+        b["source_provenance"]["generator_version"] = b["baseline_commit"][:7]
 
     expect_rejection(
-        "15. Reject source_provenance conflating generator_version with baseline_commit",
+        "15. Reject source_provenance conflating generator_version with baseline_commit or prefix",
         mut_conflated_provenance,
+    )
+
+    # 16. Fabricated zero quadrature/tail gap contradicting discrete voxel sum (Finding 2)
+    def mut_fabricated_zero_gap(b: dict[str, Any]) -> None:
+        b["states"][1]["analytical_bookkeeping_ledger"]["unmodeled_boundary_and_quadrature_gap_mol"] = 0.0
+        b["states"][1]["analytical_bookkeeping_ledger"]["relative_quadrature_and_tail_gap"] = 0.0
+
+    expect_rejection(
+        "16. Reject fabricated 0.0 quadrature/tail gap contradicting discrete voxel sum",
+        mut_fabricated_zero_gap,
+    )
+
+    # 17. Mismatched generator_script_sha256 vs scripts/generate_synthetic_4d_bundle.py on disk (Finding 1)
+    def mut_bad_generator_sha(b: dict[str, Any]) -> None:
+        b["source_provenance"]["generator_script_sha256"] = "a" * 64
+
+    expect_rejection(
+        "17. Reject source_provenance.generator_script_sha256 mismatch with generator script on disk",
+        mut_bad_generator_sha,
     )
 
     return results
