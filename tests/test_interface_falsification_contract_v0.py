@@ -312,6 +312,65 @@ class TestInterfaceFalsificationContractV0(unittest.TestCase):
             bad_errors = vfc.validate_julia_model_parity(self.contract, pathlib.Path(tmp.name))
             self.assertTrue(len(bad_errors) > 0)
 
+    def test_rt01_and_rt02_k40_conventions_provenance_and_acceptance_rule(self) -> None:
+        # Positive pair: DDEP May 2025 (0.1034 +/- 0.0007, alpha_T = 1.028e-4) vs Renne 2011 (0.10365502)
+        renne_br = 0.5757e-10 / 5.554e-10
+        sj_br = 0.581e-10 / 5.543e-10
+        ok_2025 = vfc.evaluate_k40_convention_fixture_discrepancy(
+            photon_emission_prob=0.1034,
+            photon_emission_sigma=0.0007,
+            internal_conversion_alpha_tot=1.028e-4,
+            internal_conversion_alpha_sigma=0.015e-4,
+            fixture_branch_ec_gamma_frac=renne_br,
+            max_normalized_discrepancy=2.0,
+            evaluation_edition_year=2025,
+            convention_id="DDEP_2025",
+        )
+        self.assertTrue(ok_2025["passes_acceptance_rule"])
+        self.assertEqual(ok_2025["discrepancy_metric_type"], "one_sided_convention_sigma_normalized_discrepancy")
+        self.assertFalse(ok_2025["fixture_branch_uncertainty_propagated"])
+        self.assertFalse(ok_2025["is_calibrated_statistical_z_test"])
+
+        # Negative pair: DDEP May 2025 vs Steiger & Jaeger 1977 exceeds 2.0 normalized discrepancy
+        bad_2025_sj = vfc.evaluate_k40_convention_fixture_discrepancy(
+            photon_emission_prob=0.1034,
+            photon_emission_sigma=0.0007,
+            internal_conversion_alpha_tot=1.028e-4,
+            internal_conversion_alpha_sigma=0.015e-4,
+            fixture_branch_ec_gamma_frac=sj_br,
+            max_normalized_discrepancy=2.0,
+            evaluation_edition_year=2025,
+            convention_id="DDEP_2025",
+        )
+        self.assertFalse(bad_2025_sj["passes_acceptance_rule"])
+        self.assertGreater(bad_2025_sj["one_sided_normalized_discrepancy"], 2.0)
+
+        # Negative pair: IAEA/ENSDF 2017 (0.1066 +/- 0.0013) vs Renne 2011 exceeds 2.0 normalized discrepancy
+        bad_iaea_renne = vfc.evaluate_k40_convention_fixture_discrepancy(
+            photon_emission_prob=0.1066,
+            photon_emission_sigma=0.0013,
+            internal_conversion_alpha_tot=1.028e-4,
+            internal_conversion_alpha_sigma=0.015e-4,
+            fixture_branch_ec_gamma_frac=renne_br,
+            max_normalized_discrepancy=2.0,
+            evaluation_edition_year=2017,
+            convention_id="IAEA_ENSDF_2017",
+        )
+        self.assertFalse(bad_iaea_renne["passes_acceptance_rule"])
+        self.assertGreater(bad_iaea_renne["one_sided_normalized_discrepancy"], 2.0)
+
+        # Provenance rejection: mislabeling 0.1034 as a 2004 DDEP convention
+        with self.assertRaises(ValueError):
+            vfc.evaluate_k40_convention_fixture_discrepancy(
+                photon_emission_prob=0.1034,
+                photon_emission_sigma=0.0007,
+                internal_conversion_alpha_tot=1.028e-4,
+                internal_conversion_alpha_sigma=0.015e-4,
+                fixture_branch_ec_gamma_frac=renne_br,
+                evaluation_edition_year=2004,
+                convention_id="DDEP_2004",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

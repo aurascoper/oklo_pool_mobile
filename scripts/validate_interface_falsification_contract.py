@@ -513,6 +513,70 @@ def evaluate_psd_metric(
     }
 
 
+def evaluate_k40_convention_fixture_discrepancy(
+    photon_emission_prob: float,
+    photon_emission_sigma: float,
+    internal_conversion_alpha_tot: float,
+    internal_conversion_alpha_sigma: float,
+    fixture_branch_ec_gamma_frac: float,
+    max_normalized_discrepancy: float = 2.0,
+    fixture_branch_sigma: float | None = None,
+    evaluation_edition_year: int = 2025,
+    convention_id: str = "DDEP_2025",
+    source_citation: str = "Mougeot (May 2025) DDEP",
+) -> dict[str, Any]:
+    """Evaluate K-40 photon-convention vs geochronology-fixture discrepancy (RT-01 & RT-02)."""
+    if not source_citation or not source_citation.strip():
+        raise ValueError("source_citation must be non-empty")
+    if not (1970 <= evaluation_edition_year <= 2100):
+        raise ValueError("evaluation_edition_year must be in [1970, 2100]")
+    if (convention_id == "DDEP_2004" or evaluation_edition_year < 2020) and abs(photon_emission_prob - 0.1034) < 1.0e-4 and "DDEP" in convention_id.upper():
+        raise ValueError(
+            "Provenance edition mismatch: I_gamma = 0.1034(7) belongs to the May 2025 DDEP evaluation (Mougeot, 2025), not a pre-2020 DDEP edition."
+        )
+    if photon_emission_sigma <= 0.0 or not math.isfinite(photon_emission_sigma):
+        raise ValueError("photon_emission_sigma must be finite and positive")
+    if max_normalized_discrepancy <= 0.0 or not math.isfinite(max_normalized_discrepancy):
+        raise ValueError("max_normalized_discrepancy must be finite and positive")
+
+    implied_p_ec = photon_emission_prob * (1.0 + internal_conversion_alpha_tot)
+    implied_p_ec_sigma = math.hypot(
+        (1.0 + internal_conversion_alpha_tot) * photon_emission_sigma,
+        photon_emission_prob * internal_conversion_alpha_sigma,
+    )
+    branch_diff = abs(fixture_branch_ec_gamma_frac - implied_p_ec)
+    one_sided_norm = branch_diff / photon_emission_sigma
+
+    if fixture_branch_sigma is None:
+        norm_disc = one_sided_norm
+        metric_type = "one_sided_convention_sigma_normalized_discrepancy"
+        fixture_unc_prop = False
+        is_cal_z = False
+    else:
+        if fixture_branch_sigma <= 0.0 or not math.isfinite(fixture_branch_sigma):
+            raise ValueError("fixture_branch_sigma must be finite and positive when supplied")
+        combined_sigma = math.hypot(implied_p_ec_sigma, fixture_branch_sigma)
+        norm_disc = branch_diff / combined_sigma
+        metric_type = "two_sided_uncorrelated_sigma_normalized_discrepancy"
+        fixture_unc_prop = True
+        is_cal_z = True
+
+    return {
+        "convention_id": convention_id,
+        "evaluation_edition_year": evaluation_edition_year,
+        "implied_ec_excited_branch_frac": implied_p_ec,
+        "implied_ec_excited_branch_sigma": implied_p_ec_sigma,
+        "branch_difference": branch_diff,
+        "one_sided_normalized_discrepancy": one_sided_norm,
+        "normalized_discrepancy": norm_disc,
+        "max_normalized_discrepancy": max_normalized_discrepancy,
+        "discrepancy_metric_type": metric_type,
+        "fixture_branch_uncertainty_propagated": fixture_unc_prop,
+        "is_calibrated_statistical_z_test": is_cal_z,
+        "passes_acceptance_rule": norm_disc <= max_normalized_discrepancy,
+    }
+
+
 def validate_julia_model_parity(
     contract: Mapping[str, Any],
     julia_model_path: pathlib.Path = DEFAULT_JULIA_MODEL_PATH,
@@ -530,10 +594,32 @@ def validate_julia_model_parity(
     if not m_ver or m_ver.group(1) != contract.get("contract_version"):
         errors.append("Julia INTERFACE_FALSIFICATION_CONTRACT_VERSION does not match canonical contract_version")
 
-    # Check that DDEP (0.1034, 0.0007) and IAEA/ENSDF (0.1066, 0.0013) are present in Julia source
-    for token in ("0.1034", "0.0007", "0.1066", "0.0013", "4.962e-10", "0.581e-10", "4.9737e-10", "0.5757e-10"):
+    # Check that DDEP 2025 (0.1034, 0.0007, 1.028e-4, 0.015e-4), DDEP 2010 (0.1055, 0.0011),
+    # IAEA/ENSDF 2017 (0.1066, 0.0013), and RT-03 reduced 4-state naming are present in Julia source
+    for token in (
+        "K40_GAMMA_DDEP_2025",
+        "K40_GAMMA_DDEP_2010",
+        "K40_GAMMA_IAEA_ENSDF",
+        "0.1034",
+        "0.0007",
+        "0.1055",
+        "0.0011",
+        "0.1066",
+        "0.0013",
+        "1.028e-4",
+        "0.015e-4",
+        "4.962e-10",
+        "0.581e-10",
+        "4.9737e-10",
+        "0.5757e-10",
+        "pb207_reduced_4state_fraction_at_elapsed",
+        "reduced_4state_bateman_chain_approximation",
+    ):
         if token not in src:
-            errors.append(f"Expected nuclear constant {token!r} missing from {julia_model_path}")
+            errors.append(f"Expected constant or symbol {token!r} missing from {julia_model_path}")
+
+    if "3.07e-4" in src:
+        errors.append(f"Stale internal conversion coefficient '3.07e-4' found in {julia_model_path}")
 
     return errors
 
@@ -593,15 +679,38 @@ def validate_contract_dict(contract: Mapping[str, Any]) -> list[str]:
             errors.append(f"Fixture {fx['fixture_id']} has invalid evidence_classification")
 
     for conv in conventions:
+        cid = conv.get("convention_id", "<unknown>")
+        yr = conv.get("evaluation_edition_year", 0)
         igam = conv["photon_emission_prob"]
         alpha = conv["internal_conversion_alpha_tot"]
+        alpha_sig = conv.get("internal_conversion_alpha_sigma", -1.0)
         implied = igam * (1.0 + alpha)
+        if not (1970 <= yr <= 2100):
+            errors.append(f"Convention {cid} evaluation_edition_year must be in [1970, 2100]")
+        if (cid == "DDEP_2004" or yr < 2020) and abs(igam - 0.1034) < 1.0e-4 and "DDEP" in cid.upper():
+            errors.append(f"Convention {cid} mislabels May 2025 DDEP value 0.1034 as a pre-2020 DDEP edition")
+        if alpha_sig <= 0.0:
+            errors.append(f"Convention {cid} must specify positive internal_conversion_alpha_sigma")
+        if conv.get("includes_internal_pair_creation") is not True:
+            errors.append(f"Convention {cid} must set includes_internal_pair_creation to true")
+        if not conv.get("source_citation") or not str(conv.get("source_citation")).strip():
+            errors.append(f"Convention {cid} must provide a non-empty source_citation")
         if abs(implied - conv["implied_ec_excited_branch_frac"]) > 1.0e-12:
-            errors.append(f"Convention {conv['convention_id']} implied_ec_excited_branch_frac != I_gamma*(1 + alpha_tot)")
+            errors.append(f"Convention {cid} implied_ec_excited_branch_frac != I_gamma*(1 + alpha_tot)")
         if igam >= implied:
-            errors.append(f"Convention {conv['convention_id']} must have photon_emission_prob < implied_ec_excited_branch_frac")
+            errors.append(f"Convention {cid} must have photon_emission_prob < implied_ec_excited_branch_frac")
         if conv.get("evidence_classification") not in REQUIRED_EVIDENCE_CLASSES:
-            errors.append(f"Convention {conv['convention_id']} has invalid evidence_classification")
+            errors.append(f"Convention {cid} has invalid evidence_classification")
+
+    acc_rule = c1.get("convention_acceptance_rule", {})
+    if acc_rule.get("discrepancy_metric_type") != "one_sided_convention_sigma_normalized_discrepancy":
+        errors.append("convention_acceptance_rule.discrepancy_metric_type must be 'one_sided_convention_sigma_normalized_discrepancy'")
+    if acc_rule.get("default_max_normalized_discrepancy") != 2.0:
+        errors.append("convention_acceptance_rule.default_max_normalized_discrepancy must be 2.0")
+    if acc_rule.get("fixture_branch_uncertainty_propagated") is not False:
+        errors.append("convention_acceptance_rule.fixture_branch_uncertainty_propagated must be false")
+    if acc_rule.get("is_calibrated_statistical_z_test") is not False:
+        errors.append("convention_acceptance_rule.is_calibrated_statistical_z_test must be false")
 
     # Validate Correction 2: Reaction kinetics topologies
     c2 = sc.get("correction_2_reaction_kinetics_models", {})

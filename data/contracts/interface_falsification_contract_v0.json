@@ -105,26 +105,52 @@
       ],
       "photon_emission_conventions": [
         {
-          "convention_id": "DDEP_2004",
+          "convention_id": "DDEP_2025",
+          "evaluation_edition_year": 2025,
           "photon_energy_kev": 1460.822,
           "photon_emission_prob": 0.1034,
           "photon_emission_sigma": 0.0007,
-          "internal_conversion_alpha_tot": 3.07e-4,
-          "implied_ec_excited_branch_frac": 0.1034317438,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.10341062952,
           "evidence_classification": "empirically_supported_parameter",
-          "source_citation": "Be et al. (2004) BIPM Monographie BIPM-5, Table of Radionuclides, K-40: I_gamma = 10.34(7)%"
+          "source_citation": "Mougeot, X. (May 2025) K-40 Evaluation of the Decay Data, Decay Data Evaluation Project (DDEP), BIPM/LNHB: I_gamma = 10.34(7)%, P_EC* = 10.34(7)%, alpha_T = 10.28(15)e-5 (including internal pair creation)"
         },
         {
-          "convention_id": "IAEA_ENSDF",
+          "convention_id": "DDEP_2010",
+          "evaluation_edition_year": 2010,
+          "photon_energy_kev": 1460.822,
+          "photon_emission_prob": 0.1055,
+          "photon_emission_sigma": 0.0011,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.1055108454,
+          "evidence_classification": "source_reported_value",
+          "source_citation": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Table of Radionuclides, Vol. 5, K-40 (DDEP 2010 historical evaluation): I_gamma = 10.55(11)%"
+        },
+        {
+          "convention_id": "IAEA_ENSDF_2017",
+          "evaluation_edition_year": 2017,
           "photon_energy_kev": 1460.822,
           "photon_emission_prob": 0.1066,
           "photon_emission_sigma": 0.0013,
-          "internal_conversion_alpha_tot": 3.07e-4,
-          "implied_ec_excited_branch_frac": 0.1066327262,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.10661095848,
           "evidence_classification": "source_reported_value",
-          "source_citation": "IAEA / ENSDF Evaluated Nuclear Structure Data File for K-40: I_gamma = 10.66(13)%"
+          "source_citation": "Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation) / IAEA Nuclear Data Services: I_gamma = 10.66(13)%"
         }
-      ]
+      ],
+      "convention_acceptance_rule": {
+        "discrepancy_metric_type": "one_sided_convention_sigma_normalized_discrepancy",
+        "default_max_normalized_discrepancy": 2.0,
+        "fixture_branch_uncertainty_propagated": false,
+        "is_calibrated_statistical_z_test": false,
+        "methodological_note": "Divides |P_EC*(fixture) - P_EC*(convention)| by sigma(I_gamma) while treating the fixture branch ratio as fixed; acts as a configurable engineering acceptance rule (default <= 2.0), not a formal two-sample statistical significance test unless fixture uncertainty and covariance are propagated."
+      }
     },
     "correction_2_reaction_kinetics_models": {
       "rejected_saturated_boltzmann_formula": "min(1.0, exp(-(Delta_G_dagger - F * Delta_x_dagger) / (k_B * T)))",
