@@ -48,7 +48,7 @@ A visually convincing three-dimensional reactor animation or interactive particl
 As documented with cryptographic digests in [`docs/references/NEUTRON_WALK_REFERENCE.md`](../references/NEUTRON_WALK_REFERENCE.md), the motivating source materials serve four separate roles and must never be conflated:
 
 ### 3.1 Role A: `TECDOC-643 Neutron Walk (Copy).html` -- Interactive Design & Data-Structure Reference
-- **Artifact Identity:** `937,606` bytes (`831` lines), SHA-256 `dc15eb934fe6cd32a084dc13d05ee17d8f5ad988f7ea1bd2598bdcd9a0065b78`.
+- **Artifact Identity:** `937,606` bytes (`832` lines / `831` newlines), SHA-256 `dc15eb934fe6cd32a084dc13d05ee17d8f5ad988f7ea1bd2598bdcd9a0065b78`, public reference URL `https://claude.ai/artifact/KcgJyGkRmxzpEFSc8Y12md`.
 - **Design Inventory:** Combines a sticky rotatable 3D reactor core (`<canvas id="gl">`), orthogonal 2D cross-sectional slices (`XY`, `XZ`, `YZ` on `<canvas id="sl">` with display-only fuel-plate resolution and thermal-flux accumulator overlay), single-neutron history step-by-step narration (`Follow one neutron` with optional 3D camera ride-along), control-blade bank withdrawal slider (`0%` to `100%`), outcome and regional capture tallies, generation-by-generation chain-reaction population chart, $7 \times 6$ lattice relative power map, 5-point blade-worth curve, 350-day 10 MW burnup panel, and a 3D human-scale comparison (`180 cm` model height and `60 cm` active fuel height next to a `175.3 cm` person).
 - **Mandatory Caveats:**
   1. **"Real OpenMC" is Recorded Playback, Not a Live Solver:** Selecting `Real OpenMC` replays 500 embedded particle trajectories (`250` for blades 100% inserted and `250` for blades 0% inserted, extracted from replica 0, seed 101 of an upstream OpenMC 0.15.3 run) in deterministic order and snaps the blade slider to `0%` or `100%`.
@@ -202,3 +202,27 @@ receipts/
 ```
 
 Full raw OpenMC HDF5 statepoint files, full `tracks.h5` archives, and multi-gigabyte `ENDF/B-VIII.0` nuclear-data libraries must **not** be committed into Git; future stages will commit only compact, cryptographically hashed fixtures alongside deterministic regeneration scripts and external archive manifests.
+
+---
+
+## 8. Coupled Geochemical-Neutronic Domain Boundary (UO2-Clay-Fracture Framework & Evidence Gates)
+
+Any future proposal to couple neutron transport (`neutron_transport_explorer_v0`) with geological porous/fracture flow and reactive transport (`spacetime_geochemistry_v0` / Oklo natural reactor scenarios) must treat the **UO2-Clay-Fracture Conceptual Framework** as a separately gated, multi-physics specification rather than an implicit extension of Stage 0:
+
+1. **Physical Scenario and State Variables (Bounded Parameter Ranges Required):**
+   - **Uraninite ($\text{UO}_2$) Core:** Core temperature $T_{\mathrm{core}} \in [300, 2000]\text{ K}$ ($\text{UO}_2$ density $\approx 10.97\text{ g/cm}^3$, melting point $\approx 3340\text{ K}$, thermal conductivity $k_{\mathrm{th}} \approx 2\text{ to }8\text{ W/(m}\cdot\text{K)}$ decreasing with $T$, heat capacity $c_p \approx 270\text{ J/(kg}\cdot\text{K)}$ at $300\text{ K}$), $^{235}\text{U}$ enrichment $\eta \in [0.0072, 0.05]$, neutron flux $\Phi\text{ [n cm}^{-2}\text{ s}^{-1}]$ (up to $10^{11}\text{ to }10^{12}\text{ n cm}^{-2}\text{ s}^{-1}$ in natural low-power Oklo-type zones vs. $10^{13}\text{ to }10^{14}\text{ n cm}^{-2}\text{ s}^{-1}$ in engineered MTR cores), and Bateman decay/fission-product inventories ($N_i(t)$).
+   - **Argillaceous Clay Host (e.g., Bentonite / Opalinus / Boom Clay):** Porosity $\phi \in [0.2, 0.5]$, permeability $k \sim 10^{-22}\text{ to }10^{-17}\text{ m}^2$ (hydraulic conductivity $k_h \approx 10^{-13}\text{ to }10^{-12}\text{ m/s}$), effective diffusivity $D_{\mathrm{eff}} \sim 10^{-11}\text{ to }10^{-10}\text{ m}^2\text{/s}$, thermal conductivity $1\text{ to }3\text{ W/(m}\cdot\text{K)}$, and linear/surface-complexation retardation $R = 1 + \rho_b K_d / \phi$.
+   - **Vertical Fracture Conduit:** Aperture $a$ ($\text{mm}$ to $\text{cm}$ scale, Poiseuille flux $q_f = -(a^3 / 12\mu)\nabla P$ or Forchheimer non-Darcy flow at higher Reynolds numbers), water saturation $S \in [0, 1]$ (controlling both hydraulic transport and thermal neutron moderation), and fracture-to-clay diffusive/advective exchange.
+2. **Dimensionless Regime Criteria:**
+   Every coupled benchmark must declare its operating regime via five dimensionless groups:
+   - **Reynolds number** $\mathrm{Re} = \rho U L / \mu$ ($\mathrm{Re} \ll 1$ laminar Darcy in clay; $\mathrm{Re} \sim 10^0\text{ to }10^2$ in mm-scale fractures).
+   - **Peclet number** $\mathrm{Pe} = U L / D$ ($\mathrm{Pe} \gg 1$ advection-dominated in fractures; $\mathrm{Pe} \ll 1$ diffusion-dominated in clay).
+   - **Damkohler number** $\mathrm{Da} = k_{\mathrm{rxn}} L / U$ ($\mathrm{Da} \gg 1$ local sorption equilibrium vs. $\mathrm{Da} \ll 1$ reaction-limited).
+   - **Biot number** $\mathrm{Bi} = h L / k_{\mathrm{th}}$ and **Rayleigh number** $\mathrm{Ra} = g \beta \Delta T L^3 / (\nu \alpha)$ (onset of buoyancy-driven thermal convection).
+3. **Candidate Solver Separation Matrix:**
+   Neutron transport codes (`OpenMC`, `Serpent`) do not solve multiphase reactive geochemistry, and reactive-transport/CFD codes (`PFLOTRAN`, `OpenFOAM`, `FEniCS`, `MOOSE`, `COMSOL`) require explicit operator-splitting or monolithic coupling interfaces with verified mass and energy balance closure before coupling is claimed.
+4. **Strict Evidence Gate for Radiolytic Polymerization and Polymer-Mediated Attenuation:**
+   Consistent with Oklo v1 Gate 3 Option A (where Field 4 `Polymer accumulation index` is disclosed in `arbitrary units` with no established kinetic or thermodynamic basis) and R6A (`surface_matrix_protection_v0`), **radiolytic polymerization yield ($Y_{\mathrm{poly}}$), synthesis rate ($r_p$), and polymer-mediated radiation attenuation must remain quarantined out of production solvers** unless three empirical gates are satisfied:
+   - **Gate E1 (Chemical Identification & Yield):** Laboratory irradiation of representative clay + organic precursors at target dose rates and temperatures demonstrates measurable polymer formation with quantified $G$-values (molecules per $100\text{ eV}$).
+   - **Gate E2 (Kinetic & Thermodynamic Parameterization):** Rate constants, monomer availability, and thermal stability bounds are independently measured rather than assumed.
+   - **Gate E3 (Measured Attenuation Cross Sections):** Gamma and neutron attenuation coefficients of the resulting polymer phase are experimentally shown to differ materially from the surrounding porewater and clay matrix.
