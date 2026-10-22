@@ -114,6 +114,10 @@
           "internal_conversion_alpha_sigma": 0.015e-4,
           "includes_internal_pair_creation": true,
           "implied_ec_excited_branch_frac": 0.10341062952,
+          "alpha_tot_is_shared_ddep_adopted": false,
+          "photon_emission_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation: photon-emission probability I_gamma(1460.822 keV) = 10.34(7)% (0.1034 +- 0.0007)",
+          "decay_branch_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation: electron-capture branch probability P_EC*(1460.822 keV) = 10.34(7)% (unrounded I_gamma * (1 + alpha_T) = 0.10341063); compared against independent geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation (BrIcc E2 theory including internal pair creation): alpha_T = 10.28(15)e-5 = 1.028(15)e-4 (native to this evaluation edition)",
           "evidence_classification": "empirically_supported_parameter",
           "source_citation": "Mougeot, X. (May 2025) K-40 Evaluation of the Decay Data, Decay Data Evaluation Project (DDEP), BIPM/LNHB: I_gamma = 10.34(7)%, P_EC* = 10.34(7)%, alpha_T = 10.28(15)e-5 (including internal pair creation)"
         },
@@ -127,8 +131,12 @@
           "internal_conversion_alpha_sigma": 0.015e-4,
           "includes_internal_pair_creation": true,
           "implied_ec_excited_branch_frac": 0.1055108454,
+          "alpha_tot_is_shared_ddep_adopted": false,
+          "photon_emission_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010): photon-emission probability I_gamma(1460.822 keV) = 10.55(11)% (0.1055 +- 0.0011)",
+          "decay_branch_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010): electron-capture branch probability P_EC*(1460.822 keV) = 10.55(11)% (unrounded I_gamma * (1 + alpha_T) = 0.10551085); compared against independent geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010) and Mougeot (May 2025) DDEP: both DDEP editions report the identical total conversion + internal pair coefficient alpha_T = 10.28(15)e-5 = 1.028(15)e-4",
           "evidence_classification": "source_reported_value",
-          "source_citation": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Table of Radionuclides, Vol. 5, K-40 (DDEP 2010 historical evaluation): I_gamma = 10.55(11)%"
+          "source_citation": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Table of Radionuclides, Vol. 5, K-40 (DDEP 2010 historical evaluation): I_gamma = 10.55(11)%, P_EC* = 10.55(11)%, alpha_T = 10.28(15)e-5 (including internal pair creation)"
         },
         {
           "convention_id": "IAEA_ENSDF_2017",
@@ -140,8 +148,14 @@
           "internal_conversion_alpha_sigma": 0.015e-4,
           "includes_internal_pair_creation": true,
           "implied_ec_excited_branch_frac": 0.10661095848,
+          "alpha_tot_is_shared_ddep_adopted": true,
+          "ensdf_2017_reported_ec_branch_prob": 0.1067,
+          "ensdf_2017_reported_ec_branch_sigma": 0.0011,
+          "photon_emission_source": "IAEA Technical Reports Series No. 473 / IAEA Nuclear Data Services gamma-ray decay data compilation: photon-emission probability I_gamma(1460.822 keV) = 10.66(13)% (0.1066 +- 0.0013)",
+          "decay_branch_source": "Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation, as cited in the DDEP May 2025 comparison table) reports the electron-capture decay-branch probability P_EC*(1460.822 keV) = 10.67(11)% (0.1067 +- 0.0011), which is a decay-branch probability distinct from the IAEA photon-emission value I_gamma = 10.66(13)%; implied_ec_excited_branch_frac = I_gamma * (1 + alpha_T) = 0.10661095848 is derived from the IAEA I_gamma and the shared DDEP alpha_T, and compared against geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Shared adopted value from DDEP May 2025 (Mougeot 2025 / Chiste & Be 2010: alpha_T = 10.28(15)e-5 = 1.028(15)e-4 including internal pair creation), applied deliberately across all conventions for uniform P_EC* = I_gamma * (1 + alpha_T) conversion rather than independently evaluated at this value in IAEA TRS-473 or Chen (2017) ENSDF",
           "evidence_classification": "source_reported_value",
-          "source_citation": "Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation) / IAEA Nuclear Data Services: I_gamma = 10.66(13)%"
+          "source_citation": "Photon-emission probability I_gamma(1460.822 keV) = 10.66(13)% from IAEA Technical Reports Series No. 473 / IAEA Nuclear Data Services gamma-ray compilation; contrast Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation, listed in DDEP 2025 comparison table), which reports the electron-capture decay-branch probability P_EC*(1460.822 keV) = 10.67(11)%; alpha_T = 10.28(15)e-5 is adopted as a shared value from DDEP 2025 (Mougeot, 2025)"
         }
       ],
       "convention_acceptance_rule": {

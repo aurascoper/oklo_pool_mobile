@@ -371,6 +371,28 @@ class TestInterfaceFalsificationContractV0(unittest.TestCase):
                 convention_id="DDEP_2004",
             )
 
+        # Verify explicit per-quantity provenance attribution on IAEA_ENSDF_2017 vs DDEP_2025 in contract
+        convs = {
+            c["convention_id"]: c
+            for c in self.contract["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+                "photon_emission_conventions"
+            ]
+        }
+        self.assertFalse(convs["DDEP_2025"]["alpha_tot_is_shared_ddep_adopted"])
+        self.assertFalse(convs["DDEP_2010"]["alpha_tot_is_shared_ddep_adopted"])
+        self.assertTrue(convs["IAEA_ENSDF_2017"]["alpha_tot_is_shared_ddep_adopted"])
+        self.assertAlmostEqual(convs["IAEA_ENSDF_2017"]["ensdf_2017_reported_ec_branch_prob"], 0.1067, places=6)
+        self.assertIn("10.66(13)%", convs["IAEA_ENSDF_2017"]["photon_emission_source"])
+        self.assertIn("10.67(11)%", convs["IAEA_ENSDF_2017"]["decay_branch_source"])
+        self.assertIn("Shared adopted value from DDEP", convs["IAEA_ENSDF_2017"]["conversion_coefficient_source"])
+
+        # Negative control: omitting decay_branch_source or misstating IAEA shared alpha_T flag fails contract validation
+        c_bad_iaea = copy.deepcopy(self.contract)
+        c_bad_iaea["scientific_corrections"]["correction_1_nuclear_data_conventions"]["photon_emission_conventions"][2][
+            "alpha_tot_is_shared_ddep_adopted"
+        ] = False
+        self.assertTrue(len(vfc.validate_contract_dict(c_bad_iaea)) > 0)
+
 
 if __name__ == "__main__":
     unittest.main()

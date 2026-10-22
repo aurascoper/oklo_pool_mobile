@@ -595,7 +595,8 @@ def validate_julia_model_parity(
         errors.append("Julia INTERFACE_FALSIFICATION_CONTRACT_VERSION does not match canonical contract_version")
 
     # Check that DDEP 2025 (0.1034, 0.0007, 1.028e-4, 0.015e-4), DDEP 2010 (0.1055, 0.0011),
-    # IAEA/ENSDF 2017 (0.1066, 0.0013), and RT-03 reduced 4-state naming are present in Julia source
+    # IAEA/ENSDF 2017 (0.1066, 0.0013 vs Chen 2017 P_EC* = 10.67(11)% and shared DDEP alpha_T),
+    # and RT-03 reduced 4-state naming are present in Julia source
     for token in (
         "K40_GAMMA_DDEP_2025",
         "K40_GAMMA_DDEP_2010",
@@ -606,8 +607,13 @@ def validate_julia_model_parity(
         "0.0011",
         "0.1066",
         "0.0013",
+        "10.67(11)%",
         "1.028e-4",
         "0.015e-4",
+        "photon_emission_source",
+        "decay_branch_source",
+        "conversion_coefficient_source",
+        "alpha_tot_is_shared_ddep_adopted",
         "4.962e-10",
         "0.581e-10",
         "4.9737e-10",
@@ -693,8 +699,18 @@ def validate_contract_dict(contract: Mapping[str, Any]) -> list[str]:
             errors.append(f"Convention {cid} must specify positive internal_conversion_alpha_sigma")
         if conv.get("includes_internal_pair_creation") is not True:
             errors.append(f"Convention {cid} must set includes_internal_pair_creation to true")
-        if not conv.get("source_citation") or not str(conv.get("source_citation")).strip():
-            errors.append(f"Convention {cid} must provide a non-empty source_citation")
+        if not isinstance(conv.get("alpha_tot_is_shared_ddep_adopted"), bool):
+            errors.append(f"Convention {cid} must specify boolean alpha_tot_is_shared_ddep_adopted")
+        for src_field in ("source_citation", "photon_emission_source", "decay_branch_source", "conversion_coefficient_source"):
+            if not conv.get(src_field) or not str(conv.get(src_field)).strip():
+                errors.append(f"Convention {cid} must provide a non-empty {src_field}")
+        if cid == "IAEA_ENSDF_2017":
+            if conv.get("alpha_tot_is_shared_ddep_adopted") is not True:
+                errors.append("Convention IAEA_ENSDF_2017 must set alpha_tot_is_shared_ddep_adopted to true")
+            if "10.67" not in str(conv.get("decay_branch_source", "")):
+                errors.append("Convention IAEA_ENSDF_2017 decay_branch_source must distinguish Chen (2017) ENSDF P_EC* = 10.67(11)%")
+            if "IAEA" not in str(conv.get("photon_emission_source", "")) or "10.66" not in str(conv.get("photon_emission_source", "")):
+                errors.append("Convention IAEA_ENSDF_2017 photon_emission_source must attribute I_gamma = 10.66(13)% to IAEA compilation")
         if abs(implied - conv["implied_ec_excited_branch_frac"]) > 1.0e-12:
             errors.append(f"Convention {cid} implied_ec_excited_branch_frac != I_gamma*(1 + alpha_tot)")
         if igam >= implied:
