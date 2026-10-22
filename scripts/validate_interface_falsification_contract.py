@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import pathlib
 import re
 import sys
@@ -31,10 +32,21 @@ from typing import Any, Mapping, Sequence
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_CONTRACT_PATH = REPO_ROOT / "data" / "contracts" / "interface_falsification_contract_v0.json"
 DEFAULT_SPEC_PATH = REPO_ROOT / "docs" / "specs" / "INTERFACE_FALSIFICATION_BRIDGE_v0.md"
+DEFAULT_JULIA_REPO_ROOT = pathlib.Path(
+    os.environ.get(
+        "RADIOPHARMACOLOGY_JL_DIR",
+        pathlib.Path.home()
+        / ".gemini"
+        / "antigravity"
+        / "scratch"
+        / "RadioPharmacology.jl",
+    )
+).expanduser()
 DEFAULT_JULIA_MODEL_PATH = (
-    pathlib.Path("/Users/aurascoper/.gemini/antigravity/scratch/RadioPharmacology.jl")
-    / "src"
-    / "biotite_geochem_models.jl"
+    DEFAULT_JULIA_REPO_ROOT / "src" / "biotite_geochem_models.jl"
+)
+DEFAULT_JULIA_MIRROR_ROOT = (
+    DEFAULT_JULIA_REPO_ROOT.parent / "RadioPharm.jl"
 )
 
 REQUIRED_EVIDENCE_CLASSES = (
@@ -679,11 +691,11 @@ def validate_julia_model_parity(
 
     # When validating the default RadioPharmacology.jl path, also verify bitwise parity with the RadioPharm.jl mirror
     if julia_model_path == DEFAULT_JULIA_MODEL_PATH:
-        mirror_src_path = pathlib.Path("/Users/aurascoper/.gemini/antigravity/scratch/RadioPharm.jl/src/biotite_geochem_models.jl")
+        mirror_src_path = DEFAULT_JULIA_MIRROR_ROOT / "src" / "biotite_geochem_models.jl"
         if mirror_src_path.exists() and mirror_src_path.read_bytes() != julia_model_path.read_bytes():
             errors.append("RadioPharm.jl/src/biotite_geochem_models.jl is out of sync with RadioPharmacology.jl/src/biotite_geochem_models.jl")
         main_test_path = julia_model_path.parent.parent / "test" / "test_biotite_geochem_models.jl"
-        mirror_test_path = pathlib.Path("/Users/aurascoper/.gemini/antigravity/scratch/RadioPharm.jl/test/test_biotite_geochem_models.jl")
+        mirror_test_path = DEFAULT_JULIA_MIRROR_ROOT / "test" / "test_biotite_geochem_models.jl"
         if main_test_path.exists() and mirror_test_path.exists() and mirror_test_path.read_bytes() != main_test_path.read_bytes():
             errors.append("RadioPharm.jl/test/test_biotite_geochem_models.jl is out of sync with RadioPharmacology.jl/test/test_biotite_geochem_models.jl")
 
