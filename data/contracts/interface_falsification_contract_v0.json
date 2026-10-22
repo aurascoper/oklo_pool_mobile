@@ -1,0 +1,385 @@
+{
+  "contract_id": "INTERFACE_FALSIFICATION_BRIDGE_v0",
+  "contract_version": "v0.1.0",
+  "canonical_repository": "aurascoper/oklo_pool_mobile",
+  "canonical_spec_path": "docs/specs/INTERFACE_FALSIFICATION_BRIDGE_v0.md",
+  "baseline_commits": {
+    "oklo_pool_mobile_main": "942e3f8d02a3b73cfb26f099dbb36c4a908f6764",
+    "radiopharmacology_jl_main": "c11241b59bcb2ebca5317883240020a848c22773",
+    "biofilms_origin_master": "c766e7be31144f707155416b788bf7d1ba473ab9",
+    "biofilms_local_worktree": "74f433933f594ce749fd700b10b1041776f1a0e9",
+    "rna_biofilm_toy_head": "b780a1a7f6113f3b8454cad5efbc7dd66b76a25a"
+  },
+  "allowed_evidence_classifications": [
+    "empirically_supported_parameter",
+    "source_reported_value",
+    "phenomenological_surrogate",
+    "uncalibrated_candidate_kinetic_law",
+    "illustrative_simulation",
+    "untested_hypothesis"
+  ],
+  "allowed_gate_verdicts": [
+    "NOT_EVALUATED",
+    "PASS_FALSIFIER_NOT_TRIGGERED",
+    "FALSIFIED_PARTITION_TOO_COARSE",
+    "FALSIFIED_TIMING_NO_EFFECT",
+    "FALSIFIED_NON_SPECIFIC_SURFACE",
+    "FALSIFIED_PASSIVE_CONCENTRATION",
+    "FALSIFIED_NON_HERITABLE_SORTING",
+    "FALSIFIED_MASS_IMBALANCE",
+    "BLOCKED_ALGEBRAIC_TAUTOLOGY",
+    "BLOCKED_ON_MISSING_CONTROL"
+  ],
+  "epistemic_bridge_mapping": {
+    "paper_reference": "Kinder, H. (Oct 2026). Performance, Interaction, and Correspondence: A Coevolutionary Aesthetic and Teleological Perspective (core-paper-v2-core6.pdf)",
+    "mapping_status": "formal_structural_analogy_for_coarse_graining_and_falsification",
+    "agency_or_perception_claimed_for_chemistry": false,
+    "psd_measure_space_contract": {
+      "metric_name": "probability_of_symmetric_difference",
+      "formula": "d_PSD(A, A') = mu(A Delta A') = ||1_A - 1_A'||_{L2(mu)}^2",
+      "hilbert_embedding": "sqrt(d_PSD(A, A')) = ||1_A - 1_A'||_{L2(mu)}",
+      "requires_explicit_sample_space_omega": true,
+      "requires_event_threshold_predicate": true,
+      "requires_normalized_measure_mu": true,
+      "raw_unnormalized_voxel_euclidean_conflation_prohibited": true
+    },
+    "layer_1_physical_environment_R": {
+      "state_variables": [
+        {"symbol": "T", "name": "temperature", "units": "K"},
+        {"symbol": "a_w", "name": "water_activity", "units": "1"},
+        {"symbol": "D_dot", "name": "absorbed_dose_rate", "units": "Gy/s"},
+        {"symbol": "pH", "name": "aqueous_pH", "units": "1"},
+        {"symbol": "u", "name": "pore_fluid_velocity", "units": "m/s"},
+        {"symbol": "c", "name": "species_concentrations", "units": "mol/m^3"},
+        {"symbol": "phi_m", "name": "mineral_scaffold_descriptor", "units": "struct(rho_s:g/cm^3, eps:1, a_lattice:m, h_gap:m)"}
+      ]
+    },
+    "layer_2_coarse_graining_interface_P": {
+      "operator_symbol": "f_theta: R -> P",
+      "fiber_definition": "F_p = {r in R : f_theta(r) == p}",
+      "mineral_geometry_separation": {
+        "biotite_cleavage_lattice_periodicity_m": 5.0e-10,
+        "interlayer_fluid_gap_range_m": [1.0e-9, 1.0e-7],
+        "must_keep_lattice_and_interlayer_gap_distinct": true
+      }
+    },
+    "layer_3_physical_outcomes_Y": {
+      "operator_symbol": "g_psi: P x M x S -> Y",
+      "replaces_aesthetic_evaluation_e": true,
+      "time_ordered_protocol": {
+        "t1": "pre_perturbation_state_and_configuration_declaration",
+        "t2": "controlled_perturbation_pulse_or_cycle_application",
+        "t3": "post_perturbation_observable_readout_and_independent_mass_accounting"
+      }
+    }
+  },
+  "scientific_corrections": {
+    "correction_1_nuclear_data_conventions": {
+      "nuclide": "K-40",
+      "excited_level_kev": 1460.822,
+      "conflation_of_decay_branch_and_photon_intensity_prohibited": true,
+      "decay_scheme_identity": "P_EC_excited = I_gamma * (1 + alpha_tot)",
+      "decay_fixtures": [
+        {
+          "fixture_id": "K40_STEIGER_JAEGER_1977",
+          "lambda_beta_per_yr": 4.962e-10,
+          "lambda_ec_gamma_per_yr": 0.581e-10,
+          "lambda_ec_ground_per_yr": 0.0,
+          "lambda_total_per_yr": 5.543e-10,
+          "t_half_yr": 1250491034.7464283,
+          "branch_ec_gamma_frac": 0.10481688616272776,
+          "evidence_classification": "source_reported_value",
+          "source_citation": "Steiger & Jaeger (1977) EPSL 36:359-362 (IUGS convention)"
+        },
+        {
+          "fixture_id": "K40_RENNE_2011",
+          "lambda_beta_per_yr": 4.9737e-10,
+          "lambda_ec_gamma_per_yr": 0.5757e-10,
+          "lambda_ec_ground_per_yr": 0.0046e-10,
+          "lambda_total_per_yr": 5.554e-10,
+          "t_half_yr": 1248014369.0312304,
+          "branch_ec_gamma_frac": 0.10365502340655383,
+          "evidence_classification": "empirically_supported_parameter",
+          "source_citation": "Renne et al. (2011) GCA 75:5097-5100"
+        }
+      ],
+      "photon_emission_conventions": [
+        {
+          "convention_id": "DDEP_2025",
+          "evaluation_edition_year": 2025,
+          "photon_energy_kev": 1460.822,
+          "photon_emission_prob": 0.1034,
+          "photon_emission_sigma": 0.0007,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.10341062952,
+          "alpha_tot_is_shared_ddep_adopted": false,
+          "photon_emission_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation: photon-emission probability I_gamma(1460.822 keV) = 10.34(7)% (0.1034 +- 0.0007)",
+          "decay_branch_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation: electron-capture branch probability P_EC*(1460.822 keV) = 10.34(7)% (unrounded I_gamma * (1 + alpha_T) = 0.10341063); compared against independent geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Mougeot, X. (May 2025) DDEP / BIPM-LNHB K-40 evaluation (BrIcc E2 theory including internal pair creation): alpha_T = 10.28(15)e-5 = 1.028(15)e-4 (native to this evaluation edition)",
+          "evidence_classification": "empirically_supported_parameter",
+          "source_citation": "Mougeot, X. (May 2025) K-40 Evaluation of the Decay Data, Decay Data Evaluation Project (DDEP), BIPM/LNHB: I_gamma = 10.34(7)%, P_EC* = 10.34(7)%, alpha_T = 10.28(15)e-5 (including internal pair creation)"
+        },
+        {
+          "convention_id": "DDEP_2010",
+          "evaluation_edition_year": 2010,
+          "photon_energy_kev": 1460.822,
+          "photon_emission_prob": 0.1055,
+          "photon_emission_sigma": 0.0011,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.1055108454,
+          "alpha_tot_is_shared_ddep_adopted": false,
+          "photon_emission_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010): photon-emission probability I_gamma(1460.822 keV) = 10.55(11)% (0.1055 +- 0.0011)",
+          "decay_branch_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010): electron-capture branch probability P_EC*(1460.822 keV) = 10.55(11)% (unrounded I_gamma * (1 + alpha_T) = 0.10551085); compared against independent geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Vol. 5, K-40 (DDEP 2010) and Mougeot (May 2025) DDEP: both DDEP editions report the identical total conversion + internal pair coefficient alpha_T = 10.28(15)e-5 = 1.028(15)e-4",
+          "evidence_classification": "source_reported_value",
+          "source_citation": "Chiste, V. & Be, M.-M. (2010) BIPM Monographie BIPM-5, Table of Radionuclides, Vol. 5, K-40 (DDEP 2010 historical evaluation): I_gamma = 10.55(11)%, P_EC* = 10.55(11)%, alpha_T = 10.28(15)e-5 (including internal pair creation)"
+        },
+        {
+          "convention_id": "IAEA_ENSDF_2017",
+          "evaluation_edition_year": 2017,
+          "photon_energy_kev": 1460.822,
+          "photon_emission_prob": 0.1066,
+          "photon_emission_sigma": 0.0013,
+          "internal_conversion_alpha_tot": 1.028e-4,
+          "internal_conversion_alpha_sigma": 0.015e-4,
+          "includes_internal_pair_creation": true,
+          "implied_ec_excited_branch_frac": 0.10661095848,
+          "alpha_tot_is_shared_ddep_adopted": true,
+          "ensdf_2017_reported_ec_branch_prob": 0.1067,
+          "ensdf_2017_reported_ec_branch_sigma": 0.0011,
+          "photon_emission_source": "IAEA Technical Reports Series No. 473 / IAEA Nuclear Data Services gamma-ray decay data compilation: photon-emission probability I_gamma(1460.822 keV) = 10.66(13)% (0.1066 +- 0.0013)",
+          "decay_branch_source": "Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation, as cited in the DDEP May 2025 comparison table) reports the electron-capture decay-branch probability P_EC*(1460.822 keV) = 10.67(11)% (0.1067 +- 0.0011), which is a decay-branch probability distinct from the IAEA photon-emission value I_gamma = 10.66(13)%; implied_ec_excited_branch_frac = I_gamma * (1 + alpha_T) = 0.10661095848 is derived from the IAEA I_gamma and the shared DDEP alpha_T, and compared against geochronology fixture branch ratios",
+          "conversion_coefficient_source": "Shared adopted value from DDEP May 2025 (Mougeot 2025 / Chiste & Be 2010: alpha_T = 10.28(15)e-5 = 1.028(15)e-4 including internal pair creation), applied deliberately across all conventions for uniform P_EC* = I_gamma * (1 + alpha_T) conversion rather than independently evaluated at this value in IAEA TRS-473 or Chen (2017) ENSDF",
+          "evidence_classification": "source_reported_value",
+          "source_citation": "Photon-emission probability I_gamma(1460.822 keV) = 10.66(13)% from IAEA Technical Reports Series No. 473 / IAEA Nuclear Data Services gamma-ray compilation; contrast Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation, listed in DDEP 2025 comparison table), which reports the electron-capture decay-branch probability P_EC*(1460.822 keV) = 10.67(11)%; alpha_T = 10.28(15)e-5 is adopted as a shared value from DDEP 2025 (Mougeot, 2025)"
+        }
+      ],
+      "convention_acceptance_rule": {
+        "discrepancy_metric_type": "one_sided_convention_sigma_normalized_discrepancy",
+        "default_max_normalized_discrepancy": 2.0,
+        "fixture_branch_uncertainty_propagated": false,
+        "is_calibrated_statistical_z_test": false,
+        "methodological_note": "Divides |P_EC*(fixture) - P_EC*(convention)| by sigma(I_gamma) while treating the fixture branch ratio as fixed; acts as a configurable engineering acceptance rule (default <= 2.0), not a formal two-sample statistical significance test unless fixture uncertainty and covariance are propagated."
+      }
+    },
+    "correction_2_reaction_kinetics_models": {
+      "rejected_saturated_boltzmann_formula": "min(1.0, exp(-(Delta_G_dagger - F * Delta_x_dagger) / (k_B * T)))",
+      "rejection_reason": "Clamps to 100% bond synthesis probability for all forces F >= Delta_G_dagger / Delta_x_dagger = 0.625 nN, conflating a thermodynamic barrier shift with a finite-time reaction probability and omitting competing hydrolysis.",
+      "approved_candidate_topologies": [
+        {
+          "topology_id": "competing_precursor_hazards",
+          "reaction_scheme": "M* -> P_bond (rate k_syn) vs M* -> M_inact (rate k_deact) from the same activated precursor",
+          "synthesis_probability_equation": "P_syn(dt) = (k_syn / (k_syn + k_deact)) * (1.0 - exp(-(k_syn + k_deact) * dt))",
+          "rate_units": "s^-1",
+          "time_units": "s",
+          "evidence_classification": "uncalibrated_candidate_kinetic_law"
+        },
+        {
+          "topology_id": "sequential_product_hydrolysis",
+          "reaction_scheme": "M -> P_chain (rate k_syn) -> D_deg (rate k_hyd) where hydrolysis destroys already-synthesized product",
+          "intact_product_equation": "f_product(dt) = k_syn * (exp(-k_syn * dt) - exp(-k_hyd * dt)) / (k_hyd - k_syn)",
+          "precursor_equation": "f_precursor(dt) = exp(-k_syn * dt)",
+          "degraded_equation": "f_degraded(dt) = 1.0 - f_precursor(dt) - f_product(dt)",
+          "rate_units": "s^-1",
+          "time_units": "s",
+          "evidence_classification": "uncalibrated_candidate_kinetic_law"
+        }
+      ],
+      "bell_evans_force_modulation": {
+        "equation": "k_syn(F, T) = k_0(T) * exp(dot(F, Delta_x_dagger) / (k_B * T))",
+        "requires_vector_projection_onto_reaction_coordinate": true,
+        "evidence_classification": "uncalibrated_candidate_kinetic_law"
+      }
+    },
+    "correction_3_radiolysis_dose_bases": {
+      "g_value_conversion_mol_per_j_per_molecule_100ev": 1.036426965e-7,
+      "allowed_dose_bases": [
+        {
+          "dose_basis_id": "pore_water_absorbed_dose_rate",
+          "dose_rate_symbol": "D_dot_w",
+          "dose_rate_units": "Gy/s",
+          "density_symbol": "rho_w",
+          "density_units": "kg/m^3",
+          "porosity_symbol": "eps",
+          "porosity_units": "1",
+          "bulk_energy_deposition_equation": "q_abs_w = eps * rho_w * D_dot_w",
+          "bulk_energy_deposition_units": "W/m^3",
+          "pore_water_production_equation": "d_c_H2_dt = rho_w * D_dot_w * G_H2",
+          "pore_water_production_units": "mol/(m^3*s)",
+          "allow_additional_water_partition_factor_f_w": false
+        },
+        {
+          "dose_basis_id": "bulk_medium_absorbed_dose_rate",
+          "dose_rate_symbol": "D_dot_bulk",
+          "dose_rate_units": "Gy/s",
+          "density_symbol": "rho_bulk",
+          "density_units": "kg/m^3",
+          "water_energy_partition_symbol": "f_w",
+          "water_energy_partition_units": "1",
+          "bulk_energy_deposition_equation": "q_abs_w = rho_bulk * f_w * D_dot_bulk",
+          "bulk_energy_deposition_units": "W/m^3",
+          "pore_water_production_equation": "d_c_H2_dt = (rho_bulk * f_w * D_dot_bulk / eps) * G_H2",
+          "pore_water_production_units": "mol/(m^3*s)",
+          "allow_additional_water_partition_factor_f_w": true,
+          "requires_documented_f_w_provenance": true
+        }
+      ]
+    }
+  },
+  "falsification_gates": [
+    {
+      "gate_id": "F1",
+      "gate_name": "Interface / Fiber Sufficiency",
+      "observable_id": "max_intra_fiber_outcome_divergence",
+      "observable_units": "dimensionless_fraction",
+      "required_controls": ["full_resolution_uncollapsed_state_R"],
+      "uncertainty_metric": "u95_held_out_prediction_spread",
+      "effect_direction": "upper_bound",
+      "effect_threshold": 0.05,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "sup_{r1, r2 in F_p} |g_full(r1) - g_full(r2)| + u95 <= effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_PARTITION_TOO_COARSE",
+      "current_evaluation_status": "NOT_EVALUATED",
+      "status_rationale": "Awaiting held-out multi-state chemical dataset; synthetic validator check passes."
+    },
+    {
+      "gate_id": "F2",
+      "gate_name": "Pulse Timing vs. Matched Total Exposure",
+      "observable_id": "pulsed_minus_continuous_intact_product_yield",
+      "observable_units": "mol/m^3",
+      "required_controls": ["continuous_exposure_matched_integrated_dose_and_thermal_budget"],
+      "uncertainty_metric": "q01_lower_confidence_bound",
+      "effect_direction": "positive",
+      "effect_threshold": null,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "q_0.01(s * (Y_pulsed - Y_continuous_matched)) > effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_TIMING_NO_EFFECT",
+      "current_evaluation_status": "NOT_EVALUATED",
+      "status_rationale": "Fails closed to NOT_EVALUATED because experimental effect_threshold is undeclared prior to wet-dry / pulse calibration."
+    },
+    {
+      "gate_id": "F3",
+      "gate_name": "Scaffold-Specific Effect (Biotite vs. Inert & Alternative Minerals)",
+      "observable_id": "bet_surface_area_normalized_oligomer_retention",
+      "observable_units": "mol/m^2",
+      "required_controls": [
+        "inert_quartz_or_borosilicate_matched_surface_area",
+        "alternative_phyllosilicate_muscovite_or_montmorillonite",
+        "natural_water_chemistry_matrix_control"
+      ],
+      "uncertainty_metric": "q01_lower_confidence_bound",
+      "effect_direction": "positive",
+      "effect_threshold": null,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "q_0.01(Y_biotite - max(Y_inert, Y_alt_mineral)) > effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_NON_SPECIFIC_SURFACE",
+      "current_evaluation_status": "NOT_EVALUATED",
+      "status_rationale": "Fails closed to NOT_EVALUATED until BET-normalized mineral control series is preregistered."
+    },
+    {
+      "gate_id": "F4",
+      "gate_name": "Selective Retention vs. Passive Accumulation / Washout",
+      "observable_id": "selective_retardation_excess_over_conservative_tracer",
+      "observable_units": "dimensionless_ratio",
+      "required_controls": ["conservative_non_reactive_tracer_matched_peclet_and_evaporation"],
+      "uncertainty_metric": "propagated_tracer_breakthrough_uncertainty",
+      "effect_direction": "positive",
+      "effect_threshold": 0.10,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "(R_solute / R_tracer) - 1.0 - u95 > effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_PASSIVE_CONCENTRATION",
+      "current_evaluation_status": "NOT_EVALUATED",
+      "status_rationale": "Requires paired reactive-solute vs. conservative-tracer breakthrough experiment."
+    },
+    {
+      "gate_id": "F5",
+      "gate_name": "Heritable Selection vs. Non-Heritable Physical Sorting",
+      "observable_id": "inter_transfer_heritable_frequency_shift_over_sorting_control",
+      "observable_units": "frequency_per_transfer_cycle",
+      "required_controls": ["zero_replication_physical_adsorption_sorting_control"],
+      "uncertainty_metric": "bootstrap_inter_transfer_se",
+      "effect_direction": "positive",
+      "effect_threshold": 0.02,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "k_copy > 0 and (Delta_p_replicating - Delta_p_sorting_control - 2*SE) > effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_NON_HERITABLE_SORTING",
+      "current_evaluation_status": "FALSIFIED_NON_HERITABLE_SORTING",
+      "status_rationale": "Audited geochemical sorption/weathering models have template copying rate k_copy == 0 (pure physical sorting/retardation, not heritable evolution)."
+    },
+    {
+      "gate_id": "F6",
+      "gate_name": "Independent Mass Balance & Decay-Chain Accounting",
+      "observable_id": "relative_independent_mass_or_chain_closure_residual",
+      "observable_units": "dimensionless_fraction",
+      "required_controls": ["independent_compartment_tally_without_algebraic_subtraction"],
+      "uncertainty_metric": "numerical_quadrature_or_analytical_tolerance",
+      "effect_direction": "upper_bound",
+      "effect_threshold": 1.0e-10,
+      "missing_threshold_verdict": "NOT_EVALUATED",
+      "decision_rule": "closes_by_algebraic_definition == false and relative_closure_residual <= effect_threshold",
+      "pass_verdict": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "fail_verdict": "FALSIFIED_MASS_IMBALANCE",
+      "current_evaluation_status": "PASS_FALSIFIER_NOT_TRIGGERED",
+      "status_rationale": "Verified in RadioPharmacology.jl (3-stage Bateman chain Pu-239 -> U-235 -> Pb-207 closure residual < 1e-15) and oklo_pool_mobile uranium-column-v1 mass ledger (4.71e-12 < 1e-10)."
+    }
+  ],
+  "research_track_separation": {
+    "track_a_mica_prebiotic_chemistry": {
+      "chronological_domain": "Hadean / Eoarchean (>= 3.4 Ga)",
+      "evidence_classification": "untested_hypothesis",
+      "primary_references": [
+        "Hansma (2010) J. Theor. Biol. 266:175-188",
+        "Hansma (2022) Life 12(2):301",
+        "Song et al. (2024) PNAS 121:e2412784121",
+        "Simonis et al. (2026) Astrobiology 10.1177/15311074261427257"
+      ],
+      "guardrails": [
+        "Keep 0.5 nm cleavage lattice periodicity distinct from 1-100 nm interlayer fluid gap.",
+        "Do not treat K+ as a universal nucleic-acid bridge where divalent Mg2+ is required.",
+        "Control for natural water chemistry (Simonis et al. 2026 hot-spring degradation vs. pure buffer oligomerization)."
+      ]
+    },
+    "track_b_oklo_radiolytic_geochemistry": {
+      "chronological_domain": "Paleoproterozoic (~1.95 Ga, Franceville Basin, Gabon)",
+      "evidence_classification": "phenomenological_surrogate",
+      "primary_references": [
+        "Draganic et al. (1983) Precambrian Res. 20:283-298",
+        "Javaux (2019) Nature 572:451-460"
+      ],
+      "guardrails": [
+        "Oklo (~1.95 Ga) postdates earliest evidence of life (>= 3.4 Ga) and cannot be the site of initial abiogenesis.",
+        "Distinguish fission products (Cs-137, Cs-135, Sr-90, Nd-143) from neutron-capture actinide chains (Pu-239 -> U-235 -> Pb-207).",
+        "Distinguish generic biotite Cs sorption surrogates from Oklo field retention in metallic aggregates."
+      ]
+    },
+    "ecological_analogue_desulforudis_audaxviator": {
+      "chronological_domain": "Modern deep continental biosphere (2.0-2.8 km depth)",
+      "evidence_classification": "source_reported_value",
+      "primary_references": [
+        "Chivian et al. (2008) Science 322:275-278",
+        "Karnachuk et al. (2019) ISME J. 13:1947-1959",
+        "Becraft et al. (2021) ISME J. 15:2830-2842"
+      ],
+      "verified_traits": {
+        "siberian_strain_byf_doubling_time_hours": 28.5,
+        "intercontinental_ani_min_pct": 99.2,
+        "requires_zero_valent_iron_fe0_in_byf": true,
+        "expresses_gas_vesicles_and_internal_membranes_in_byf": true
+      },
+      "unverified_extrapolations_quarantined": [
+        "20-25 MPa gvpC buckling collapse pressure without strain-specific mechanical measurement",
+        "10x net ATP/SO4^2- ratio without flux-balance stoichiometry derivation",
+        "Conserved kdpABC, recA, mutSL, and Wood-Ljungdahl cooS/acsB genes as specific proof of biotite interlayer abiogenesis"
+      ]
+    }
+  }
+}
