@@ -1,0 +1,116 @@
+/* Planetary Explorer v2 Theme Tokens */
+/* Strict requirement: zero em-dashes and zero en-dashes */
+
+:root {
+  --bg-primary: #0b0f14;
+  --bg-secondary: #121820;
+  --bg-tertiary: #1a222d;
+  --surface-card: #151d27;
+  --surface-hover: #1e2937;
+  --surface-active: #253346;
+
+  --fg-primary: #e6edf3;
+  --fg-secondary: #9da7b3;
+  --fg-muted: #6e7681;
+  --border-color: #2a3746;
+  --border-focus: #388bfd;
+
+  --accent: #238636;
+  --accent-hover: #2ea043;
+  --accent-soft: rgba(35, 134, 54, 0.2);
+  --accent-text: #3fb950;
+
+  --warn: #d29922;
+  --warn-soft: rgba(210, 153, 34, 0.15);
+  --warn-text: #e3b341;
+
+  --danger: #f85149;
+  --danger-soft: rgba(248, 81, 73, 0.15);
+
+  --info: #58a6ff;
+  --info-soft: rgba(88, 166, 255, 0.15);
+
+  /* Epistemic Evidence Class Colors */
+  --badge-geo: #059669;
+  --badge-geo-bg: rgba(5, 150, 105, 0.18);
+  --badge-geo-border: rgba(5, 150, 105, 0.45);
+
+  --badge-geol: #2563eb;
+  --badge-geol-bg: rgba(37, 99, 235, 0.18);
+  --badge-geol-border: rgba(37, 99, 235, 0.45);
+
+  --badge-field: #d97706;
+  --badge-field-bg: rgba(217, 119, 6, 0.18);
+  --badge-field-border: rgba(217, 119, 6, 0.45);
+
+  --badge-synth: #4f46e5;
+  --badge-synth-bg: rgba(79, 70, 229, 0.18);
+  --badge-synth-border: rgba(79, 70, 229, 0.45);
+
+  --badge-hypo: #9333ea;
+  --badge-hypo-bg: rgba(147, 51, 234, 0.18);
+  --badge-hypo-border: rgba(147, 51, 234, 0.45);
+
+  --badge-calib: #dc2626;
+  --badge-calib-bg: rgba(220, 38, 38, 0.18);
+  --badge-calib-border: rgba(220, 38, 38, 0.45);
+
+  /* Compartment Layer Colors */
+  --zone-sandstone: #d8c79f;
+  --zone-core: #6b2d82;
+  --zone-halo: #8ea86c;
+  --zone-conduit: #3c7fc0;
+  --zone-chimney: #f0eee8;
+
+  /* Typography Stacks (100% offline, system fonts) */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
+
+  /* Dimensions and Transitions */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --transition-fast: 150ms ease;
+  --transition-med: 250ms ease;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg-primary: #f6f8fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eaeef2;
+  --surface-card: #ffffff;
+  --surface-hover: #f3f4f6;
+  --surface-active: #e5e7eb;
+
+  --fg-primary: #1f2328;
+  --fg-secondary: #656d76;
+  --fg-muted: #8c959f;
+  --border-color: #d0d7de;
+  --border-focus: #0969da;
+
+  --accent: #1a7f37;
+  --accent-hover: #2da44e;
+  --accent-soft: rgba(26, 127, 55, 0.12);
+  --accent-text: #1a7f37;
+
+  --warn: #9a6700;
+  --warn-soft: rgba(154, 103, 0, 0.12);
+  --warn-text: #9a6700;
+
+  --danger: #cf222e;
+  --danger-soft: rgba(207, 34, 46, 0.12);
+
+  --info: #0969da;
+  --info-soft: rgba(9, 105, 218, 0.12);
+
+  --badge-geo-bg: rgba(5, 150, 105, 0.12);
+  --badge-geol-bg: rgba(37, 99, 235, 0.12);
+  --badge-field-bg: rgba(217, 119, 6, 0.12);
+  --badge-synth-bg: rgba(79, 70, 229, 0.12);
+  --badge-hypo-bg: rgba(147, 51, 234, 0.12);
+  --badge-calib-bg: rgba(220, 38, 38, 0.12);
+
+  color-scheme: light;
+}

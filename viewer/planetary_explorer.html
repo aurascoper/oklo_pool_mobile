@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Planetary Explorer v2 - Multi-Scale Scenario Explorer</title>
+  <link rel="stylesheet" href="css/explorer_theme.css">
+  <link rel="stylesheet" href="css/explorer_layout.css">
+</head>
+<body>
+
+  <!-- Header & Stage Navigation -->
+  <header class="explorer-header">
+    <div class="brand-section">
+      <h1 class="brand-title">Planetary Explorer <span class="brand-badge">v2-prototype</span></h1>
+    </div>
+
+    <nav class="stage-nav" aria-label="Exploration Stages">
+      <button type="button" class="stage-btn active" data-stage="1" id="navStage1">1. Planetary Globe</button>
+      <button type="button" class="stage-btn" data-stage="2" id="navStage2">2. Geological Cutaway</button>
+      <button type="button" class="stage-btn" data-stage="3" id="navStage3">3. Prescribed Fields</button>
+      <button type="button" class="stage-btn" data-stage="4" id="navStage4">4. Transport Models</button>
+    </nav>
+
+    <div class="header-controls">
+      <button type="button" class="btn-icon" id="themeToggleBtn" aria-label="Toggle theme">Theme</button>
+      <button type="button" class="btn-icon" id="btnHeaderHelp" aria-label="Inspect epistemic provenance">Provenance</button>
+    </div>
+  </header>
+
+  <!-- Persistent Epistemic HUD Banner -->
+  <div class="epistemic-hud-banner" id="epistemicHud">
+    <div class="hud-left">
+      <div id="hudBadgeContainer">
+        <!-- Dynamically populated by updateHUD() -->
+      </div>
+      <div class="hud-disclaimer" id="hudDisclaimer">
+        <strong>Modern geographic locator:</strong> NOT a Paleoproterozoic paleogeography reconstruction.
+      </div>
+    </div>
+    <div class="hud-telemetry" id="hudTelemetry">
+      Domain: 16m local block | Resolution: 32x32x32 voxels
+    </div>
+  </div>
+
+  <!-- Main Workspace Layout -->
+  <main class="workspace-container">
+    <div class="stage-grid">
+
+      <!-- Left Viewport Column -->
+      <section class="viewport-card" aria-label="Interactive Viewport">
+
+        <!-- Stage 1: Globe Viewport -->
+        <div id="stage1View" style="display:flex; flex-direction:column; height:100%;">
+          <div class="viewport-header">
+            <span class="viewport-title">Planetary Scale: Geographic Site Locators</span>
+            <span style="font-size:12px; color:var(--fg-muted);">WGS84 Ellipsoidal Frame</span>
+          </div>
+          <div class="canvas-container">
+            <canvas id="globeCanvas" aria-label="Interactive 3D Earth Globe"></canvas>
+            <div class="viewport-overlay-hint">Drag to rotate earth; scroll or pinch to zoom. Click Oklo pin to enter cutaway.</div>
+          </div>
+          <div class="timeline-card">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <span class="section-title">Deep-Time Proterozoic Timeline (data/timeline/paleo_intervals_v1.json)</span>
+              <span style="font-size:11px; color:var(--fg-muted);">Separated literature definitions (never merged)</span>
+            </div>
+            <div class="timeline-canvas-wrap">
+              <canvas id="timelineCanvas" aria-label="Deep-Time Paleo Timeline"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2: Cutaway Viewport -->
+        <div id="stage2View" hidden style="display:flex; flex-direction:column; height:100%;">
+          <div class="viewport-header">
+            <span class="viewport-title">Geological Cutaway: Compartment Schematic</span>
+            <span class="status-tag status-pass">Schematic Geometry</span>
+          </div>
+          <div class="canvas-container">
+            <canvas id="cutawayCanvas" aria-label="3D Geological Cutaway Schematic Block"></canvas>
+            <div class="viewport-overlay-hint">Drag to inspect block; scroll or pinch to zoom. k points upward.</div>
+          </div>
+        </div>
+
+        <!-- Stage 3: Fields Viewport -->
+        <div id="stage3View" hidden style="display:flex; flex-direction:column; height:100%;">
+          <div class="viewport-header">
+            <span class="viewport-title">Revision-0 Prescribed Field Inspection</span>
+            <div class="segmented-control" style="width:200px;">
+              <button type="button" class="seg-btn active" id="btnView3D">3D Volume</button>
+              <button type="button" class="seg-btn" id="btnViewSlices">2D Slices</button>
+            </div>
+          </div>
+          <div id="webglWarning" class="callout-box callout-warn" hidden style="margin:8px 12px 0;">
+            3D volumetric rendering requires WebGL2; displaying 2D orthogonal slice fallback.
+          </div>
+          <div class="canvas-container" id="pane3D">
+            <canvas id="glCanvas" aria-label="3D Volume Raymarcher"></canvas>
+            <canvas id="boxCanvas" aria-hidden="true" style="pointer-events:none;"></canvas>
+            <div class="viewport-overlay-hint">Drag to rotate volume; scroll or pinch to zoom. k axis points upward.</div>
+          </div>
+          <div id="paneSlices" hidden style="flex:1; display:flex; flex-direction:column;">
+            <div class="slices-grid">
+              <div class="slice-pane">
+                <div class="slice-head">
+                  <span class="label">Plan Section (X-Y)</span>
+                  <span class="coord" id="sliceKVal">k = 12</span>
+                </div>
+                <div class="slice-canvas-wrap">
+                  <canvas id="planCanvas" width="384" height="384" aria-label="Plan slice canvas"></canvas>
+                </div>
+                <input type="range" id="sliderSliceK" min="0" max="31" value="12" aria-label="Depth index k">
+              </div>
+              <div class="slice-pane">
+                <div class="slice-head">
+                  <span class="label">Vertical Section (X-k)</span>
+                  <span class="coord" id="sliceJVal">j = 15</span>
+                </div>
+                <div class="slice-canvas-wrap">
+                  <canvas id="sectionCanvas" width="384" height="384" aria-label="Vertical section canvas"></canvas>
+                </div>
+                <input type="range" id="sliderSliceJ" min="0" max="31" value="15" aria-label="Lateral index j">
+              </div>
+            </div>
+            <div style="padding:4px 16px 12px; font-family:var(--font-mono); font-size:12px; color:var(--fg-secondary);" id="voxelReadout">
+              Hover over a slice to inspect voxel coordinates and value.
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4: Transport Viewport -->
+        <div id="stage4View" hidden style="display:flex; flex-direction:column; height:100%;">
+          <div class="viewport-header">
+            <span class="viewport-title">Precomputed Numerical Transport Inspection</span>
+            <div class="segmented-control" style="width:260px;">
+              <button type="button" class="seg-btn active" id="tabModelDarcy">Model A (Darcy Flow)</button>
+              <button type="button" class="seg-btn" id="tabModelUranium">Model B (Uranium 1D)</button>
+            </div>
+          </div>
+          <div id="panelDarcy" style="flex:1; display:flex; flex-direction:column; padding:16px;">
+            <div class="chart-wrap" style="flex:1; min-height:300px;">
+              <canvas id="darcyChartCanvas" width="1000" height="320" aria-label="Darcy Conduit Flux Share Chart"></canvas>
+            </div>
+          </div>
+          <div id="panelUranium" hidden style="flex:1; display:flex; flex-direction:column; padding:16px;">
+            <div class="chart-wrap" style="flex:1; min-height:300px;">
+              <canvas id="uraniumChartCanvas" width="1000" height="320" aria-label="Uranium Column Breakthrough Chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Controls Column Panel -->
+      <aside class="controls-card" aria-label="Instrument Controls Panel">
+
+        <!-- Stage 1 Controls -->
+        <div id="stage1Controls">
+          <div class="controls-section">
+            <span class="section-title">Geographic Locators (WGS84)</span>
+            <div class="radio-list" id="siteRadioList">
+              <!-- Populated dynamically by app.js -->
+            </div>
+          </div>
+          <div class="controls-section">
+            <span class="section-title">Selected Site Provenance</span>
+            <div style="display:flex; flex-direction:column; gap:4px; font-size:13px;">
+              <strong id="selectedSiteName">Oklo Reactor Zone 2</strong>
+              <div style="font-family:var(--font-mono); font-size:12px; color:var(--info);" id="selectedSiteCoords">1 deg 24' 00" S, 13 deg 11' 00" E</div>
+              <p style="font-size:12px; color:var(--fg-secondary);" id="selectedSiteDesc">Primary site of the natural nuclear fission reactors in Gabon.</p>
+              <div style="font-size:11px; color:var(--fg-muted); margin-top:4px;" id="selectedSiteSource">Gauthier-Lafaye et al. 1996, GCA 60(23), p. 4831</div>
+            </div>
+            <button type="button" class="btn-primary" id="enterCutawayBtn" style="margin-top:8px;">Dive to Geological Cutaway</button>
+          </div>
+          <div class="controls-section">
+            <div class="callout-box callout-warn">
+              <strong>Basemap Invariant:</strong>
+              This basemap locates Oklo on present-day Earth geography. It does not depict Paleoproterozoic continental configurations.
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2 Controls -->
+        <div id="stage2Controls" hidden>
+          <div class="controls-section">
+            <span class="section-title">Conceptual Compartments</span>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <label class="control-label" style="cursor:pointer;">
+                <span><input type="checkbox" id="chkLayer_sandstone" checked> Sandstone Matrix (Zone 0)</span>
+                <span class="val" style="color:var(--zone-sandstone);">&#9632;</span>
+              </label>
+              <label class="control-label" style="cursor:pointer;">
+                <span><input type="checkbox" id="chkLayer_core" checked> Reactor Core (Zone 1)</span>
+                <span class="val" style="color:var(--zone-core);">&#9632;</span>
+              </label>
+              <label class="control-label" style="cursor:pointer;">
+                <span><input type="checkbox" id="chkLayer_halo" checked> Alteration Halo (Zone 2)</span>
+                <span class="val" style="color:var(--zone-halo);">&#9632;</span>
+              </label>
+              <label class="control-label" style="cursor:pointer;">
+                <span><input type="checkbox" id="chkLayer_conduit" checked> Fracture Conduit (Zone 3)</span>
+                <span class="val" style="color:var(--zone-conduit);">&#9632;</span>
+              </label>
+              <label class="control-label" style="cursor:pointer;">
+                <span><input type="checkbox" id="chkLayer_chimney" checked> Steam Chimney (Zone 4)</span>
+                <span class="val" style="color:var(--zone-chimney);">&#9632;</span>
+              </label>
+            </div>
+          </div>
+          <div class="controls-section">
+            <div class="callout-box callout-warn">
+              <strong>Epistemic Warning:</strong>
+              SCHEMATIC compartment geometry; NOT surveyed subsurface geology. Unscaled display with NO unsupported velocities or permeabilities.
+            </div>
+            <button type="button" class="btn-primary" id="btnAdvanceToStage3">Inspect Revision-0 Fields</button>
+            <button type="button" class="btn-icon" id="btnBackToGlobe" style="justify-content:center;">Back to Planetary Globe</button>
+          </div>
+        </div>
+
+        <!-- Stage 3 Controls -->
+        <div id="stage3Controls" hidden>
+          <div class="controls-section">
+            <span class="section-title">Prescribed Field Selection</span>
+            <div class="radio-list">
+              <label class="radio-item selected">
+                <input type="radio" name="fieldSelect" value="0" checked>
+                <div class="radio-content">
+                  <span class="radio-title">Temperature</span>
+                  <span class="radio-desc">deg C as labelled; coefficients underived</span>
+                </div>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fieldSelect" value="1">
+                <div class="radio-content">
+                  <span class="radio-title">Hydration</span>
+                  <span class="radio-desc">Pore saturation fraction [0.02, 1.0]</span>
+                </div>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fieldSelect" value="2">
+                <div class="radio-content">
+                  <span class="radio-title">H2 Radiolytic Index</span>
+                  <span class="radio-desc">G-value proxy index; labelled mmol/L</span>
+                </div>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fieldSelect" value="3">
+                <div class="radio-content">
+                  <span class="radio-title">235U/238U Atom Ratio</span>
+                  <span class="radio-desc">Natural baseline 0.00725; depleted core</span>
+                </div>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fieldSelect" value="4">
+                <div class="radio-content">
+                  <span class="radio-title">Polymer accumulation index</span>
+                  <span class="radio-desc">Arbitrary units; revision-0 umol/L label has no kinetic or thermodynamic basis</span>
+                </div>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fieldSelect" value="5">
+                <div class="radio-content">
+                  <span class="radio-title">Compartment Zones</span>
+                  <span class="radio-desc">Categorical zones 0 through 4</span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="controls-section">
+            <span class="section-title">Hydrothermal Pulse Cycle</span>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <button type="button" class="btn-primary" id="btnCyclePlay" style="padding:4px 12px; font-size:12px;">Play</button>
+              <span class="val" id="cycleClockVal" style="font-family:var(--font-mono); font-size:13px;">27 min (9/60)</span>
+            </div>
+            <input type="range" id="cycleFrameSlider" min="0" max="59" value="9" aria-label="Cycle Frame">
+            <span style="font-size:11px; color:var(--fg-secondary);" id="cyclePhaseName">Pulse / Boiling Phase</span>
+          </div>
+          <div class="controls-section">
+            <span class="section-title">Pulse Boundary Parameter b</span>
+            <div class="segmented-control">
+              <button type="button" class="seg-btn active" id="btnPulse17">b = 0.17 (stored)</button>
+              <button type="button" class="seg-btn" id="btnPulse1667">b = 0.1667 (GUI)</button>
+            </div>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-top:4px; cursor:pointer;">
+              <input type="checkbox" id="chkNullScenario"> Null Scenario (no pulse, no desiccation)
+            </label>
+          </div>
+          <div class="controls-section">
+            <div class="callout-box callout-warn">
+              <strong>Field Limitation:</strong>
+              <div id="fieldLimitations" style="margin-top:4px;">Not a thermal-hydraulic solution. Prescribed algebraic proxy function; must not be used to state historical temperatures at Oklo.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4 Controls -->
+        <div id="stage4Controls" hidden>
+          <div class="controls-section" id="controlsDarcy">
+            <span class="section-title">Model A: Darcy Groundwater Flow</span>
+            <div class="control-group">
+              <label class="control-label" for="selectDarcyConfig">Configuration</label>
+              <select id="selectDarcyConfig" style="background:var(--bg-tertiary); color:var(--fg-primary); border:1px solid var(--border-color); padding:6px; border-radius:var(--radius-sm); font-size:12px;">
+                <option value="0">Base Case (k_sandstone = 1.28e-15 m2)</option>
+                <option value="1">Ratio sweep: r = 1</option>
+                <option value="2">Ratio sweep: r = 10</option>
+                <option value="3">Ratio sweep: r = 100</option>
+                <option value="4">Ratio sweep: r = 1000</option>
+                <option value="5">Sensitivity: sandstone_core_low</option>
+                <option value="6">Sensitivity: sandstone_core_high</option>
+                <option value="7">Sensitivity: halo_low</option>
+                <option value="8">Sensitivity: halo_high</option>
+                <option value="9">Sensitivity: conduit_low</option>
+                <option value="10">Sensitivity: conduit_high</option>
+              </select>
+            </div>
+            <div class="control-group" style="margin-top:6px;">
+              <span class="control-label">Thermodynamic Water State (30 MPa)</span>
+              <div class="segmented-control">
+                <button type="button" class="seg-btn active" id="btnDarcyStateA">State A (50 deg C)</button>
+                <button type="button" class="seg-btn" id="btnDarcyStateB">State B (300 deg C)</button>
+              </div>
+              <div style="font-size:11px; color:var(--fg-secondary); margin-top:2px;" id="darcyStateDesc">
+                State A: 50 deg C (323.15 K), rho = 1000.7 kg/m3, mu = 5.53e-4 Pa s
+              </div>
+              <div style="font-family:var(--font-mono); font-size:11px; color:var(--fg-primary);" id="darcyTotalFlux">
+                Total Inflow: 1.449e-8 m3/s
+              </div>
+            </div>
+            <div class="callout-box callout-warn" style="margin-top:6px;">
+              <strong>Check D3a Result:</strong>
+              Recorded as FAIL (q_rel_cg = 2.58e-10 vs 1e-10 tolerance) in A4 verification rerun.
+            </div>
+          </div>
+
+          <div class="controls-section" id="controlsUranium" hidden>
+            <span class="section-title">Model B: Uranium Column Sweeps</span>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+              <div class="control-group">
+                <label class="control-label" for="selectUraniumV">Darcy v (m/s)</label>
+                <select id="selectUraniumV" style="background:var(--bg-tertiary); color:var(--fg-primary); border:1px solid var(--border-color); padding:4px; border-radius:var(--radius-sm); font-size:11px;">
+                  <option value="1e-10">1.0e-10</option>
+                  <option value="1e-9">1.0e-9</option>
+                  <option value="1e-8">1.0e-8</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="selectUraniumD">Deff (m2/s)</label>
+                <select id="selectUraniumD" style="background:var(--bg-tertiary); color:var(--fg-primary); border:1px solid var(--border-color); padding:4px; border-radius:var(--radius-sm); font-size:11px;">
+                  <option value="1e-11">1.0e-11</option>
+                  <option value="1e-10">1.0e-10</option>
+                  <option value="1e-9">1.0e-9</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="selectUraniumK">k_red (s-1)</label>
+                <select id="selectUraniumK" style="background:var(--bg-tertiary); color:var(--fg-primary); border:1px solid var(--border-color); padding:4px; border-radius:var(--radius-sm); font-size:11px;">
+                  <option value="0">0.0</option>
+                  <option value="1e-11">1.0e-11</option>
+                  <option value="1e-10">1.0e-10</option>
+                  <option value="1e-9">1.0e-9</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="selectUraniumKd">Kd (m3/kg)</label>
+                <select id="selectUraniumKd" style="background:var(--bg-tertiary); color:var(--fg-primary); border:1px solid var(--border-color); padding:4px; border-radius:var(--radius-sm); font-size:11px;">
+                  <option value="0">0.0 (R=1)</option>
+                  <option value="0.063">0.063 (R=947)</option>
+                  <option value="6.3">6.3 (R=94606)</option>
+                  <option value="630">630 (R=9.46e6)</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; margin-top:6px; color:var(--fg-secondary);">
+              <span id="uRetardationVal">R = 1.0</span>
+              <span id="uTransitTauVal">tau = 5.07e+02 yr</span>
+            </div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--accent-text); margin-top:2px;" id="uLedgerClosure">
+              Ledger closure: &lt; 1e-10 (4.72e-12)
+            </div>
+            <div class="callout-box callout-warn" style="margin-top:6px;">
+              <strong>Positivity Check N1:</strong>
+              Passed across all 144 runs. C_min &gt;= 0, S_min &gt;= 0.
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- Modular Scripts -->
+  <script src="js/spatial_engine.js"></script>
+  <script src="js/provenance_hud.js"></script>
+  <script src="js/stage1_globe.js"></script>
+  <script src="js/stage2_cutaway.js"></script>
+  <script src="js/stage3_fields.js"></script>
+  <script src="js/stage4_transport.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

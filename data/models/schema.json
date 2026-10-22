@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurascoper.github.io/oklo_pool_mobile/schemas/epistemic_record_v1.json",
+  "title": "EpistemicModelRecord",
+  "description": "JSON Schema governing machine-readable epistemic provenance records across Oklo Pool Mobile and Planetary Explorer v2 models.",
+  "type": "object",
+  "required": [
+    "model_id",
+    "model_version",
+    "evidence_class",
+    "source_repository",
+    "source_commit",
+    "specification_version",
+    "run_receipt",
+    "parameter_set_id",
+    "units",
+    "coordinate_system",
+    "uncertainty",
+    "known_limitations"
+  ],
+  "properties": {
+    "model_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_]+$",
+      "description": "Unique machine-readable identifier for the model or data record."
+    },
+    "model_version": {
+      "type": "string",
+      "description": "Semantic version of the model specification or implementation."
+    },
+    "evidence_class": {
+      "type": "string",
+      "enum": [
+        "geographic_observation_or_locator",
+        "sourced_geological_record",
+        "prescribed_analytic_field",
+        "numerically_verified_synthetic_model",
+        "hypothesis_or_unvalidated_model",
+        "empirically_calibrated_model"
+      ],
+      "description": "One of the six immutable epistemic evidence classes defined in Requirement R7."
+    },
+    "source_repository": {
+      "type": "string",
+      "description": "Canonical URL or identifier of the source repository."
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,40}$",
+      "description": "Git commit SHA pinning the exact source code state."
+    },
+    "specification_version": {
+      "type": "string",
+      "description": "Formal specification or pre-registration document version governing the model."
+    },
+    "run_receipt": {
+      "type": ["string", "null"],
+      "description": "Relative path or cryptographic digest of the verified run receipt, or null if uncomputed."
+    },
+    "parameter_set_id": {
+      "type": ["string", "null"],
+      "description": "Identifier referencing the exact parameter set used for this model run."
+    },
+    "units": {
+      "type": "string",
+      "description": "Explicit physical or dimensionless units. Must never be ambiguous."
+    },
+    "coordinate_system": {
+      "type": "string",
+      "description": "Explicit coordinate frame (e.g. WGS84, cartesian_local_16m_cube, lattice_indices_32x32x32)."
+    },
+    "uncertainty": {
+      "type": ["string", "null"],
+      "description": "Quantified error bounds, confidence intervals, sensitivity bounds, or null."
+    },
+    "known_limitations": {
+      "type": "string",
+      "description": "Mandatory disclosure of simplifying assumptions, domain boundaries, and invalid extrapolations."
+    }
+  },
+  "additionalProperties": false
+}
