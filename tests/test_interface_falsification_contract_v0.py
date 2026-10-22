@@ -386,12 +386,95 @@ class TestInterfaceFalsificationContractV0(unittest.TestCase):
         self.assertIn("10.67(11)%", convs["IAEA_ENSDF_2017"]["decay_branch_source"])
         self.assertIn("Shared adopted value from DDEP", convs["IAEA_ENSDF_2017"]["conversion_coefficient_source"])
 
-        # Negative control: omitting decay_branch_source or misstating IAEA shared alpha_T flag fails contract validation
-        c_bad_iaea = copy.deepcopy(self.contract)
-        c_bad_iaea["scientific_corrections"]["correction_1_nuclear_data_conventions"]["photon_emission_conventions"][2][
-            "alpha_tot_is_shared_ddep_adopted"
-        ] = False
-        self.assertTrue(len(vfc.validate_contract_dict(c_bad_iaea)) > 0)
+    def test_iaea_source_provenance_separation_enforced(self) -> None:
+        """Item 2A: enforce exact source separation between IAEA I_gamma (10.66%), Chen 2017 P_EC* (10.67%), and shared DDEP alpha_T."""
+        sj_br = 0.581e-10 / 5.543e-10
+        ok_iaea = vfc.evaluate_k40_convention_fixture_discrepancy(
+            photon_emission_prob=0.1066,
+            photon_emission_sigma=0.0013,
+            internal_conversion_alpha_tot=1.028e-4,
+            internal_conversion_alpha_sigma=0.015e-4,
+            fixture_branch_ec_gamma_frac=sj_br,
+            max_normalized_discrepancy=2.0,
+            evaluation_edition_year=2017,
+            convention_id="IAEA_ENSDF_2017",
+            source_citation="IAEA TRS-473; cf. Chen (2017) ENSDF",
+            photon_emission_source="IAEA TRS-473 gamma-ray compilation: I_gamma = 10.66(13)%",
+            decay_branch_source="Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40): P_EC* = 10.67(11)%",
+            conversion_coefficient_source="Shared adopted value from DDEP May 2025: alpha_T = 10.28(15)e-5",
+            alpha_tot_is_shared_ddep_adopted=True,
+        )
+        self.assertTrue(ok_iaea["passes_acceptance_rule"])
+        self.assertTrue(ok_iaea["alpha_tot_is_shared_ddep_adopted"])
+        self.assertIn("10.66(13)%", ok_iaea["photon_emission_source"])
+        self.assertIn("10.67(11)%", ok_iaea["decay_branch_source"])
+
+        # Negative controls on evaluate_k40_convention_fixture_discrepancy
+        with self.assertRaises(ValueError):
+            vfc.evaluate_k40_convention_fixture_discrepancy(
+                photon_emission_prob=0.1066,
+                photon_emission_sigma=0.0013,
+                internal_conversion_alpha_tot=1.028e-4,
+                internal_conversion_alpha_sigma=0.015e-4,
+                fixture_branch_ec_gamma_frac=sj_br,
+                evaluation_edition_year=2017,
+                convention_id="IAEA_ENSDF_2017",
+                alpha_tot_is_shared_ddep_adopted=False,
+            )
+        with self.assertRaises(ValueError):
+            vfc.evaluate_k40_convention_fixture_discrepancy(
+                photon_emission_prob=0.1034,
+                photon_emission_sigma=0.0007,
+                internal_conversion_alpha_tot=1.028e-4,
+                internal_conversion_alpha_sigma=0.015e-4,
+                fixture_branch_ec_gamma_frac=sj_br,
+                evaluation_edition_year=2025,
+                convention_id="DDEP_2025",
+                alpha_tot_is_shared_ddep_adopted=True,
+            )
+        with self.assertRaises(ValueError):
+            vfc.evaluate_k40_convention_fixture_discrepancy(
+                photon_emission_prob=0.1066,
+                photon_emission_sigma=0.0013,
+                internal_conversion_alpha_tot=1.028e-4,
+                internal_conversion_alpha_sigma=0.015e-4,
+                fixture_branch_ec_gamma_frac=sj_br,
+                evaluation_edition_year=2017,
+                convention_id="IAEA_ENSDF_2017",
+                photon_emission_source="IAEA / Chen (2017): 10.67(11)%",
+                alpha_tot_is_shared_ddep_adopted=True,
+            )
+
+        # Negative controls on validate_contract_dict
+        c_bad_iaea_flag = copy.deepcopy(self.contract)
+        c_bad_iaea_flag["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+            "photon_emission_conventions"
+        ][2]["alpha_tot_is_shared_ddep_adopted"] = False
+        self.assertTrue(len(vfc.validate_contract_dict(c_bad_iaea_flag)) > 0)
+
+        c_bad_ddep_flag = copy.deepcopy(self.contract)
+        c_bad_ddep_flag["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+            "photon_emission_conventions"
+        ][0]["alpha_tot_is_shared_ddep_adopted"] = True
+        self.assertTrue(len(vfc.validate_contract_dict(c_bad_ddep_flag)) > 0)
+
+        c_conflated_branch = copy.deepcopy(self.contract)
+        c_conflated_branch["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+            "photon_emission_conventions"
+        ][2]["ensdf_2017_reported_ec_branch_prob"] = 0.1066
+        self.assertTrue(len(vfc.validate_contract_dict(c_conflated_branch)) > 0)
+
+        c_conflated_psrc = copy.deepcopy(self.contract)
+        c_conflated_psrc["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+            "photon_emission_conventions"
+        ][2]["photon_emission_source"] = "IAEA / Chen (2017): 10.67(11)%"
+        self.assertTrue(len(vfc.validate_contract_dict(c_conflated_psrc)) > 0)
+
+        c_missing_shared_note = copy.deepcopy(self.contract)
+        c_missing_shared_note["scientific_corrections"]["correction_1_nuclear_data_conventions"][
+            "photon_emission_conventions"
+        ][2]["conversion_coefficient_source"] = "Independently evaluated in IAEA TRS-473"
+        self.assertTrue(len(vfc.validate_contract_dict(c_missing_shared_note)) > 0)
 
 
 if __name__ == "__main__":

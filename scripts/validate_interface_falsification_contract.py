@@ -7,7 +7,8 @@ Verifies:
 2. Fail-closed gate behavior: any gate with effect_threshold is None returns NOT_EVALUATED.
 3. Programmatic evaluators for all six falsification gates (F1 through F6).
 4. Scientific Correction 1: separation of K-40 EC decay-branch fraction from evaluated
-   1460.822 keV photon-emission probability (DDEP 2004 vs IAEA/ENSDF) via P_EC* = I_gamma*(1 + alpha_tot).
+   1460.822 keV photon-emission probability (DDEP May 2025, DDEP 2010, and IAEA TRS-473 vs
+   Chen 2017 ENSDF with shared DDEP 2025 alpha_T) via P_EC* = I_gamma*(1 + alpha_tot).
 5. Scientific Correction 2: competing first-order precursor hazards vs sequential product hydrolysis
    kinetics (with near-degenerate Taylor conditioning for |k_hyd - k_syn|*dt < 1e-8), rejecting both
    the unparenthesized formula and force-clamped 100% Boltzmann saturation.
@@ -524,8 +525,12 @@ def evaluate_k40_convention_fixture_discrepancy(
     evaluation_edition_year: int = 2025,
     convention_id: str = "DDEP_2025",
     source_citation: str = "Mougeot (May 2025) DDEP",
+    photon_emission_source: str | None = None,
+    decay_branch_source: str | None = None,
+    conversion_coefficient_source: str | None = None,
+    alpha_tot_is_shared_ddep_adopted: bool | None = None,
 ) -> dict[str, Any]:
-    """Evaluate K-40 photon-convention vs geochronology-fixture discrepancy (RT-01 & RT-02)."""
+    """Evaluate K-40 photon-convention vs geochronology-fixture discrepancy (RT-01, Item 2A & RT-02)."""
     if not source_citation or not source_citation.strip():
         raise ValueError("source_citation must be non-empty")
     if not (1970 <= evaluation_edition_year <= 2100):
@@ -538,6 +543,47 @@ def evaluate_k40_convention_fixture_discrepancy(
         raise ValueError("photon_emission_sigma must be finite and positive")
     if max_normalized_discrepancy <= 0.0 or not math.isfinite(max_normalized_discrepancy):
         raise ValueError("max_normalized_discrepancy must be finite and positive")
+
+    shared_alpha = (
+        (convention_id not in ("DDEP_2025", "DDEP_2010"))
+        if alpha_tot_is_shared_ddep_adopted is None
+        else bool(alpha_tot_is_shared_ddep_adopted)
+    )
+    psrc = (photon_emission_source if photon_emission_source is not None else source_citation).strip()
+    bsrc = (
+        decay_branch_source
+        if decay_branch_source is not None
+        else (
+            "Chen, J. (2017) Nuclear Data Sheets 140:1-364 (ENSDF A=40 evaluation): P_EC* = 10.67(11)%"
+            if convention_id == "IAEA_ENSDF_2017"
+            else source_citation
+        )
+    ).strip()
+    csrc = (
+        conversion_coefficient_source
+        if conversion_coefficient_source is not None
+        else (
+            "Shared adopted value from DDEP May 2025 (Mougeot 2025 / Chiste & Be 2010: alpha_T = 10.28(15)e-5 = 1.028(15)e-4)"
+            if shared_alpha
+            else "Native DDEP evaluation (Mougeot May 2025 / Chiste & Be 2010: alpha_T = 10.28(15)e-5 = 1.028(15)e-4)"
+        )
+    ).strip()
+
+    if not psrc or not bsrc or not csrc:
+        raise ValueError("photon_emission_source, decay_branch_source, and conversion_coefficient_source must be non-empty")
+    if convention_id in ("DDEP_2025", "DDEP_2010") and shared_alpha:
+        raise ValueError(f"Provenance mismatch for {convention_id}: alpha_T is native to DDEP, so alpha_tot_is_shared_ddep_adopted must be False")
+    if shared_alpha and ("shared" not in csrc.lower() and "adopted" not in csrc.lower()):
+        raise ValueError(f"Provenance mismatch for {convention_id}: conversion_coefficient_source must document shared/adopted alpha_T")
+    if not shared_alpha and "shared" in csrc.lower():
+        raise ValueError(f"Provenance mismatch for {convention_id}: native conversion_coefficient_source must not claim a shared value")
+    if convention_id == "IAEA_ENSDF_2017":
+        if abs(internal_conversion_alpha_tot - 1.028e-4) < 1.0e-6 and not shared_alpha:
+            raise ValueError("Provenance mismatch for IAEA_ENSDF_2017: alpha_tot_is_shared_ddep_adopted must be True")
+        if "10.67" in psrc:
+            raise ValueError("Provenance mismatch for IAEA_ENSDF_2017: photon_emission_source must not conflate Chen (2017) P_EC* = 10.67(11)%")
+        if "10.67" not in bsrc:
+            raise ValueError("Provenance mismatch for IAEA_ENSDF_2017: decay_branch_source must cite Chen (2017) P_EC* = 10.67(11)%")
 
     implied_p_ec = photon_emission_prob * (1.0 + internal_conversion_alpha_tot)
     implied_p_ec_sigma = math.hypot(
@@ -564,6 +610,10 @@ def evaluate_k40_convention_fixture_discrepancy(
     return {
         "convention_id": convention_id,
         "evaluation_edition_year": evaluation_edition_year,
+        "photon_emission_source": psrc,
+        "decay_branch_source": bsrc,
+        "conversion_coefficient_source": csrc,
+        "alpha_tot_is_shared_ddep_adopted": shared_alpha,
         "implied_ec_excited_branch_frac": implied_p_ec,
         "implied_ec_excited_branch_sigma": implied_p_ec_sigma,
         "branch_difference": branch_diff,
@@ -626,6 +676,16 @@ def validate_julia_model_parity(
 
     if "3.07e-4" in src:
         errors.append(f"Stale internal conversion coefficient '3.07e-4' found in {julia_model_path}")
+
+    # When validating the default RadioPharmacology.jl path, also verify bitwise parity with the RadioPharm.jl mirror
+    if julia_model_path == DEFAULT_JULIA_MODEL_PATH:
+        mirror_src_path = pathlib.Path("/Users/aurascoper/.gemini/antigravity/scratch/RadioPharm.jl/src/biotite_geochem_models.jl")
+        if mirror_src_path.exists() and mirror_src_path.read_bytes() != julia_model_path.read_bytes():
+            errors.append("RadioPharm.jl/src/biotite_geochem_models.jl is out of sync with RadioPharmacology.jl/src/biotite_geochem_models.jl")
+        main_test_path = julia_model_path.parent.parent / "test" / "test_biotite_geochem_models.jl"
+        mirror_test_path = pathlib.Path("/Users/aurascoper/.gemini/antigravity/scratch/RadioPharm.jl/test/test_biotite_geochem_models.jl")
+        if main_test_path.exists() and mirror_test_path.exists() and mirror_test_path.read_bytes() != main_test_path.read_bytes():
+            errors.append("RadioPharm.jl/test/test_biotite_geochem_models.jl is out of sync with RadioPharmacology.jl/test/test_biotite_geochem_models.jl")
 
     return errors
 
@@ -699,18 +759,33 @@ def validate_contract_dict(contract: Mapping[str, Any]) -> list[str]:
             errors.append(f"Convention {cid} must specify positive internal_conversion_alpha_sigma")
         if conv.get("includes_internal_pair_creation") is not True:
             errors.append(f"Convention {cid} must set includes_internal_pair_creation to true")
-        if not isinstance(conv.get("alpha_tot_is_shared_ddep_adopted"), bool):
+        shared_flag = conv.get("alpha_tot_is_shared_ddep_adopted")
+        if not isinstance(shared_flag, bool):
             errors.append(f"Convention {cid} must specify boolean alpha_tot_is_shared_ddep_adopted")
         for src_field in ("source_citation", "photon_emission_source", "decay_branch_source", "conversion_coefficient_source"):
             if not conv.get(src_field) or not str(conv.get(src_field)).strip():
                 errors.append(f"Convention {cid} must provide a non-empty {src_field}")
+        csrc_str = str(conv.get("conversion_coefficient_source", "")).lower()
+        psrc_str = str(conv.get("photon_emission_source", ""))
+        bsrc_str = str(conv.get("decay_branch_source", ""))
+        if cid in ("DDEP_2025", "DDEP_2010"):
+            if shared_flag is not False:
+                errors.append(f"Convention {cid} evaluates alpha_T natively in DDEP and must set alpha_tot_is_shared_ddep_adopted to false")
+            if "shared" in csrc_str:
+                errors.append(f"Convention {cid} conversion_coefficient_source must not claim a shared adopted alpha_T")
+        if shared_flag is True and ("shared" not in csrc_str and "adopted" not in csrc_str):
+            errors.append(f"Convention {cid} has alpha_tot_is_shared_ddep_adopted=true so conversion_coefficient_source must explicitly document shared/adopted alpha_T")
         if cid == "IAEA_ENSDF_2017":
-            if conv.get("alpha_tot_is_shared_ddep_adopted") is not True:
+            if shared_flag is not True:
                 errors.append("Convention IAEA_ENSDF_2017 must set alpha_tot_is_shared_ddep_adopted to true")
-            if "10.67" not in str(conv.get("decay_branch_source", "")):
+            if "10.67" not in bsrc_str or "Chen" not in bsrc_str:
                 errors.append("Convention IAEA_ENSDF_2017 decay_branch_source must distinguish Chen (2017) ENSDF P_EC* = 10.67(11)%")
-            if "IAEA" not in str(conv.get("photon_emission_source", "")) or "10.66" not in str(conv.get("photon_emission_source", "")):
-                errors.append("Convention IAEA_ENSDF_2017 photon_emission_source must attribute I_gamma = 10.66(13)% to IAEA compilation")
+            if "IAEA" not in psrc_str or "10.66" not in psrc_str or "10.67" in psrc_str:
+                errors.append("Convention IAEA_ENSDF_2017 photon_emission_source must attribute I_gamma = 10.66(13)% to IAEA compilation without conflating 10.67(11)%")
+            if abs(float(conv.get("ensdf_2017_reported_ec_branch_prob", 0.0)) - 0.1067) > 1.0e-6:
+                errors.append("Convention IAEA_ENSDF_2017 must record ensdf_2017_reported_ec_branch_prob == 0.1067")
+            if abs(float(conv.get("ensdf_2017_reported_ec_branch_sigma", 0.0)) - 0.0011) > 1.0e-6:
+                errors.append("Convention IAEA_ENSDF_2017 must record ensdf_2017_reported_ec_branch_sigma == 0.0011")
         if abs(implied - conv["implied_ec_excited_branch_frac"]) > 1.0e-12:
             errors.append(f"Convention {cid} implied_ec_excited_branch_frac != I_gamma*(1 + alpha_tot)")
         if igam >= implied:
