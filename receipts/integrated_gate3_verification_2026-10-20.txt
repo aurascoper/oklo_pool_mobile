@@ -1,0 +1,426 @@
+=== Integrated Rust, CF-2, ELF Page-Alignment, and Text Audit Verification ===
+git_head: 636b7d7bb41999b80278d90046da893ee1044f20
+git_tree: 2e29d53091daf3488597bce4531b4cf8cfd178d0
+worktree_clean_at_test: true
+timestamp_utc: 2026-10-20T06:43:59Z
+
+--- 1. Rust Conformance & Workspace Suites ---
+
+running 4 tests
+test sha256::tests::test_empty_string ... ok
+test sha256::tests::test_standard_test_vector ... ok
+test sha256::tests::test_abc ... ok
+test reference::tests::test_reference_snapshot_matches_fixture_spec ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+test test_r0_1_sensitivity_diagnostic ... ok
+test test_seed_invariance_control ... ok
+test test_all_20_cases_rust_api_against_reference ... ok
+test test_all_20_cases_c_abi_against_reference ... ok
+test test_cross_language_bitwise_identity_with_python ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.91s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test b_sensitivity_to_gui_boundary_is_detectable ... ok
+test c_matches_recorded_snapshot ... ok
+test d_abi_round_trip ... ok
+test a_matches_python_export_at_recorded_boundary ... ok
+test f_series_frame_9_matches_fixture_and_cf3_header ... ok
+test g_temperature_isovalue_160_frames ... ok
+test e_step_keeps_phase_in_range ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.02s
+
+
+running 10 tests
+test full_period_from_zero_returns_zero ... ok
+test full_and_multiple_periods_return_to_start ... ok
+test invalid_inputs_are_errors_not_panics ... ok
+test phase_one_is_accepted_and_canonicalised ... ok
+test step_across_the_cycle_end_wraps ... ok
+test zero_step_keeps_phase ... ok
+test small_forward_step ... ok
+test ten_thousand_valid_steps_stay_in_range ... ok
+test c_abi_step_returns_codes_and_never_panics ... ok
+test sim_step_recomputes_at_the_new_phase_and_errors_change_nothing ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+running 29 tests
+test b2_exact_solution_satisfies_its_problem ... ok
+test bounds_flag_values_outside_n1 ... ok
+test contract_constants_reproduce_v1_and_the_manifest ... ok
+test b2_finite_domain_steady_state_order ... ok
+test contract_organic_mask_marks_cell_centres_in_6_to_10_m ... ok
+test contract_step_counts_match_the_a1_arithmetic_record ... ok
+test contract_grid_rule_reproduces_the_nine_a1_values ... ok
+test contract_sweep_is_the_full_factorial_of_144_runs ... ok
+test contract_validation_rejects_invalid_columns ... ok
+test erfc_matches_reference_values_on_both_branches ... ok
+test ogata_banks_meets_its_boundary_conditions ... ok
+test contract_step_obeys_both_a1_limits_and_lands_on_output_times ... ok
+test operator_off_diagonals_are_non_negative_in_binary64 ... ok
+test par_map_keeps_order ... ok
+test operator_from_face_rules_matches_the_a1_diagonals ... ok
+test crank_nicolson_matrices_have_the_a1_sign_structure_at_the_landed_step ... ok
+test face_fluxes_are_consistent_with_the_operator_and_signed_correctly ... ok
+test uniform_inlet_profile_is_steady_without_reaction ... ok
+test one_step_satisfies_the_crank_nicolson_relation ... ok
+test without_reaction_the_solid_stays_exactly_zero ... ok
+test thomas_solves_the_implicit_system ... ok
+test t1_temporal_order_on_b1 ... ok
+test solid_inventory_grows_only_in_the_zone_and_matches_the_reaction_sink ... ok
+test without_reaction_the_column_fills_to_c0_and_stays_in_bounds ... ok
+test b1_ogata_banks_spatial_order ... ok
+test c1_without_reaction_the_solid_is_exactly_zero has been running for over 60 seconds
+test c2_both_corrupted_variants_are_detected_in_all_36_configurations has been running for over 60 seconds
+test ledger_and_n1_hold_in_every_production_run has been running for over 60 seconds
+test ledger_closes_on_representative_columns has been running for over 60 seconds
+test c1_without_reaction_the_solid_is_exactly_zero ... ok
+test ledger_closes_on_representative_columns ... ok
+test ledger_and_n1_hold_in_every_production_run ... ok
+test c2_both_corrupted_variants_are_detected_in_all_36_configurations ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 547.71s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+--- 2. Independent Python CF-2 Reference Verification ---
+--- 2. Independent Python CF-2 Reference Verification ---
+MATCH: Case 6 temperature -> 89d85fc802e4f4d638af529f66bf7f3eb73b14e704afaf31dc652b68c9cb8e47
+MATCH: Case 6 hydration -> eb75f8694ae51fb6d3b37e941f93e931ca4aa84250a02c7ec9c55b0330791356
+MATCH: Case 6 h2_concentration -> cb42d37ca160d80168b2fc9d0d8095c9f8d9303f7c1b8445e2166ae35e8cb290
+MATCH: Case 6 u235_ratio -> faff264263d13277cf6f4cdb4d60e20e59249e91278df035f9ca269f481de944
+MATCH: Case 6 polymer_yield -> c84d5c5c2e3bee7ef8b50ad7092c8b124c69783aa99be8bf699bf6b08f78fe35
+MATCH: Case 6 compartments -> 6271f65f4030e3a45b8a1b80817ae33aeae1b7596dfbbc07cd77c6c30c39dd5d
+Python CF-2 reference generator: Case 6 verified against spec snapshot.
+
+--- 3. Native Android ABI & 16 KB ELF Page-Alignment Check ---
+802c4aa33251cdda30a2a81ce672ecd611899a9ba8cf9dbc48ebef8b3b397092  android/app/src/main/jniLibs/arm64-v8a/liboklo_core_jni.so
+7ed74f69a8f6dd0e60aadf9b37dae136e26331229d6dc955081e0592fb0c71f2  android/app/src/main/jniLibs/x86_64/liboklo_core_jni.so
+  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x01419c 0x01419c R   0x4000
+  LOAD           0x01419c 0x000000000001819c 0x000000000001819c 0x03a8b4 0x03a8b4 R E 0x4000
+  LOAD           0x04ea50 0x0000000000056a50 0x0000000000056a50 0x001d78 0x0025b0 RW  0x4000
+  LOAD           0x0507c8 0x000000000005c7c8 0x000000000005c7c8 0x000a18 0x001308 RW  0x4000
+  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x014b68 0x014b68 R   0x4000
+  LOAD           0x014b70 0x0000000000018b70 0x0000000000018b70 0x040810 0x040810 R E 0x4000
+  LOAD           0x055380 0x000000000005d380 0x000000000005d380 0x0024a0 0x002c80 RW  0x4000
+  LOAD           0x057820 0x0000000000063820 0x0000000000063820 0x000a18 0x0012f0 RW  0x4000
+
+--- 4. Text Audit ---
+text audit passed: 0 en dashes, 0 em dashes, 0 quarantined terms
+
+=== Integrated iOS Package (OkloCoreKit) and Simulator (OkloPool, iOS 27.0) Verification ===
+git_head: 636b7d7bb41999b80278d90046da893ee1044f20
+git_tree: 2e29d53091daf3488597bce4531b4cf8cfd178d0
+worktree_clean_at_test: true
+timestamp_utc: 2026-10-20T06:54:40Z
+
+--- 1. Build OkloCore XCFramework ---
+xcframework successfully written out to: /Users/aurascoper/Developer/oklo_pool_mobile/ios/OkloCoreKit/OkloCoreFFI.xcframework
+
+--- 2. OkloCoreKit Swift Package Tests (swift test) ---
+Test Suite 'All tests' started at 2026-10-20 01:55:00.520.
+Test Suite 'All tests' passed at 2026-10-20 01:55:00.524.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.004) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test rejectsInvalidPulseBoundary() started.
+◇ Test stepWrapsAndRejectsNegativeSteps() started.
+◇ Test abiVersionIsOne() started.
+◇ Test zoneCountsMatchRecordedSnapshot() started.
+✔ Test abiVersionIsOne() passed after 0.001 seconds.
+✔ Test rejectsInvalidPulseBoundary() passed after 0.001 seconds.
+◇ Test case passing 2 arguments field → .h2Concentration, name → "h2_concentration" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .u235Ratio, name → "u235_ratio" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .polymerYield, name → "polymer_yield" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .compartments, name → "compartments" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .temperature, name → "temperature" to fieldMatchesPythonExportBitForBit(field:name:) started.
+◇ Test case passing 2 arguments field → .hydration, name → "hydration" to fieldMatchesPythonExportBitForBit(field:name:) started.
+✔ Test zoneCountsMatchRecordedSnapshot() passed after 0.006 seconds.
+✔ Test stepWrapsAndRejectsNegativeSteps() passed after 0.011 seconds.
+✔ Test fieldMatchesPythonExportBitForBit(field:name:) with 6 test cases passed after 0.115 seconds.
+✔ Test run with 5 tests in 0 suites passed after 0.115 seconds.
+
+--- 3. OkloPool iOS 27.0 Simulator Unit & UI Tests (15 tests on iPhone 17) ---
+Test Suite 'All tests' started at 2026-10-20 01:58:28.571.
+Test Suite 'OkloPoolUITests.xctest' started at 2026-10-20 01:58:28.727.
+Test Suite 'OkloPoolUITests' started at 2026-10-20 01:58:28.728.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testAppLaunchAndMainComponents]' started.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testAppLaunchAndMainComponents]' passed (59.055 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testProvenanceSheetPresentationAndDismiss]' started.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testProvenanceSheetPresentationAndDismiss]' passed (23.249 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testTransportPlayPause]' started.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testTransportPlayPause]' passed (20.326 seconds).
+Test Case '-[OkloPoolUITests.OkloPoolUITests testViewModeSwitch]' started.
+Test Case '-[OkloPoolUITests.OkloPoolUITests testViewModeSwitch]' passed (29.829 seconds).
+Test Suite 'OkloPoolUITests' passed at 2026-10-20 02:00:41.207.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 132.459 (132.479) seconds
+Test Suite 'OkloPoolUITests.xctest' passed at 2026-10-20 02:00:41.212.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 132.459 (132.485) seconds
+Test Suite 'All tests' passed at 2026-10-20 02:00:41.212.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 132.459 (132.641) seconds
+Test Suite 'All tests' started at 2026-10-20 02:00:51.382.
+Test Suite 'OkloPoolTests.xctest' started at 2026-10-20 02:00:51.383.
+Test Suite 'OkloAppModelTests' started at 2026-10-20 02:00:51.383.
+Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testCf2TwentyCaseMatrixMatchesReference]' passed (0.128 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testFieldSelectionAndBounds]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testFieldSelectionAndBounds]' passed (0.079 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testInitialModelState]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testInitialModelState]' passed (1.971 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testMemoryCleanupAndDeinit]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testMemoryCleanupAndDeinit]' passed (0.244 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testNullScenarioInvariance]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testNullScenarioInvariance]' passed (0.069 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPhaseNavigationAndWrapping]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPhaseNavigationAndWrapping]' passed (0.063 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPlaybackLifecycle]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPlaybackLifecycle]' passed (0.019 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPolymerFieldOntologyAmendmentMetadata]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPolymerFieldOntologyAmendmentMetadata]' passed (0.001 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testPulseBoundarySensitivity]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testPulseBoundarySensitivity]' passed (0.033 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testRaymarcherUniformsMemoryLayout]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testRaymarcherUniformsMemoryLayout]' passed (0.001 seconds).
+Test Case '-[OkloPoolTests.OkloAppModelTests testSliceClamping]' started.
+Test Case '-[OkloPoolTests.OkloAppModelTests testSliceClamping]' passed (0.026 seconds).
+Test Suite 'OkloAppModelTests' passed at 2026-10-20 02:00:54.023.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 2.633 (2.640) seconds
+Test Suite 'OkloPoolTests.xctest' passed at 2026-10-20 02:00:54.024.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 2.633 (2.641) seconds
+Test Suite 'All tests' passed at 2026-10-20 02:00:54.024.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 2.633 (2.642) seconds
+** TEST SUCCEEDED **
+
+--- 4. Runtime Network Audit on iPhone 17 (iOS 27.0) ---
+Launch output: org.oklo.pool: 86150
+SIM_PID: 86150
+INET_SOCKET_LINES: 0 (ZERO_INET_SOCKETS)
+
+# Integrated Android API 36 Emulator Verification Log (2026-10-20)
+git_head: 636b7d7bb41999b80278d90046da893ee1044f20
+git_tree: 2e29d53091daf3488597bce4531b4cf8cfd178d0
+worktree_clean_at_test: true
+device: sdk_gphone64_arm64 (API 36, ABI arm64-v8a)
+
+## Instrumentation Output (12 tests)
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+org.oklo.pool.ViewerSmokeTest:
+INSTRUMENTATION_STATUS: test=allSixFieldsCanBeSelected
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=allSixFieldsCanBeSelected
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=provenanceSheetOpensAndDisplaysLimitations
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=2
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=provenanceSheetOpensAndDisplaysLimitations
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=pulseAndNullControlsHaveAccessibleLabelsAndUpdate
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=3
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=pulseAndNullControlsHaveAccessibleLabelsAndUpdate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=planSectionVolumeAndChartModesRenderLabels
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=4
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=planSectionVolumeAndChartModesRenderLabels
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=phaseScrubberDisplaysFrame60AtMaxAndCannotProducePhaseOne
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=5
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=phaseScrubberDisplaysFrame60AtMaxAndCannotProducePhaseOne
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=playbackStopsWhenActivityLeavesForeground
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.ViewerSmokeTest
+INSTRUMENTATION_STATUS: current=6
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=playbackStopsWhenActivityLeavesForeground
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+org.oklo.pool.bridge.NativeBridgeTest:
+INSTRUMENTATION_STATUS: test=abiVersionAndSixFieldsLoad
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=7
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=abiVersionAndSixFieldsLoad
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=shortDestinationIsRejected
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=8
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=shortDestinationIsRejected
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=closeIsIdempotentAtWrapperBoundary
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=9
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=closeIsIdempotentAtWrapperBoundary
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=cf2TwentyCaseMatrixMatchesReference
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=10
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=cf2TwentyCaseMatrixMatchesReference
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=invalidConfigIsRejected
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=11
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=invalidConfigIsRejected
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=
+INSTRUMENTATION_STATUS: test=steppingWrapsAndRejectsNegativeTime
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=org.oklo.pool.bridge.NativeBridgeTest
+INSTRUMENTATION_STATUS: current=12
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=12
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=steppingWrapsAndRejectsNegativeTime
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 64.478
+
+OK (12 tests)
+
+
+INSTRUMENTATION_CODE: -1
+
+## Runtime Network & Permission Audit
+=== Running Process ===
+PID: 2145  UID: 10213
+=== Requested Permissions ===
+    requested permissions:
+      org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+    install permissions:
+      org.oklo.pool.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+    User 0: ceDataInode=352441 deDataInode=98544 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+      installReason=0
+      dataDir=/data/user/0/org.oklo.pool
+=== Active INET Sockets for UID 10213 ===
+ACTIVE_INET_SOCKETS: 0
