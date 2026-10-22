@@ -36,14 +36,29 @@ data class FieldStats(
     companion object {
         fun summarize(phase: Double, fieldId: Int, values: FloatArray): FieldStats {
             require(values.isNotEmpty())
+            var minVal = Float.POSITIVE_INFINITY
+            var maxVal = Float.NEGATIVE_INFINITY
+            var sum = 0.0
+            var z3 = 0
+            var z4 = 0
+            val isCompartments = (fieldId == 5)
+            for (v in values) {
+                if (v < minVal) minVal = v
+                if (v > maxVal) maxVal = v
+                sum += v.toDouble()
+                if (isCompartments) {
+                    val zi = v.toInt()
+                    if (zi == 3) z3++ else if (zi == 4) z4++
+                }
+            }
             val voxelCount = values.size.toFloat()
             return FieldStats(
                 phase,
-                values.minOrNull() ?: 0f,
-                values.average().toFloat(),
-                values.maxOrNull() ?: 0f,
-                if (fieldId == 5) values.count { it.toInt() == 3 } / voxelCount else 0f,
-                if (fieldId == 5) values.count { it.toInt() == 4 } / voxelCount else 0f
+                if (minVal.isFinite()) minVal else 0f,
+                (sum / values.size).toFloat(),
+                if (maxVal.isFinite()) maxVal else 0f,
+                if (isCompartments) z3 / voxelCount else 0f,
+                if (isCompartments) z4 / voxelCount else 0f
             )
         }
     }

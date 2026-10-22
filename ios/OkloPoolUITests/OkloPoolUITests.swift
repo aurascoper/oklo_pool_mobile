@@ -73,6 +73,25 @@ final class OkloPoolUITests: XCTestCase {
     }
 
     @MainActor
+    func testOnRenderDisclosuresAndPrivacyPolicySection() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Revision-0 prescribed fields; not a physical simulation."].waitForExistence(timeout: 3.0))
+        XCTAssertTrue(app.staticTexts["Not a thermal-hydraulic solution. Must not be used to state temperatures at Oklo."].waitForExistence(timeout: 3.0))
+
+        let infoButton = app.buttons["Open Provenance and Limitations"]
+        XCTAssertTrue(infoButton.waitForExistence(timeout: 3.0))
+        infoButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Field-by-Field Limitations"].waitForExistence(timeout: 3.0))
+        app.swipeUp()
+        app.swipeUp()
+        XCTAssertTrue(app.staticTexts["Privacy Policy & Data Handling"].waitForExistence(timeout: 3.0))
+        XCTAssertTrue(app.staticTexts["URL remains unverified until the account owner confirms live hosting."].waitForExistence(timeout: 3.0))
+    }
+
+    @MainActor
     private func addScreenshot(of app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name

@@ -108,4 +108,14 @@ class ViewerSmokeTest {
         }
         compose.onNodeWithText("Phase 0.9833  •  Frame 60 / 60").assertIsDisplayed()
     }
+
+    @Test fun onRenderDisclosuresAndPrivacyPolicySectionAreDisplayed() {
+        compose.onNodeWithText("Revision-0 prescribed fields; not a physical simulation.").assertIsDisplayed()
+        compose.onNodeWithText("Limitation: Prescribed thermal profile; not coupled to hydrodynamic or convective cooling.").performScrollTo().assertIsDisplayed()
+
+        compose.onNodeWithText("Scope").performClick()
+        compose.onNodeWithText("Field-by-Field Limitations").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Privacy Policy & Data Handling").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("URL remains unverified until the account owner confirms live hosting.").performScrollTo().assertIsDisplayed()
+    }
 }

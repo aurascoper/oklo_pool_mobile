@@ -1,0 +1,68 @@
+OKLO POOL MOBILE - ON-RENDER GATE ACCEPTANCE RECEIPT
+Date: 2026-10-20
+Branch: release/on-render-gate
+Tested commit: dd1ce73bea4716cd5a8161a56bdc8868fd792a01
+Worktree clean at test: true
+Main baseline: 636b7d7bb41999b80278d90046da893ee1044f20
+
+SUMMARY OF OUTCOMES
+===================
+Automated checks on iOS Simulator (iPhone 17, iOS 27.0): PASS (6/6 checks pass, 20/20 unit/benchmark tests pass, 5/5 UI tests pass, 25/25 total)
+Automated checks on Android JVM Native Bridge (OpenJDK 17): PASS (6/6 checks pass, 18/18 unit/benchmark tests pass)
+Android API 36 Emulator Run: BLOCKED (Initial run blocked by 840 MiB free disk space; /opt/homebrew/share/android-commandlinetools/emulator and system-images/android-36 currently not installed; not reinstalled without approval per Integrity Rule 5)
+Runtime network sockets: 0 (verified with lsof on iOS process PID 45800)
+Apple Privacy Manifest: OK (PrivacyInfo.xcprivacy bundled in OkloPool.app, plutil -lint OK, NSPrivacyTracking=false)
+Android network permissions: 0 (verified in source and merged manifest: zero INTERNET permissions)
+Typography audit: PASS (0 en dashes, 0 em dashes, 0 quarantined terms)
+
+AUTOMATED SIMULATOR CHECKS (6 ITEMS)
+=====================================
+Item 1: Cold launch and first useful frame: PASS
+Item 2: Initial-field rendering correctness and pixel diversity: PASS (20.0 to 600.0 C, > 100 distinct values on iOS, > 50 on Android)
+Item 3: All six field transitions and limitation statements: PASS (all 6 fields verified, Option A Polymer accumulation index caveat intact, 0 dashes)
+Item 4: First chart entry and the 60-frame series: PASS (frame 0 valid, 60 frames total)
+Item 5: Three-dimensional volume-view readiness: PASS (Metal shaders, 3D/LUT textures on iOS; 16 depth projection layers on Android)
+Item 6: Phase changes at 0, 9, 15, 30, 59 / 60: PASS (5 checkpoints valid)
+
+PROVISIONAL TIMING BUDGETS UNDER FROZEN METHODOLOGY
+===================================================
+Frozen methodology: 3 unmeasured warmup cycles, high-precision monotonic clock, separation of computation vs frame render time.
+
+iOS Simulator (iPhone 17, arm64, N=30 / N=20 / N=5):
+- Budget 1 (Initial model + slice generation <= 100 ms): median 3.93 ms, p95 4.00 ms, fails: 0 / 30. Result: PASS
+- Budget 2 (Field switching <= 50 ms): median 8.04 ms, p95 9.21 ms, fails: 0 / 30. Result: PASS
+- Budget 3 (Uncached 60-frame chart calculation <= 400 ms):
+  Active single-field series (N=20, Accelerate vDSP): median 225.96 ms, p95 232.03 ms, fails: 0 / 20. Result: PASS
+  Diagnostic Full 6-field precomputation (360 3D volumes, N=5): median 497.81 ms, p95 530.56 ms
+- Budget 4 (Volume frame <= 100 ms under declared benchmark method): median 0.10 ms, p95 0.14 ms, fails: 0 / 30. Result: PASS
+- Budget 5 (Phase update <= 35 ms per step): median 12.42 ms, p95 12.47 ms, fails: 0 / 30. Result: PASS
+
+Android JVM Native Bridge (arm64, OpenJDK 17, target/release, N=30 / N=20 / N=5):
+- Budget 1 (Initial model + slice generation <= 100 ms): median 5.72 ms, p95 10.27 ms, fails: 0 / 30. Result: PASS
+- Budget 2 (Field switching <= 50 ms): median 5.02 ms, p95 10.80 ms, fails: 0 / 30. Result: PASS
+- Budget 3 (Uncached 60-frame chart calculation <= 400 ms):
+  Active single-field series (N=20): median 278.30 ms, p95 364.19 ms, fails: 0 / 20. Result: PASS
+  Diagnostic Full 6-field precomputation (360 3D volumes, N=5): median 296.18 ms, p95 470.60 ms
+- Budget 4 (Volume frame projection <= 100 ms): median 0.03 ms, p95 0.48 ms, fails: 0 / 30. Result: PASS
+- Budget 5 (Phase update <= 35 ms): median 6.91 ms, p95 8.89 ms, fails: 0 / 30. Result: PASS
+
+SHA-256 MANIFEST
+================
+b54f62baa17321c5faf6d776c05366cb97162d0c12bd162e2bb356e0a999ed64  android/app/build.gradle.kts
+9d44117cd89eb31b1e26dc1fe073b25718c093649a722a77a9ae56e5aa1a599d  android/app/src/test/kotlin/org/oklo/pool/OnRenderGateBenchmarkTest.kt
+0b42872f9e9dd4affe358a47af01fb90c09912841fd657ba535661c0f412985c  android/app/src/test/kotlin/org/oklo/pool/DisclosureAndPrivacyPolicyTest.kt
+dc3679cefd894aefb3713efaccd46ec68c96406f1fbd1aca81c9a6f063c93fe6  android/app/src/androidTest/kotlin/org/oklo/pool/OnRenderGateInstrumentedTest.kt
+e0c988a8cc8aaa276dc14478edd697fca24f9f6ebc654e689350e3ef6674bbb0  android/app/src/androidTest/kotlin/org/oklo/pool/ViewerSmokeTest.kt
+33d285bcb8125a944bceb8938529c9715ab3c8ee21bbfe491e0bdd4af58a4514  android/app/src/main/kotlin/org/oklo/pool/MainActivity.kt
+77b4836f65d6d562341cc2ec4b469436a5b0a879a8686007044a3236f34960e9  android/app/src/main/kotlin/org/oklo/pool/ViewerModel.kt
+7de7689f244c2bb543ac7f887b458ccdc6192e69b847bead9c9915af6798bc9b  android/app/src/main/AndroidManifest.xml
+439eb8fd572be14446c7078685453aeff2a4a4c0afca9e9d844d3c5823c308a4  ios/OkloPool.xcodeproj/project.pbxproj
+ba567e53ab20a1a8f82d17a66596036291e4a8a702ad1f023fd999e0a49bd3e1  ios/OkloPool/Models/PrescribedCurves.swift
+0abb82b57558226db7dd0c4032d1d0b68da986c5d02c22a21736a4cdb62ab3fa  ios/OkloPoolTests/OnRenderGateBenchmarkTests.swift
+41fb86b8e4fc87dac159a42d1c293f1f0909026496e96f2a38ccfdb44c9e5ae8  ios/OkloPoolUITests/OkloPoolUITests.swift
+205b920014ee08025970b55fa00906f1fb32ea3fd622814eb018fdd68f863233  ios/OkloPool/Views/ContentView.swift
+32d6dd259750a7224b38c819f706d8a42a000c0c2b6fbf9b947a994820c6b007  ios/OkloPool/Views/Provenance/ProvenanceSheetView.swift
+8d65d0b43a1262cfe29e83396c00b3db94fb120d44d1188d927341f14a6c223c  ios/OkloPool/PrivacyInfo.xcprivacy
+7fa97898f92cd53754942cb282b4d49403d2e8ea91f74349c98e7af77ccda8d1  crates/oklo_core/src/lib.rs
+5eaf8c9571302924235d67c27a9ace17abc9e8fffe40c2e699ba5dd95f5d80b8  crates/oklo_core/tests/conformance.rs
+b70ae83973b2569d2d1f8608c846c73455cd7c3f6e827ab44b6d9f1110983862  crates/oklo_core_jni/src/lib.rs
